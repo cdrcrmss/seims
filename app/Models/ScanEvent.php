@@ -42,7 +42,27 @@ class ScanEvent extends Model
 
     public function target()
     {
-        return $this->morphTo('target', 'target_type', 'target_id');
+        return $this->morphTo('target', 'target_type', 'target_id')->withDefault();
+    }
+
+    /**
+     * Map short target_type strings to model classes for morphTo resolution.
+     */
+    public function getMorphClass()
+    {
+        return parent::getMorphClass();
+    }
+
+    /**
+     * Register the morph map so 'item'/'room' strings resolve correctly.
+     * Called from AppServiceProvider::boot().
+     */
+    public static function morphMap(): array
+    {
+        return [
+            'item' => \App\Models\Item::class,
+            'room' => \App\Models\Room::class,
+        ];
     }
 
     public static function log(string $actionType, string $targetType, int $targetId, string $outcome, ?string $message = null, ?array $metadata = null, ?string $qrCode = null): self

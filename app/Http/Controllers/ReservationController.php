@@ -306,7 +306,7 @@ class ReservationController extends Controller
             ->get();
 
         foreach ($allRooms as $room) {
-            $conflict = Reservation::whereIn('status', ['approved', 'checked_in'])
+            $conflict = Reservation::whereIn('status', ['pending', 'approved', 'checked_in'])
                 ->where('room_id', $room->id)
                 ->where(function ($q) use ($requestedStart, $requestedEnd) {
                     $q->whereBetween('start_datetime', [$requestedStart, $requestedEnd])
@@ -337,7 +337,7 @@ class ReservationController extends Controller
         $checkEnd = $checkStart->copy()->addDays(3);
 
         $existingReservations = Reservation::where('room_id', $request->room_id)
-            ->whereIn('status', ['approved', 'checked_in'])
+            ->whereIn('status', ['pending', 'approved', 'checked_in'])
             ->whereBetween('start_datetime', [$checkStart, $checkEnd])
             ->orderBy('end_datetime')
             ->get();
@@ -348,7 +348,7 @@ class ReservationController extends Controller
 
             // Check this slot doesn't conflict
             $slotConflict = Reservation::where('room_id', $request->room_id)
-                ->whereIn('status', ['approved', 'checked_in'])
+                ->whereIn('status', ['pending', 'approved', 'checked_in'])
                 ->where(function ($q) use ($slotStart, $slotEnd) {
                     $q->whereBetween('start_datetime', [$slotStart, $slotEnd])
                         ->orWhereBetween('end_datetime', [$slotStart, $slotEnd])

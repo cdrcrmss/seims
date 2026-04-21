@@ -149,6 +149,10 @@ class MaintenanceController extends Controller
      */
     public function waitingParts(Request $request, MaintenanceRecord $maintenance)
     {
+        if ($maintenance->sla_status !== MaintenanceRecord::SLA_IN_PROGRESS) {
+            return back()->withErrors(['error' => 'Only in-progress tickets can be set to waiting for parts.']);
+        }
+
         $maintenance->update([
             'sla_status' => MaintenanceRecord::SLA_WAITING_PARTS,
             'notes' => $maintenance->notes . "\n[Waiting for parts] " . ($request->input('parts_note', '')),

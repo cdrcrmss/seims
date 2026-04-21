@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -55,6 +56,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('reservation-page', function (Request $request) {
             return Limit::perMinute(20)->by($request->user()?->id ?: $request->ip());
         });
+
+        // Register polymorphic morph map for ScanEvent target resolution
+        Relation::enforceMorphMap(\App\Models\ScanEvent::morphMap());
 
         // Register policies
         Gate::policy(\App\Models\Reservation::class, \App\Policies\ReservationPolicy::class);
