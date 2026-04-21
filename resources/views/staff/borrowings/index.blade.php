@@ -231,11 +231,16 @@
                                     </button>
                                 </form>
                             @elseif($borrowing->status === 'issued')
+                                @php
+                                    $isOverdue = $borrowing->expected_return_date && $borrowing->expected_return_date < now();
+                                    $overdueDays = $isOverdue ? (int) now()->diffInDays($borrowing->expected_return_date) : 0;
+                                    $expectedReturnFormatted = $borrowing->expected_return_date ? $borrowing->expected_return_date->format('M d, Y') : '';
+                                @endphp
                                 <button type="button" 
-                                        onclick="openReturnModal({{ $borrowing->id }}, '{{ addslashes($borrowing->item?->name ?? 'Item') }}', '{{ addslashes($borrowing->user?->name ?? 'User') }}')" 
-                                        class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors">
+                                        onclick="openReturnModal({{ $borrowing->id }}, '{{ addslashes($borrowing->item?->name ?? 'Item') }}', '{{ addslashes($borrowing->user?->name ?? 'User') }}', '{{ $expectedReturnFormatted }}', {{ $isOverdue ? 'true' : 'false' }}, {{ $overdueDays }})" 
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg {{ $isOverdue ? 'bg-red-600 hover:bg-red-700' : 'bg-purple-600 hover:bg-purple-700' }} text-white transition-colors">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
-                                    Mark Returned
+                                    {{ $isOverdue ? 'Return (Overdue)' : 'Mark Returned' }}
                                 </button>
                             @endif
 
@@ -426,11 +431,22 @@
     }
 
     // Return Modal Functions
-    function openReturnModal(borrowingId, itemName, userName) {
+    function openReturnModal(borrowingId, itemName, userName, expectedReturn, isOverdue, overdueDays) {
         document.getElementById('returnBorrowingId').value = borrowingId;
         document.getElementById('returnForm').action = `/staff/borrowings/${borrowingId}/return`;
         document.getElementById('returnItemName').textContent = itemName || 'Item';
         document.getElementById('returnUserName').textContent = userName || 'User';
+        
+        // Show overdue warning if applicable
+        const overdueEl = document.getElementById('returnOverdueWarning');
+        const overdueMsg = document.getElementById('returnOverdueMsg');
+        if (isOverdue && overdueDays > 0) {
+            overdueEl.classList.remove('hidden');
+            overdueMsg.textContent = `This item is ${overdueDays} day${overdueDays > 1 ? 's' : ''} overdue (expected: ${expectedReturn})`;
+        } else {
+            overdueEl.classList.add('hidden');
+        }
+        
         document.getElementById('returnModal').classList.remove('hidden');
         // Reset radio buttons
         document.querySelectorAll('#returnForm input[name="return_condition"]').forEach(r => r.checked = false);
@@ -463,6 +479,12 @@
                 </div>
                 
                 <div class="px-6 py-5 space-y-4">
+                    <!-- Overdue Warning -->
+                    <div id="returnOverdueWarning" class="hidden bg-red-50 ring-1 ring-red-200 rounded-xl p-3 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <p id="returnOverdueMsg" class="text-xs font-semibold text-red-700"></p>
+                    </div>
+
                     <!-- Condition -->
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Item Condition</label>

@@ -424,14 +424,17 @@ class StaffController extends Controller
         ]);
 
         try {
-            \DB::transaction(function () use ($borrowing, $request) {
+            $isOverdue = $borrowing->expected_return_date && $borrowing->expected_return_date < now();
+            $overdueDays = $isOverdue ? (int) now()->diffInDays($borrowing->expected_return_date) : 0;
+
+            \DB::transaction(function () use ($borrowing, $request, $isOverdue, $overdueDays) {
                 // Lock the item for update to prevent race conditions
                 $item = Item::lockForUpdate()->findOrFail($borrowing->item_id);
 
                 // Return stock to available
                 $item->increment('available_stock', $borrowing->quantity);
 
-                // If condition is damaged or needs_repair, update item wear level
+                // Update item wear level based on return condition
                 if (in_array($request->return_condition, ['needs_repair', 'damaged'])) {
                     $wearIncrease = $request->return_condition === 'damaged' ? 30 : 15;
                     $item->wear_level = min(100, $item->wear_level + $wearIncrease);
@@ -440,6 +443,9 @@ class StaffController extends Controller
                     if ($request->return_condition === 'damaged') {
                         $item->status = 'damaged';
                     }
+                    $item->save();
+                } elseif ($request->return_condition === 'fair') {
+                    $item->wear_level = min(100, $item->wear_level + 5);
                     $item->save();
                 }
 
@@ -450,9 +456,42 @@ class StaffController extends Controller
                     'return_condition' => $request->return_condition,
                     'return_notes' => $request->return_notes,
                 ]);
+
+                // Notify the student about the return
+                $conditionLabel = ucfirst(str_replace('_', ' ', $request->return_condition));
+                $overdueNote = $isOverdue ? " (returned {$overdueDays} day(s) late)" : '';
+                
+                Notification::create([
+                    'user_id' => $borrowing->user_id,
+                    'type' => in_array($request->return_condition, ['good', 'fair']) ? 'success' : 'warning',
+                    'title' => 'Item Returned',
+                    'message' => 'Your borrowed item "' . $item->name . '" has been marked as returned. Condition: ' . $conditionLabel . $overdueNote,
+                    'action_url' => route('student.borrowings.index'),
+                    'priority' => $isOverdue || in_array($request->return_condition, ['needs_repair', 'damaged']) ? 'high' : 'normal',
+                ]);
+
+                // If item needs repair, notify staff/admin
+                if ($request->return_condition === 'needs_repair' || $request->return_condition === 'damaged') {
+                    $staffUsers = User::whereIn('role', ['staff', 'admin'])->where('id', '!=', auth()->id())->get();
+                    foreach ($staffUsers as $staff) {
+                        Notification::create([
+                            'user_id' => $staff->id,
+                            'type' => 'danger',
+                            'title' => 'Item Needs Attention',
+                            'message' => '"' . $item->name . '" was returned in ' . $conditionLabel . ' condition by ' . ($borrowing->user?->name ?? 'a student') . '. Wear level: ' . $item->wear_level . '%.',
+                            'action_url' => route('staff.items.edit', $item),
+                            'priority' => 'high',
+                        ]);
+                    }
+                }
             });
 
-            return back()->with('success', 'Item returned successfully! Condition: ' . ucfirst(str_replace('_', ' ', $request->return_condition)));
+            $successMsg = 'Item returned successfully! Condition: ' . ucfirst(str_replace('_', ' ', $request->return_condition));
+            if ($isOverdue) {
+                $successMsg .= " (was {$overdueDays} day(s) overdue)";
+            }
+
+            return back()->with('success', $successMsg);
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Return failed: ' . $e->getMessage()]);
         }

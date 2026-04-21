@@ -11,13 +11,12 @@
     currentDate: new Date(),
     reservations: {{ Js::from($reservations->map(fn($r) => [
         'id' => $r->id,
-        'title' => ($r->item?->name ?? '') . ($r->room ? ($r->item ? ' + ' : '') . $r->room->name : ''),
+        'title' => $r->room?->name ?? 'Room',
         'start' => $r->start_datetime,
         'end' => $r->end_datetime,
         'status' => $r->status,
         'purpose' => $r->purpose,
         'user' => $r->user?->name ?? 'N/A',
-        'type' => $r->reservation_type,
     ])) }},
     get currentMonth() { return this.currentDate.getMonth(); },
     get currentYear() { return this.currentDate.getFullYear(); },
@@ -53,8 +52,8 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in-up">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 font-poppins">Reservations</h1>
-            <p class="text-gray-600">Manage equipment and room reservations</p>
+            <h1 class="text-3xl font-bold text-gray-900 font-poppins">Room Reservations</h1>
+            <p class="text-gray-600">Book and manage laboratory & classroom reservations</p>
         </div>
         <div class="flex items-center space-x-3">
             <!-- View Toggle -->
@@ -187,8 +186,7 @@
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-gray-100">
-                        <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Resource</th>
-                        <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Type</th>
+                        <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Room</th>
                         <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Schedule</th>
                         <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Purpose</th>
                         <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Status</th>
@@ -201,20 +199,11 @@
                     <tr class="hover:bg-gray-50/50 transition-colors">
                         <td class="px-6 py-4">
                             <div class="font-medium text-gray-900">
-                                @if($reservation->item)
-                                    {{ $reservation->item->name }}
-                                @endif
-                                @if($reservation->room)
-                                    @if($reservation->item) + @endif
-                                    {{ $reservation->room->name }}
-                                @endif
+                                {{ $reservation->room?->name ?? 'N/A' }}
                             </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold
-                                {{ $reservation->reservation_type === 'equipment' ? 'bg-blue-50 text-blue-700' : ($reservation->reservation_type === 'room' ? 'bg-purple-50 text-purple-700' : 'bg-teal-50 text-teal-700') }}">
-                                {{ ucfirst($reservation->reservation_type) }}
-                            </span>
+                            @if($reservation->room?->building)
+                            <p class="text-xs text-gray-500">{{ $reservation->room->building }}</p>
+                            @endif
                         </td>
                         <td class="px-6 py-4">
                             <div class="text-gray-900 text-xs">
@@ -265,7 +254,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-12 text-center text-gray-400">
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-400">
                             <svg class="w-12 h-12 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             <p>No reservations found</p>
                         </td>

@@ -30,9 +30,6 @@
         <a href="{{ route('analytics.maintenance-predictions') }}" class="px-4 py-2 bg-white ring-1 ring-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-green-50 hover:text-green-700 hover:ring-green-200 transition-all">
             🔧 Maintenance
         </a>
-        <a href="{{ route('analytics.procurement') }}" class="px-4 py-2 bg-white ring-1 ring-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-green-50 hover:text-green-700 hover:ring-green-200 transition-all">
-            🛒 Procurement
-        </a>
     </div>
 
     <!-- Key Metrics -->

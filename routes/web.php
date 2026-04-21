@@ -8,7 +8,6 @@ use App\Http\Controllers\StaffController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\MaintenanceController;
-use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\AnalyticsController;
 
 Route::get('/', function () {
@@ -122,18 +121,6 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::post('/generate-alerts', [MaintenanceController::class, 'generatePredictiveAlerts'])->name('generate-alerts');
     });
 
-    // Procurement & Replenishment Module (Automated Low Stock Alerts)
-    Route::middleware(['staff_or_admin'])->prefix('procurement')->name('procurement.')->group(function () {
-        Route::get('/', [ProcurementController::class, 'index'])->name('index');
-        Route::get('/dashboard', [ProcurementController::class, 'dashboard'])->name('dashboard');
-        Route::get('/create', [ProcurementController::class, 'create'])->name('create');
-        Route::post('/', [ProcurementController::class, 'store'])->name('store');
-        Route::patch('/{procurementRequest}/approve', [ProcurementController::class, 'approve'])->name('approve');
-        Route::patch('/{procurementRequest}/reject', [ProcurementController::class, 'reject'])->name('reject');
-        Route::patch('/{procurementRequest}/mark-ordered', [ProcurementController::class, 'markOrdered'])->name('mark-ordered');
-        Route::patch('/{procurementRequest}/mark-received', [ProcurementController::class, 'markReceived'])->name('mark-received');
-        Route::post('/generate-low-stock-alerts', [ProcurementController::class, 'generateLowStockAlerts'])->name('generate-low-stock-alerts');
-    });
 
     // Predictive Analytics Dashboard (Reporting & Predictive Module)
     Route::middleware(['staff_or_admin'])->prefix('analytics')->name('analytics.')->group(function () {

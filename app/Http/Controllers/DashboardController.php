@@ -7,7 +7,6 @@ use App\Models\Borrowing;
 use App\Models\User;
 use App\Models\Reservation;
 use App\Models\MaintenanceRecord;
-use App\Models\ProcurementRequest;
 use App\Models\Notification;
 use App\Services\PredictiveAnalyticsService;
 use App\Services\BorrowingService;
@@ -125,7 +124,6 @@ class DashboardController extends Controller
             $lowStockItems = Item::whereColumn('available_stock', '<=', 'low_stock_threshold')->count();
             $maintenanceDue = MaintenanceRecord::where('status', 'scheduled')
                 ->where('scheduled_date', '<=', now())->count();
-            $pendingProcurement = ProcurementRequest::where('status', 'pending')->count();
             $pendingReservations = Reservation::where('status', 'pending')->count();
 
             // System health score
@@ -165,12 +163,6 @@ class DashboardController extends Controller
                 ->take(5)
                 ->get();
 
-            // Recent procurement
-            $recentProcurement = ProcurementRequest::with(['item', 'supplier'])
-                ->orderBy('created_at', 'desc')
-                ->take(5)
-                ->get();
-
             // Upcoming maintenance
             $upcomingMaintenance = MaintenanceRecord::with('item')
                 ->where('status', 'scheduled')
@@ -181,9 +173,9 @@ class DashboardController extends Controller
             return view('dashboard.admin', compact(
                 'totalUsers', 'totalItems', 'totalBorrowings', 'pendingRequests',
                 'activeBorrowings', 'overdueItems', 'lowStockItems', 'maintenanceDue',
-                'pendingProcurement', 'pendingReservations', 'systemHealth',
+                'pendingReservations', 'systemHealth',
                 'userBreakdown', 'monthlyTrend', 'recentActivity',
-                'criticalItems', 'recentProcurement', 'upcomingMaintenance'
+                'criticalItems', 'upcomingMaintenance'
             ));
         } catch (\Exception $e) {
             \Log::error('Admin Dashboard Error: ' . $e->getMessage());

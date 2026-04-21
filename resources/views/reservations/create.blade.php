@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'New Reservation')
+@section('title', 'New Room Reservation')
 
 @section('content')
 <div class="space-y-8" x-data="reservationForm()">
@@ -10,12 +10,12 @@
             <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
         </a>
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 font-poppins">New Reservation</h1>
-            <p class="text-gray-600">Reserve equipment or rooms for your activities</p>
+            <h1 class="text-3xl font-bold text-gray-900 font-poppins">Reserve a Room</h1>
+            <p class="text-gray-600">Book a laboratory or classroom for your activities</p>
         </div>
     </div>
 
-    <!-- Rate Limit / Global Errors -->
+    <!-- Errors -->
     @if($errors->has('rate_limit'))
         <div class="max-w-4xl bg-red-50 ring-1 ring-red-200 text-red-700 rounded-xl p-4 text-sm flex items-center gap-3 animate-fade-in-up">
             <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -42,61 +42,44 @@
         <div class="lg:col-span-2">
             <form method="POST" action="{{ route('reservations.store') }}" @submit="handleSubmit($event)" class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-8 space-y-6 animate-fade-in-up stagger-1">
                 @csrf
-
-                <!-- Reservation Type -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Reservation Type</label>
-                    <div class="grid grid-cols-3 gap-3">
-                        <label class="cursor-pointer">
-                            <input type="radio" name="reservation_type" value="equipment" x-model="type" class="peer hidden" required>
-                            <div class="peer-checked:ring-2 peer-checked:ring-green-500 peer-checked:bg-green-50 bg-gray-50 rounded-xl p-4 text-center transition-all hover:bg-gray-100">
-                                <svg class="w-7 h-7 mx-auto mb-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                                <span class="text-xs font-semibold">Equipment</span>
-                            </div>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" name="reservation_type" value="room" x-model="type" class="peer hidden">
-                            <div class="peer-checked:ring-2 peer-checked:ring-green-500 peer-checked:bg-green-50 bg-gray-50 rounded-xl p-4 text-center transition-all hover:bg-gray-100">
-                                <svg class="w-7 h-7 mx-auto mb-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                                <span class="text-xs font-semibold">Room</span>
-                            </div>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" name="reservation_type" value="both" x-model="type" class="peer hidden">
-                            <div class="peer-checked:ring-2 peer-checked:ring-green-500 peer-checked:bg-green-50 bg-gray-50 rounded-xl p-4 text-center transition-all hover:bg-gray-100">
-                                <svg class="w-7 h-7 mx-auto mb-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-                                <span class="text-xs font-semibold">Both</span>
-                            </div>
-                        </label>
-                    </div>
-                    @error('reservation_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                <!-- Equipment Selection -->
-                <div x-show="type === 'equipment' || type === 'both'" x-transition>
-                    <label for="item_id" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Equipment</label>
-                    <select name="item_id" id="item_id" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all">
-                        <option value="">Select equipment...</option>
-                        @foreach($items as $item)
-                            <option value="{{ $item->id }}" {{ old('item_id') == $item->id ? 'selected' : '' }}>
-                                {{ $item->name }} ({{ $item->available_stock }} available)
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('item_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
+                <input type="hidden" name="reservation_type" value="room">
 
                 <!-- Room Selection -->
-                <div x-show="type === 'room' || type === 'both'" x-transition>
-                    <label for="room_id" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Room</label>
-                    <select name="room_id" id="room_id" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all">
-                        <option value="">Select room...</option>
+                <div>
+                    <label for="room_id" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Select Room</label>
+                    @if($rooms->isEmpty())
+                        <div class="bg-yellow-50 ring-1 ring-yellow-200 text-yellow-700 rounded-xl p-4 text-sm">
+                            No rooms are currently available. Please contact the lab staff.
+                        </div>
+                    @else
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         @foreach($rooms as $room)
-                            <option value="{{ $room->id }}" {{ old('room_id') == $room->id ? 'selected' : '' }}>
-                                {{ $room->name }} — {{ $room->building }}, {{ $room->floor }} (Cap: {{ $room->capacity }})
-                            </option>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="room_id" value="{{ $room->id }}" x-model="selectedRoomId" class="peer hidden" required {{ old('room_id') == $room->id ? 'checked' : '' }}>
+                            <div class="peer-checked:ring-2 peer-checked:ring-green-500 peer-checked:bg-green-50 bg-gray-50 rounded-xl p-4 transition-all hover:bg-gray-100">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-bold text-gray-900">{{ $room->name }}</p>
+                                        <p class="text-xs text-gray-500">{{ $room->building }}@if($room->floor), {{ $room->floor }}@endif</p>
+                                        <div class="flex items-center gap-2 mt-1.5">
+                                            <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                                {{ $room->capacity }} seats
+                                            </span>
+                                            @if($room->type)
+                                            <span class="text-[10px] font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">{{ ucfirst($room->type) }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
                         @endforeach
-                    </select>
+                    </div>
+                    @endif
                     @error('room_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
@@ -117,7 +100,7 @@
                 <!-- Duration indicator -->
                 <div x-show="startDatetime && endDatetime" x-transition class="text-xs text-gray-500 -mt-2">
                     Duration: <span x-text="computeDuration()" class="font-medium text-gray-700"></span>
-                    <span x-show="durationHours > 8" class="text-red-500 font-medium ml-1">(max 8 hours)</span>
+                    <span x-show="durationHours > 8" class="text-red-500 font-medium ml-1">(max 8 hours per session)</span>
                 </div>
 
                 <!-- Availability Check Result -->
@@ -129,7 +112,7 @@
                         <template x-if="!available">
                             <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                         </template>
-                        <span x-text="available ? 'The selected time slot is available!' : 'Conflict detected! This resource is already reserved for the selected time.'"></span>
+                        <span x-text="available ? 'This room is available for the selected time!' : 'Conflict detected! This room is already reserved for the selected time.'"></span>
                     </div>
                 </div>
 
@@ -147,22 +130,12 @@
                         Purpose <span class="font-normal normal-case text-gray-400">(min 10 characters)</span>
                     </label>
                     <textarea name="purpose" id="purpose" rows="3" x-model="purpose"
-                              placeholder="Describe the purpose of your reservation in detail..."
+                              placeholder="e.g. Physics Lab experiment for BSIT 2A, Chemistry practical session..."
                               class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all resize-none" required>{{ old('purpose') }}</textarea>
                     <div class="flex justify-between mt-1">
                         @error('purpose') <p class="text-red-500 text-xs">{{ $message }}</p> @enderror
                         <span class="text-xs ml-auto" :class="purpose.length >= 10 ? 'text-green-600' : 'text-gray-400'" x-text="purpose.length + '/500'"></span>
                     </div>
-                </div>
-
-                <!-- Notes (optional) -->
-                <div>
-                    <label for="notes" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                        Additional Notes <span class="font-normal normal-case text-gray-400">(optional)</span>
-                    </label>
-                    <textarea name="notes" id="notes" rows="2"
-                              placeholder="Any special requirements or setup needs..."
-                              class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all resize-none">{{ old('notes') }}</textarea>
                 </div>
 
                 <!-- Submit -->
@@ -176,7 +149,7 @@
                         <template x-if="submitting">
                             <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                         </template>
-                        <span x-text="submitting ? 'Submitting...' : 'Submit Reservation'"></span>
+                        <span x-text="submitting ? 'Submitting...' : 'Reserve Room'"></span>
                     </button>
                     <a href="{{ route('reservations.index') }}" class="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all duration-200">
                         Cancel
@@ -194,7 +167,7 @@
                         <div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
                             <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
-                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Active Reservations</p>
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Your Reservations</p>
                     </div>
                 </div>
                 <div class="p-5">
@@ -218,41 +191,31 @@
                         <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
                             <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         </div>
-                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Guidelines</p>
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">How It Works</p>
                     </div>
                 </div>
                 <div class="p-5 space-y-3">
-                    <div class="flex items-center gap-3">
-                        <span class="w-6 h-6 rounded-md bg-green-50 ring-1 ring-green-200 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                        </span>
-                        <span class="text-sm text-gray-700">Max 8 hours per session</span>
+                    <div class="flex items-start gap-3">
+                        <span class="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">1</span>
+                        <span class="text-sm text-gray-700">Select a room and pick your date/time</span>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <span class="w-6 h-6 rounded-md bg-green-50 ring-1 ring-green-200 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                        </span>
-                        <span class="text-sm text-gray-700">Book up to 30 days ahead</span>
+                    <div class="flex items-start gap-3">
+                        <span class="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">2</span>
+                        <span class="text-sm text-gray-700">Check availability to avoid conflicts</span>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <span class="w-6 h-6 rounded-md bg-green-50 ring-1 ring-green-200 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                        </span>
-                        <span class="text-sm text-gray-700">Up to 5 active reservations</span>
+                    <div class="flex items-start gap-3">
+                        <span class="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">3</span>
+                        <span class="text-sm text-gray-700">Submit and wait for staff approval</span>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <span class="w-6 h-6 rounded-md bg-green-50 ring-1 ring-green-200 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                        </span>
-                        <span class="text-sm text-gray-700">Purpose min. 10 characters</span>
+                    <div class="flex items-start gap-3">
+                        <span class="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">4</span>
+                        <span class="text-sm text-gray-700">Use the room during your reserved time</span>
                     </div>
-                    <div class="pt-2 border-t border-gray-100">
-                        <div class="flex items-center gap-3">
-                            <span class="w-6 h-6 rounded-md bg-amber-50 ring-1 ring-amber-200 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            </span>
-                            <span class="text-sm text-gray-500">5 submissions per 5 min</span>
-                        </div>
+                    <div class="pt-3 border-t border-gray-100 space-y-2">
+                        <p class="text-xs font-semibold text-gray-500 uppercase">Rules</p>
+                        <p class="text-xs text-gray-500">- Max 8 hours per session</p>
+                        <p class="text-xs text-gray-500">- Book up to 30 days in advance</p>
+                        <p class="text-xs text-gray-500">- Up to 5 active reservations</p>
                     </div>
                 </div>
             </div>
@@ -265,8 +228,8 @@
                             <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
                         <div>
-                            <p class="text-sm font-bold text-blue-900 mb-1">Quick Tip</p>
-                            <p class="text-sm text-blue-700 leading-relaxed">Use "Check Availability" before submitting to verify your time slot is free.</p>
+                            <p class="text-sm font-bold text-blue-900 mb-1">Need Equipment?</p>
+                            <p class="text-sm text-blue-700 leading-relaxed">Use the <a href="{{ route('student.borrow.form') }}" class="underline font-semibold">Borrow Items</a> page to request laboratory equipment separately.</p>
                         </div>
                     </div>
                 </div>
@@ -278,7 +241,7 @@
 <script>
 function reservationForm() {
     return {
-        type: '{{ old("reservation_type", "equipment") }}',
+        selectedRoomId: '{{ old("room_id", "") }}',
         startDatetime: '{{ old("start_datetime", "") }}',
         endDatetime: '{{ old("end_datetime", "") }}',
         purpose: '{{ old("purpose", "") }}',
@@ -288,7 +251,7 @@ function reservationForm() {
         durationHours: 0,
 
         canCheckAvailability() {
-            return this.startDatetime && this.endDatetime && (this.type !== '');
+            return this.selectedRoomId && this.startDatetime && this.endDatetime;
         },
 
         computeDuration() {
@@ -318,11 +281,7 @@ function reservationForm() {
             const formData = new FormData();
             formData.append('start_datetime', this.startDatetime);
             formData.append('end_datetime', this.endDatetime);
-            
-            const itemSelect = document.getElementById('item_id');
-            const roomSelect = document.getElementById('room_id');
-            if (itemSelect && itemSelect.value) formData.append('item_id', itemSelect.value);
-            if (roomSelect && roomSelect.value) formData.append('room_id', roomSelect.value);
+            formData.append('room_id', this.selectedRoomId);
 
             try {
                 const resp = await fetch('{{ route("reservations.check-availability") }}', {

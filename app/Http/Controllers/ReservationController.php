@@ -39,14 +39,13 @@ class ReservationController extends Controller
     public function create()
     {
         $user = Auth::user();
-        $items = Item::where('status', 'available')->get();
         $rooms = Room::where('status', 'available')->get();
 
         $activeReservationCount = Reservation::where('user_id', $user->id)
             ->whereIn('status', ['pending', 'approved'])
             ->count();
 
-        return view('reservations.create', compact('items', 'rooms', 'activeReservationCount'));
+        return view('reservations.create', compact('rooms', 'activeReservationCount'));
     }
 
     /**
@@ -55,11 +54,10 @@ class ReservationController extends Controller
     public function store(StoreReservationRequest $request)
     {
         $reservation = new Reservation([
-            'reservation_type' => $request->input('reservation_type'),
+            'reservation_type' => 'room',
             'start_datetime' => $request->input('start_datetime'),
             'end_datetime' => $request->input('end_datetime'),
             'purpose' => $request->input('purpose'),
-            'item_id' => $request->input('item_id'),
             'room_id' => $request->input('room_id'),
         ]);
         $reservation->user_id = Auth::id();
