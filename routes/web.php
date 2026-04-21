@@ -9,6 +9,7 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\OperationalInboxController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -63,6 +64,9 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::get('/borrowings', [AdminController::class, 'borrowings'])->name('borrowings');
     });
     
+    // Staff Operational Inbox
+    Route::middleware(['staff_or_admin'])->get('/inbox', [OperationalInboxController::class, 'index'])->name('staff.inbox');
+
     // Staff Routes (accessible by both staff and admin)
     Route::middleware(['staff_or_admin'])->prefix('staff')->name('staff.')->group(function () {
         // Item Management
