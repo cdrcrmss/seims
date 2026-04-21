@@ -146,6 +146,9 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::get('/utilization', [AnalyticsController::class, 'utilization'])->name('utilization');
         Route::get('/maintenance-predictions', [AnalyticsController::class, 'maintenancePredictions'])->name('maintenance-predictions');
         Route::get('/procurement', [AnalyticsController::class, 'procurement'])->name('procurement');
+        Route::get('/overdue-risk', [AnalyticsController::class, 'overdueRisk'])->name('overdue-risk');
+        Route::get('/peak-hours', [AnalyticsController::class, 'peakHours'])->name('peak-hours');
+        Route::get('/operational', [AnalyticsController::class, 'operational'])->name('operational');
         Route::get('/items/{item}', [AnalyticsController::class, 'itemAnalytics'])->name('item-analytics');
         Route::post('/export', [AnalyticsController::class, 'exportReport'])->name('export');
     });

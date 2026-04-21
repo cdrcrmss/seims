@@ -30,6 +30,15 @@
         <a href="{{ route('analytics.maintenance-predictions') }}" class="px-4 py-2 bg-white ring-1 ring-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-green-50 hover:text-green-700 hover:ring-green-200 transition-all">
             🔧 Maintenance
         </a>
+        <a href="{{ route('analytics.overdue-risk') }}" class="px-4 py-2 bg-white ring-1 ring-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-red-50 hover:text-red-700 hover:ring-red-200 transition-all">
+            🚨 Overdue Risk
+        </a>
+        <a href="{{ route('analytics.peak-hours') }}" class="px-4 py-2 bg-white ring-1 ring-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-purple-50 hover:text-purple-700 hover:ring-purple-200 transition-all">
+            🕐 Peak Hours
+        </a>
+        <a href="{{ route('analytics.operational') }}" class="px-4 py-2 bg-white ring-1 ring-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:ring-blue-200 transition-all">
+            ⚙️ Operational
+        </a>
     </div>
 
     <!-- Key Metrics -->

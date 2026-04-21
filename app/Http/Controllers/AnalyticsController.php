@@ -204,6 +204,179 @@ class AnalyticsController extends Controller
     }
 
     /**
+     * Overdue risk scoring — rank issued borrowings by risk of becoming/staying overdue.
+     */
+    public function overdueRisk()
+    {
+        $issuedBorrowings = Borrowing::with(['user', 'item'])
+            ->where('status', 'issued')
+            ->whereNotNull('expected_return_date')
+            ->orderBy('expected_return_date', 'asc')
+            ->get();
+
+        $riskItems = $issuedBorrowings->map(function ($b) {
+            $daysUntilDue = now()->diffInDays($b->expected_return_date, false);
+            $isOverdue = $daysUntilDue < 0;
+
+            // Score: higher = more urgent
+            // Overdue items: base 70 + 3 per overdue day (max 100)
+            // Due soon: 50 - days remaining * 5 (so due today = 50, due in 3 days = 35)
+            if ($isOverdue) {
+                $score = min(100, 70 + abs($daysUntilDue) * 3);
+            } else {
+                $score = max(0, 50 - $daysUntilDue * 5);
+            }
+
+            // Factor in user's past overdue behavior
+            $userPastOverdue = Borrowing::where('user_id', $b->user_id)
+                ->where('status', 'returned')
+                ->whereColumn('returned_date', '>', 'expected_return_date')
+                ->count();
+            $score = min(100, $score + $userPastOverdue * 5);
+
+            return [
+                'borrowing_id' => $b->id,
+                'item_name' => $b->item?->name,
+                'borrower' => $b->user?->name,
+                'expected_return' => $b->expected_return_date->format('M d, Y'),
+                'days_until_due' => (int) $daysUntilDue,
+                'is_overdue' => $isOverdue,
+                'risk_score' => $score,
+                'risk_level' => $score >= 70 ? 'critical' : ($score >= 40 ? 'high' : ($score >= 20 ? 'medium' : 'low')),
+                'user_past_overdue' => $userPastOverdue,
+            ];
+        })->sortByDesc('risk_score')->values();
+
+        return view('analytics.overdue-risk', compact('riskItems'));
+    }
+
+    /**
+     * Peak hours heatmap — borrowing and reservation activity by day/hour.
+     */
+    public function peakHours()
+    {
+        $driver = DB::connection()->getDriverName();
+
+        // Borrowing activity by hour of day and day of week
+        if ($driver === 'sqlite') {
+            $hourExpr = "CAST(strftime('%H', created_at) AS INTEGER)";
+            $dowExpr = "CAST(strftime('%w', created_at) AS INTEGER)";
+        } else {
+            $hourExpr = "HOUR(created_at)";
+            $dowExpr = "DAYOFWEEK(created_at) - 1"; // 0=Sunday
+        }
+
+        $borrowingHeatmap = Borrowing::selectRaw("{$dowExpr} as day_of_week, {$hourExpr} as hour, COUNT(*) as count")
+            ->where('created_at', '>=', now()->subDays(90))
+            ->groupBy('day_of_week', 'hour')
+            ->orderBy('day_of_week')
+            ->orderBy('hour')
+            ->get();
+
+        // Reservation activity by hour/day
+        if ($driver === 'sqlite') {
+            $hourExprR = "CAST(strftime('%H', start_datetime) AS INTEGER)";
+            $dowExprR = "CAST(strftime('%w', start_datetime) AS INTEGER)";
+        } else {
+            $hourExprR = "HOUR(start_datetime)";
+            $dowExprR = "DAYOFWEEK(start_datetime) - 1";
+        }
+
+        $reservationHeatmap = Reservation::selectRaw("{$dowExprR} as day_of_week, {$hourExprR} as hour, COUNT(*) as count")
+            ->where('start_datetime', '>=', now()->subDays(90))
+            ->whereIn('status', ['approved', 'checked_in', 'completed'])
+            ->groupBy('day_of_week', 'hour')
+            ->orderBy('day_of_week')
+            ->orderBy('hour')
+            ->get();
+
+        // Build heatmap matrix (7 days x 24 hours)
+        $dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        $borrowMatrix = [];
+        $reserveMatrix = [];
+        for ($d = 0; $d < 7; $d++) {
+            for ($h = 0; $h < 24; $h++) {
+                $borrowMatrix[$d][$h] = 0;
+                $reserveMatrix[$d][$h] = 0;
+            }
+        }
+        foreach ($borrowingHeatmap as $row) {
+            $borrowMatrix[(int)$row->day_of_week][(int)$row->hour] = (int)$row->count;
+        }
+        foreach ($reservationHeatmap as $row) {
+            $reserveMatrix[(int)$row->day_of_week][(int)$row->hour] = (int)$row->count;
+        }
+
+        return view('analytics.peak-hours', compact('borrowMatrix', 'reserveMatrix', 'dayNames'));
+    }
+
+    /**
+     * Operational analytics — SLA performance, scan throughput, no-show rates.
+     */
+    public function operational()
+    {
+        // Maintenance SLA metrics
+        $completedTickets = MaintenanceRecord::where('status', 'completed')
+            ->where('completed_date', '>=', now()->subDays(90))
+            ->get();
+
+        $avgResolutionHours = $completedTickets->isNotEmpty()
+            ? round($completedTickets->avg(function ($t) {
+                return $t->started_at && $t->completed_date
+                    ? $t->started_at->diffInHours($t->completed_date)
+                    : 0;
+            }), 1)
+            : null;
+
+        $openTicketCount = MaintenanceRecord::openTickets()->count();
+        $mttr = MaintenanceRecord::mttr();
+
+        // No-show rate
+        $totalReservations90d = Reservation::where('created_at', '>=', now()->subDays(90))
+            ->whereIn('status', ['completed', 'checked_in', 'no_show', 'cancelled'])
+            ->count();
+        $noShows90d = Reservation::where('status', 'no_show')
+            ->where('updated_at', '>=', now()->subDays(90))
+            ->count();
+        $noShowRate = $totalReservations90d > 0 ? round(($noShows90d / $totalReservations90d) * 100, 1) : 0;
+
+        // Borrowing turnaround (avg days from issued to returned)
+        $driver = DB::connection()->getDriverName();
+        if ($driver === 'sqlite') {
+            $diffExpr = "CAST(julianday(returned_date) - julianday(issued_date) AS INTEGER)";
+        } else {
+            $diffExpr = "DATEDIFF(returned_date, issued_date)";
+        }
+        $avgTurnaround = Borrowing::where('status', 'returned')
+            ->where('returned_date', '>=', now()->subDays(90))
+            ->whereNotNull('issued_date')
+            ->selectRaw("AVG({$diffExpr}) as avg_days")
+            ->value('avg_days');
+        $avgTurnaround = $avgTurnaround ? round($avgTurnaround, 1) : null;
+
+        // Return condition breakdown
+        $conditionBreakdown = Borrowing::where('status', 'returned')
+            ->where('returned_date', '>=', now()->subDays(90))
+            ->selectRaw("return_condition, COUNT(*) as count")
+            ->groupBy('return_condition')
+            ->pluck('count', 'return_condition')
+            ->toArray();
+
+        $operationalData = [
+            'mttr_hours' => $mttr,
+            'avg_resolution_hours' => $avgResolutionHours,
+            'open_tickets' => $openTicketCount,
+            'no_show_rate' => $noShowRate,
+            'no_shows_90d' => $noShows90d,
+            'total_reservations_90d' => $totalReservations90d,
+            'avg_turnaround_days' => $avgTurnaround,
+            'condition_breakdown' => $conditionBreakdown,
+        ];
+
+        return view('analytics.operational', compact('operationalData'));
+    }
+
+    /**
      * Generate reports export (CSV or JSON)
      */
     public function exportReport(Request $request)

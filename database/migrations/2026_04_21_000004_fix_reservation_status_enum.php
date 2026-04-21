@@ -13,7 +13,7 @@ return new class extends Migration
         // include 'checked_in' or 'no_show'. Change to string to support
         // all current and future states.
         if (DB::getDriverName() === 'mysql') {
-            DB::statement("ALTER TABLE reservations MODIFY COLUMN status VARCHAR(255) DEFAULT 'pending'");
+            DB::statement("ALTER TABLE reservations MODIFY COLUMN status VARCHAR(30) DEFAULT 'pending'");
         }
         // SQLite already stores enums as strings, no change needed.
     }
