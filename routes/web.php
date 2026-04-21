@@ -10,6 +10,7 @@ use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\OperationalInboxController;
+use App\Http\Controllers\TimelineController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -66,6 +67,12 @@ Route::middleware(['auth', 'approved'])->group(function () {
     
     // Staff Operational Inbox
     Route::middleware(['staff_or_admin'])->get('/inbox', [OperationalInboxController::class, 'index'])->name('staff.inbox');
+
+    // Unified Timelines
+    Route::middleware(['staff_or_admin'])->prefix('timeline')->name('timeline.')->group(function () {
+        Route::get('/asset/{item}', [TimelineController::class, 'assetTimeline'])->name('asset');
+        Route::get('/user/{user}', [TimelineController::class, 'userTimeline'])->name('user');
+    });
 
     // Staff Routes (accessible by both staff and admin)
     Route::middleware(['staff_or_admin'])->prefix('staff')->name('staff.')->group(function () {
