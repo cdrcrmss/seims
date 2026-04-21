@@ -152,55 +152,63 @@
         </div>
 
         <!-- Sidebar Info -->
-        <div class="lg:col-span-1 space-y-4 animate-fade-in-up stagger-2">
+        <div class="lg:col-span-1 space-y-3 animate-fade-in-up stagger-2">
             <!-- Active Reservations -->
-            <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-5">
-                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Your Reservations</p>
-                <div class="flex items-end justify-between mb-3">
-                    <div class="flex items-baseline gap-1">
-                        <span class="text-3xl font-bold text-gray-900">{{ $activeReservationCount }}</span>
-                        <span class="text-sm text-gray-400 font-medium">/ 5</span>
-                    </div>
-                    <span class="text-xs font-semibold {{ $activeReservationCount >= 5 ? 'text-red-500' : 'text-green-600' }}">{{ 5 - $activeReservationCount }} slot{{ (5 - $activeReservationCount) !== 1 ? 's' : '' }} remaining</span>
+            <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-4">
+                <div class="flex items-center justify-between mb-2.5">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Your Reservations</p>
+                    <span class="text-[10px] font-semibold {{ $activeReservationCount >= 5 ? 'text-red-500' : 'text-green-600' }}">{{ 5 - $activeReservationCount }} slot{{ (5 - $activeReservationCount) !== 1 ? 's' : '' }} left</span>
                 </div>
-                <div class="w-full bg-gray-100 rounded-full h-2">
-                    <div class="h-2 rounded-full transition-all {{ $activeReservationCount >= 5 ? 'bg-red-500' : ($activeReservationCount >= 3 ? 'bg-amber-500' : 'bg-green-500') }}" style="width: {{ min(($activeReservationCount / 5) * 100, 100) }}%"></div>
+                <div class="flex items-baseline gap-1 mb-2">
+                    <span class="text-2xl font-bold text-gray-900">{{ $activeReservationCount }}</span>
+                    <span class="text-xs text-gray-400 font-medium">/ 5</span>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-1.5">
+                    <div class="h-1.5 rounded-full transition-all {{ $activeReservationCount >= 5 ? 'bg-red-500' : ($activeReservationCount >= 3 ? 'bg-amber-500' : 'bg-green-500') }}" style="width: {{ min(($activeReservationCount / 5) * 100, 100) }}%"></div>
                 </div>
             </div>
 
             <!-- Guidelines -->
-            <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-5">
-                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">How It Works</p>
-                <div class="space-y-3">
-                    <div class="flex items-start gap-3">
-                        <span class="w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center flex-shrink-0 text-[10px] font-bold mt-0.5">1</span>
-                        <span class="text-sm text-gray-600">Select a room and pick your date/time</span>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <span class="w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center flex-shrink-0 text-[10px] font-bold mt-0.5">2</span>
-                        <span class="text-sm text-gray-600">Check availability to avoid conflicts</span>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <span class="w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center flex-shrink-0 text-[10px] font-bold mt-0.5">3</span>
-                        <span class="text-sm text-gray-600">Submit and wait for staff approval</span>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <span class="w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center flex-shrink-0 text-[10px] font-bold mt-0.5">4</span>
-                        <span class="text-sm text-gray-600">Use the room during your reserved time</span>
-                    </div>
-                </div>
-                <div class="mt-4 pt-3 border-t border-gray-100 space-y-1.5">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Rules</p>
-                    <p class="text-xs text-gray-500">Max 8 hours per session</p>
-                    <p class="text-xs text-gray-500">Book up to 30 days in advance</p>
-                    <p class="text-xs text-gray-500">Up to 5 active reservations</p>
+            <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-4">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">How It Works</p>
+                <ol class="space-y-2">
+                    <li class="flex items-start gap-2.5">
+                        <span class="w-4 h-4 rounded-full bg-green-600 text-white flex items-center justify-center flex-shrink-0 text-[9px] font-bold mt-px">1</span>
+                        <span class="text-xs text-gray-600 leading-relaxed">Select a room and pick your date/time</span>
+                    </li>
+                    <li class="flex items-start gap-2.5">
+                        <span class="w-4 h-4 rounded-full bg-green-600 text-white flex items-center justify-center flex-shrink-0 text-[9px] font-bold mt-px">2</span>
+                        <span class="text-xs text-gray-600 leading-relaxed">Check availability to avoid conflicts</span>
+                    </li>
+                    <li class="flex items-start gap-2.5">
+                        <span class="w-4 h-4 rounded-full bg-green-600 text-white flex items-center justify-center flex-shrink-0 text-[9px] font-bold mt-px">3</span>
+                        <span class="text-xs text-gray-600 leading-relaxed">Submit and wait for staff approval</span>
+                    </li>
+                    <li class="flex items-start gap-2.5">
+                        <span class="w-4 h-4 rounded-full bg-green-600 text-white flex items-center justify-center flex-shrink-0 text-[9px] font-bold mt-px">4</span>
+                        <span class="text-xs text-gray-600 leading-relaxed">Use the room during your reserved time</span>
+                    </li>
+                </ol>
+                <div class="mt-3 pt-2.5 border-t border-gray-100">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Rules</p>
+                    <ul class="space-y-0.5">
+                        <li class="text-[11px] text-gray-500 flex items-center gap-1.5">
+                            <span class="w-1 h-1 rounded-full bg-gray-300 flex-shrink-0"></span>Max 8 hours per session
+                        </li>
+                        <li class="text-[11px] text-gray-500 flex items-center gap-1.5">
+                            <span class="w-1 h-1 rounded-full bg-gray-300 flex-shrink-0"></span>Book up to 30 days in advance
+                        </li>
+                        <li class="text-[11px] text-gray-500 flex items-center gap-1.5">
+                            <span class="w-1 h-1 rounded-full bg-gray-300 flex-shrink-0"></span>Up to 5 active reservations
+                        </li>
+                    </ul>
                 </div>
             </div>
 
             <!-- Tip -->
-            <div class="bg-gray-50 rounded-2xl ring-1 ring-gray-200 p-5">
-                <p class="text-sm font-semibold text-gray-900 mb-1">Need Equipment?</p>
-                <p class="text-xs text-gray-500 leading-relaxed">Use the <a href="{{ route('student.borrow.form') }}" class="text-green-600 font-semibold hover:underline">Borrow Items</a> page to request laboratory equipment separately.</p>
+            <div class="bg-green-50 rounded-2xl ring-1 ring-green-100 p-4">
+                <p class="text-xs font-semibold text-gray-800 mb-0.5">Need Equipment?</p>
+                <p class="text-[11px] text-gray-500 leading-relaxed">Use the <a href="{{ route('student.borrow.form') }}" class="text-green-600 font-semibold hover:underline">Borrow Items</a> page to request laboratory equipment separately.</p>
             </div>
         </div>
     </div>

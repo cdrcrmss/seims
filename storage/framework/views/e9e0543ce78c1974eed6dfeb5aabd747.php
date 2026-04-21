@@ -209,7 +209,7 @@
                                     <form method="POST" action="<?php echo e(route('staff.borrowings.approve', $borrowing)); ?>" class="inline">
                                         <?php echo csrf_field(); ?>
                                         <?php echo method_field('PATCH'); ?>
-                                        <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">
+                                        <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-green-50 text-green-700 ring-1 ring-green-200 hover:bg-green-100 transition-all">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                             Approve
                                         </button>
@@ -217,7 +217,7 @@
                                     <form method="POST" action="<?php echo e(route('staff.borrowings.reject', $borrowing)); ?>" class="inline" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Reject Request', message: 'Are you sure you want to reject this borrow request?', type: 'danger' })">
                                         <?php echo csrf_field(); ?>
                                         <?php echo method_field('PATCH'); ?>
-                                        <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg text-red-700 bg-red-50 hover:bg-red-100 ring-1 ring-red-200/60 transition-colors">
+                                        <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-red-50 text-red-700 ring-1 ring-red-200 hover:bg-red-100 transition-all">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                             Reject
                                         </button>
@@ -227,8 +227,8 @@
                                 <form method="POST" action="<?php echo e(route('staff.borrowings.issue', $borrowing)); ?>" class="inline">
                                     <?php echo csrf_field(); ?>
                                     <?php echo method_field('PATCH'); ?>
-                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-blue-50 text-blue-700 ring-1 ring-blue-200 hover:bg-blue-100 transition-all">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                                         Issue Item
                                     </button>
                                 </form>
@@ -240,19 +240,19 @@
                                 ?>
                                 <button type="button" 
                                         onclick="openReturnModal(<?php echo e($borrowing->id); ?>, '<?php echo e(addslashes($borrowing->item?->name ?? 'Item')); ?>', '<?php echo e(addslashes($borrowing->user?->name ?? 'User')); ?>', '<?php echo e($expectedReturnFormatted); ?>', <?php echo e($isOverdue ? 'true' : 'false'); ?>, <?php echo e($overdueDays); ?>)" 
-                                        class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg <?php echo e($isOverdue ? 'bg-red-600 hover:bg-red-700' : 'bg-purple-600 hover:bg-purple-700'); ?> text-white transition-colors">
+                                        class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl transition-all <?php echo e($isOverdue ? 'bg-red-50 text-red-700 ring-1 ring-red-200 hover:bg-red-100' : 'bg-purple-50 text-purple-700 ring-1 ring-purple-200 hover:bg-purple-100'); ?>">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
-                                    <?php echo e($isOverdue ? 'Return (Overdue)' : 'Mark Returned'); ?>
+                                    <?php echo e($isOverdue ? 'Return (Overdue ' . $overdueDays . 'd)' : 'Mark Returned'); ?>
 
                                 </button>
                             <?php endif; ?>
 
                             <?php if($borrowing->status === 'returned' && $borrowing->return_condition): ?>
-                                <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md
-                                    <?php echo e($borrowing->return_condition === 'good' ? 'bg-green-50 text-green-700' : 
-                                       ($borrowing->return_condition === 'fair' ? 'bg-yellow-50 text-yellow-700' : 
-                                        ($borrowing->return_condition === 'needs_repair' ? 'bg-orange-50 text-orange-700' : 
-                                         'bg-red-50 text-red-700'))); ?>">
+                                <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl
+                                    <?php echo e($borrowing->return_condition === 'good' ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 
+                                       ($borrowing->return_condition === 'fair' ? 'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200' : 
+                                        ($borrowing->return_condition === 'needs_repair' ? 'bg-orange-50 text-orange-700 ring-1 ring-orange-200' : 
+                                         'bg-red-50 text-red-700 ring-1 ring-red-200'))); ?>">
                                     <span class="w-1.5 h-1.5 rounded-full 
                                         <?php echo e($borrowing->return_condition === 'good' ? 'bg-green-500' : 
                                            ($borrowing->return_condition === 'fair' ? 'bg-yellow-500' : 
@@ -262,7 +262,7 @@
                                 </span>
                             <?php endif; ?>
 
-                            <button onclick="showBorrowingDetails(<?php echo e($borrowing->toJson()); ?>)" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg text-gray-600 bg-gray-50 hover:bg-gray-100 ring-1 ring-gray-200/60 transition-colors">
+                            <button onclick="showBorrowingDetails(<?php echo e($borrowing->toJson()); ?>)" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl text-gray-600 bg-gray-50 ring-1 ring-gray-200 hover:bg-gray-100 transition-all">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 Details
                             </button>

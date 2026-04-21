@@ -183,32 +183,32 @@
                                     <?php switch($item->status):
                                         case ('available'): ?>
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                ✅ Available
+                                                Available
                                             </span>
                                             <?php break; ?>
                                         <?php case ('in_use'): ?>
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                📦 In Use
+                                                In Use
                                             </span>
                                             <?php break; ?>
                                         <?php case ('maintenance'): ?>
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                                                🔧 Maintenance
+                                                Maintenance
                                             </span>
                                             <?php break; ?>
                                         <?php case ('damaged'): ?>
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                ⚠️ Damaged
+                                                Damaged
                                             </span>
                                             <?php break; ?>
                                         <?php case ('lost'): ?>
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-800 text-white">
-                                                ❌ Lost
+                                                Lost
                                             </span>
                                             <?php break; ?>
                                         <?php case ('retired'): ?>
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-300 text-gray-700">
-                                                🗄️ Retired
+                                                Retired
                                             </span>
                                             <?php break; ?>
                                         <?php default: ?>

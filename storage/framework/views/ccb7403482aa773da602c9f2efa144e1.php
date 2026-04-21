@@ -59,24 +59,17 @@
                         <?php $__currentLoopData = $rooms; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $room): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <label class="cursor-pointer">
                             <input type="radio" name="room_id" value="<?php echo e($room->id); ?>" x-model="selectedRoomId" class="peer hidden" required <?php echo e(old('room_id') == $room->id ? 'checked' : ''); ?>>
-                            <div class="peer-checked:ring-2 peer-checked:ring-green-500 peer-checked:bg-green-50 bg-gray-50 rounded-xl p-4 transition-all hover:bg-gray-100">
-                                <div class="flex items-start gap-3">
-                                    <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
-                                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <p class="text-sm font-bold text-gray-900"><?php echo e($room->name); ?></p>
-                                        <p class="text-xs text-gray-500"><?php echo e($room->building); ?><?php if($room->floor): ?>, <?php echo e($room->floor); ?><?php endif; ?></p>
-                                        <div class="flex items-center gap-2 mt-1.5">
-                                            <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                                <?php echo e($room->capacity); ?> seats
-                                            </span>
-                                            <?php if($room->type): ?>
-                                            <span class="text-[10px] font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full"><?php echo e(ucfirst($room->type)); ?></span>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
+                            <div class="peer-checked:ring-2 peer-checked:ring-green-500 peer-checked:bg-green-50/60 bg-gray-50 rounded-xl p-4 transition-all hover:bg-gray-100 group">
+                                <p class="text-sm font-bold text-gray-900 group-hover:text-green-700 transition-colors"><?php echo e($room->name); ?></p>
+                                <p class="text-xs text-gray-500 mt-0.5"><?php echo e($room->building); ?><?php if($room->floor): ?>, <?php echo e($room->floor); ?><?php endif; ?></p>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-white ring-1 ring-gray-200 px-2 py-0.5 rounded-full">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                        <?php echo e($room->capacity); ?> seats
+                                    </span>
+                                    <?php if($room->type): ?>
+                                    <span class="text-[10px] font-semibold text-green-700 bg-green-50 ring-1 ring-green-200 px-2 py-0.5 rounded-full"><?php echo e(ucfirst($room->type)); ?></span>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </label>
@@ -170,7 +163,10 @@ unset($__errorArgs, $__bag); ?>
                 </div>
 
                 <!-- Submit -->
-                <div class="flex gap-3 pt-2">
+                <div class="flex flex-col-reverse sm:flex-row gap-3 pt-4 border-t border-gray-100">
+                    <a href="<?php echo e(route('reservations.index')); ?>" class="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-gray-700 bg-white ring-1 ring-gray-200 hover:bg-gray-50 rounded-xl transition-all duration-200">
+                        Cancel
+                    </a>
                     <button type="submit" :disabled="submitting || purpose.length < 10"
                             :class="(submitting || purpose.length < 10) ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 shadow-sm hover:shadow-md'"
                             class="flex-1 inline-flex items-center justify-center gap-2 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-200">
@@ -182,9 +178,6 @@ unset($__errorArgs, $__bag); ?>
                         </template>
                         <span x-text="submitting ? 'Submitting...' : 'Reserve Room'"></span>
                     </button>
-                    <a href="<?php echo e(route('reservations.index')); ?>" class="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all duration-200">
-                        Cancel
-                    </a>
                 </div>
             </form>
         </div>
@@ -192,78 +185,53 @@ unset($__errorArgs, $__bag); ?>
         <!-- Sidebar Info -->
         <div class="lg:col-span-1 space-y-4 animate-fade-in-up stagger-2">
             <!-- Active Reservations -->
-            <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm overflow-hidden">
-                <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        </div>
-                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Your Reservations</p>
+            <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-5">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Your Reservations</p>
+                <div class="flex items-end justify-between mb-3">
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-3xl font-bold text-gray-900"><?php echo e($activeReservationCount); ?></span>
+                        <span class="text-sm text-gray-400 font-medium">/ 5</span>
                     </div>
+                    <span class="text-xs font-semibold <?php echo e($activeReservationCount >= 5 ? 'text-red-500' : 'text-green-600'); ?>"><?php echo e(5 - $activeReservationCount); ?> slot<?php echo e((5 - $activeReservationCount) !== 1 ? 's' : ''); ?> remaining</span>
                 </div>
-                <div class="p-5">
-                    <div class="flex items-end justify-between mb-3">
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-3xl font-bold text-gray-900"><?php echo e($activeReservationCount); ?></span>
-                            <span class="text-sm text-gray-400 font-medium">/ 5</span>
-                        </div>
-                        <span class="text-xs font-medium <?php echo e($activeReservationCount >= 5 ? 'text-red-500' : 'text-green-600'); ?>"><?php echo e(5 - $activeReservationCount); ?> slot<?php echo e((5 - $activeReservationCount) !== 1 ? 's' : ''); ?> remaining</span>
-                    </div>
-                    <div class="w-full bg-gray-100 rounded-full h-2">
-                        <div class="h-2 rounded-full transition-all <?php echo e($activeReservationCount >= 5 ? 'bg-red-500' : ($activeReservationCount >= 3 ? 'bg-amber-500' : 'bg-green-500')); ?>" style="width: <?php echo e(min(($activeReservationCount / 5) * 100, 100)); ?>%"></div>
-                    </div>
+                <div class="w-full bg-gray-100 rounded-full h-2">
+                    <div class="h-2 rounded-full transition-all <?php echo e($activeReservationCount >= 5 ? 'bg-red-500' : ($activeReservationCount >= 3 ? 'bg-amber-500' : 'bg-green-500')); ?>" style="width: <?php echo e(min(($activeReservationCount / 5) * 100, 100)); ?>%"></div>
                 </div>
             </div>
 
             <!-- Guidelines -->
-            <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm overflow-hidden">
-                <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        </div>
-                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">How It Works</p>
+            <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-5">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">How It Works</p>
+                <div class="space-y-3">
+                    <div class="flex items-start gap-3">
+                        <span class="w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center flex-shrink-0 text-[10px] font-bold mt-0.5">1</span>
+                        <span class="text-sm text-gray-600">Select a room and pick your date/time</span>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center flex-shrink-0 text-[10px] font-bold mt-0.5">2</span>
+                        <span class="text-sm text-gray-600">Check availability to avoid conflicts</span>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center flex-shrink-0 text-[10px] font-bold mt-0.5">3</span>
+                        <span class="text-sm text-gray-600">Submit and wait for staff approval</span>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center flex-shrink-0 text-[10px] font-bold mt-0.5">4</span>
+                        <span class="text-sm text-gray-600">Use the room during your reserved time</span>
                     </div>
                 </div>
-                <div class="p-5 space-y-3">
-                    <div class="flex items-start gap-3">
-                        <span class="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">1</span>
-                        <span class="text-sm text-gray-700">Select a room and pick your date/time</span>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <span class="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">2</span>
-                        <span class="text-sm text-gray-700">Check availability to avoid conflicts</span>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <span class="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">3</span>
-                        <span class="text-sm text-gray-700">Submit and wait for staff approval</span>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <span class="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">4</span>
-                        <span class="text-sm text-gray-700">Use the room during your reserved time</span>
-                    </div>
-                    <div class="pt-3 border-t border-gray-100 space-y-2">
-                        <p class="text-xs font-semibold text-gray-500 uppercase">Rules</p>
-                        <p class="text-xs text-gray-500">- Max 8 hours per session</p>
-                        <p class="text-xs text-gray-500">- Book up to 30 days in advance</p>
-                        <p class="text-xs text-gray-500">- Up to 5 active reservations</p>
-                    </div>
+                <div class="mt-4 pt-3 border-t border-gray-100 space-y-1.5">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Rules</p>
+                    <p class="text-xs text-gray-500">Max 8 hours per session</p>
+                    <p class="text-xs text-gray-500">Book up to 30 days in advance</p>
+                    <p class="text-xs text-gray-500">Up to 5 active reservations</p>
                 </div>
             </div>
 
             <!-- Tip -->
-            <div class="bg-blue-50 rounded-2xl ring-1 ring-blue-100 overflow-hidden">
-                <div class="p-5">
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-bold text-blue-900 mb-1">Need Equipment?</p>
-                            <p class="text-sm text-blue-700 leading-relaxed">Use the <a href="<?php echo e(route('student.borrow.form')); ?>" class="underline font-semibold">Borrow Items</a> page to request laboratory equipment separately.</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="bg-gray-50 rounded-2xl ring-1 ring-gray-200 p-5">
+                <p class="text-sm font-semibold text-gray-900 mb-1">Need Equipment?</p>
+                <p class="text-xs text-gray-500 leading-relaxed">Use the <a href="<?php echo e(route('student.borrow.form')); ?>" class="text-green-600 font-semibold hover:underline">Borrow Items</a> page to request laboratory equipment separately.</p>
             </div>
         </div>
     </div>
