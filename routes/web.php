@@ -11,6 +11,7 @@ use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\OperationalInboxController;
 use App\Http\Controllers\TimelineController;
+use App\Http\Controllers\ReportController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -151,6 +152,17 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::get('/operational', [AnalyticsController::class, 'operational'])->name('operational');
         Route::get('/items/{item}', [AnalyticsController::class, 'itemAnalytics'])->name('item-analytics');
         Route::post('/export', [AnalyticsController::class, 'exportReport'])->name('export');
+    });
+
+    // Report Packs (role-based, drill-down, CSV export)
+    Route::middleware(['staff_or_admin'])->prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('/inventory', [ReportController::class, 'inventory'])->name('inventory');
+        Route::get('/borrowing', [ReportController::class, 'borrowing'])->name('borrowing');
+        Route::get('/maintenance', [ReportController::class, 'maintenance'])->name('maintenance');
+        Route::get('/reservations', [ReportController::class, 'reservations'])->name('reservations');
+        Route::get('/user-activity', [ReportController::class, 'userActivity'])->name('user-activity');
+        Route::post('/export', [ReportController::class, 'export'])->name('export');
     });
 
     // QR Code Module (Digital Validation & Tracking)
