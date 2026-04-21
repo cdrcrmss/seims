@@ -100,11 +100,14 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::get('/create', [ReservationController::class, 'create'])->middleware('throttle:reservation-page')->name('create');
         Route::post('/', [ReservationController::class, 'store'])->middleware('throttle:reservation-submit')->name('store');
         Route::post('/check-availability', [ReservationController::class, 'checkAvailability'])->name('check-availability');
+        Route::post('/suggest-alternatives', [ReservationController::class, 'suggestAlternatives'])->name('suggest-alternatives');
         
         // Staff/Admin actions
         Route::middleware(['staff_or_admin'])->group(function () {
             Route::patch('/{reservation}/approve', [ReservationController::class, 'approve'])->name('approve');
             Route::patch('/{reservation}/reject', [ReservationController::class, 'reject'])->name('reject');
+            Route::patch('/{reservation}/complete', [ReservationController::class, 'complete'])->name('complete');
+            Route::patch('/{reservation}/no-show', [ReservationController::class, 'markNoShow'])->name('no-show');
         });
         
         // Cancel own reservation

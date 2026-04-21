@@ -219,8 +219,11 @@
                                 $statusColors = [
                                     'pending' => 'bg-yellow-50 text-yellow-700',
                                     'approved' => 'bg-green-50 text-green-700',
-                                    'cancelled' => 'bg-red-50 text-red-700',
+                                    'checked_in' => 'bg-blue-50 text-blue-700',
                                     'completed' => 'bg-gray-100 text-gray-700',
+                                    'no_show' => 'bg-orange-50 text-orange-700',
+                                    'cancelled' => 'bg-red-50 text-red-700',
+                                    'rejected' => 'bg-red-50 text-red-600',
                                 ];
                             @endphp
                             <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold {{ $statusColors[$reservation->status] ?? 'bg-gray-100 text-gray-700' }}">
@@ -232,13 +235,33 @@
                         </td>
                         <td class="px-6 py-4 text-gray-700">{{ $reservation->user?->name ?? 'N/A' }}</td>
                         <td class="px-6 py-4 text-right">
-                            <div class="flex items-center justify-end space-x-2">
+                            <div class="flex items-center justify-end space-x-2 flex-wrap gap-1">
                                 @if(in_array(auth()->user()->role, ['staff', 'admin']) && $reservation->status === 'pending')
                                 <form method="POST" action="{{ route('reservations.approve', $reservation) }}" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Approve Reservation', message: 'Are you sure you want to approve this reservation?', type: 'success' })">
                                     @csrf @method('PATCH')
                                     <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-50 text-green-700 hover:bg-green-100 ring-1 ring-green-200/60 transition-all duration-200">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                         Approve
+                                    </button>
+                                </form>
+                                @endif
+
+                                @if(in_array(auth()->user()->role, ['staff', 'admin']) && $reservation->status === 'approved')
+                                <form method="POST" action="{{ route('reservations.no-show', $reservation) }}">
+                                    @csrf @method('PATCH')
+                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-orange-50 text-orange-700 hover:bg-orange-100 ring-1 ring-orange-200/60 transition-all duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        No-Show
+                                    </button>
+                                </form>
+                                @endif
+
+                                @if(in_array(auth()->user()->role, ['staff', 'admin']) && in_array($reservation->status, ['checked_in', 'approved']))
+                                <form method="POST" action="{{ route('reservations.complete', $reservation) }}">
+                                    @csrf @method('PATCH')
+                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 ring-1 ring-blue-200/60 transition-all duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        Complete
                                     </button>
                                 </form>
                                 @endif
