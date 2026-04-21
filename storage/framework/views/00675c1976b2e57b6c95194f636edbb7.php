@@ -11,13 +11,12 @@
     currentDate: new Date(),
     reservations: <?php echo e(Js::from($reservations->map(fn($r) => [
         'id' => $r->id,
-        'title' => ($r->item?->name ?? '') . ($r->room ? ($r->item ? ' + ' : '') . $r->room->name : ''),
+        'title' => $r->room?->name ?? 'Room',
         'start' => $r->start_datetime,
         'end' => $r->end_datetime,
         'status' => $r->status,
         'purpose' => $r->purpose,
         'user' => $r->user?->name ?? 'N/A',
-        'type' => $r->reservation_type,
     ]))); ?>,
     get currentMonth() { return this.currentDate.getMonth(); },
     get currentYear() { return this.currentDate.getFullYear(); },
@@ -53,8 +52,8 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in-up">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 font-poppins">Reservations</h1>
-            <p class="text-gray-600">Manage equipment and room reservations</p>
+            <h1 class="text-3xl font-bold text-gray-900 font-poppins">Room Reservations</h1>
+            <p class="text-gray-600">Book and manage laboratory & classroom reservations</p>
         </div>
         <div class="flex items-center space-x-3">
             <!-- View Toggle -->
@@ -187,8 +186,7 @@
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-gray-100">
-                        <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Resource</th>
-                        <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Type</th>
+                        <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Room</th>
                         <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Schedule</th>
                         <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Purpose</th>
                         <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Status</th>
@@ -201,23 +199,12 @@
                     <tr class="hover:bg-gray-50/50 transition-colors">
                         <td class="px-6 py-4">
                             <div class="font-medium text-gray-900">
-                                <?php if($reservation->item): ?>
-                                    <?php echo e($reservation->item->name); ?>
+                                <?php echo e($reservation->room?->name ?? 'N/A'); ?>
 
-                                <?php endif; ?>
-                                <?php if($reservation->room): ?>
-                                    <?php if($reservation->item): ?> + <?php endif; ?>
-                                    <?php echo e($reservation->room->name); ?>
-
-                                <?php endif; ?>
                             </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold
-                                <?php echo e($reservation->reservation_type === 'equipment' ? 'bg-blue-50 text-blue-700' : ($reservation->reservation_type === 'room' ? 'bg-purple-50 text-purple-700' : 'bg-teal-50 text-teal-700')); ?>">
-                                <?php echo e(ucfirst($reservation->reservation_type)); ?>
-
-                            </span>
+                            <?php if($reservation->room?->building): ?>
+                            <p class="text-xs text-gray-500"><?php echo e($reservation->room->building); ?></p>
+                            <?php endif; ?>
                         </td>
                         <td class="px-6 py-4">
                             <div class="text-gray-900 text-xs">
@@ -233,8 +220,11 @@
                                 $statusColors = [
                                     'pending' => 'bg-yellow-50 text-yellow-700',
                                     'approved' => 'bg-green-50 text-green-700',
-                                    'cancelled' => 'bg-red-50 text-red-700',
+                                    'checked_in' => 'bg-blue-50 text-blue-700',
                                     'completed' => 'bg-gray-100 text-gray-700',
+                                    'no_show' => 'bg-orange-50 text-orange-700',
+                                    'cancelled' => 'bg-red-50 text-red-700',
+                                    'rejected' => 'bg-red-50 text-red-600',
                                 ];
                             ?>
                             <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold <?php echo e($statusColors[$reservation->status] ?? 'bg-gray-100 text-gray-700'); ?>">
@@ -247,13 +237,33 @@
                         </td>
                         <td class="px-6 py-4 text-gray-700"><?php echo e($reservation->user?->name ?? 'N/A'); ?></td>
                         <td class="px-6 py-4 text-right">
-                            <div class="flex items-center justify-end space-x-2">
+                            <div class="flex items-center justify-end space-x-2 flex-wrap gap-1">
                                 <?php if(in_array(auth()->user()->role, ['staff', 'admin']) && $reservation->status === 'pending'): ?>
                                 <form method="POST" action="<?php echo e(route('reservations.approve', $reservation)); ?>" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Approve Reservation', message: 'Are you sure you want to approve this reservation?', type: 'success' })">
                                     <?php echo csrf_field(); ?> <?php echo method_field('PATCH'); ?>
                                     <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-50 text-green-700 hover:bg-green-100 ring-1 ring-green-200/60 transition-all duration-200">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                         Approve
+                                    </button>
+                                </form>
+                                <?php endif; ?>
+
+                                <?php if(in_array(auth()->user()->role, ['staff', 'admin']) && $reservation->status === 'approved'): ?>
+                                <form method="POST" action="<?php echo e(route('reservations.no-show', $reservation)); ?>">
+                                    <?php echo csrf_field(); ?> <?php echo method_field('PATCH'); ?>
+                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-orange-50 text-orange-700 hover:bg-orange-100 ring-1 ring-orange-200/60 transition-all duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        No-Show
+                                    </button>
+                                </form>
+                                <?php endif; ?>
+
+                                <?php if(in_array(auth()->user()->role, ['staff', 'admin']) && in_array($reservation->status, ['checked_in', 'approved'])): ?>
+                                <form method="POST" action="<?php echo e(route('reservations.complete', $reservation)); ?>">
+                                    <?php echo csrf_field(); ?> <?php echo method_field('PATCH'); ?>
+                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 ring-1 ring-blue-200/60 transition-all duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        Complete
                                     </button>
                                 </form>
                                 <?php endif; ?>
@@ -269,7 +279,7 @@
                     </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                     <tr>
-                        <td colspan="7" class="px-6 py-12 text-center text-gray-400">
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-400">
                             <svg class="w-12 h-12 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             <p>No reservations found</p>
                         </td>

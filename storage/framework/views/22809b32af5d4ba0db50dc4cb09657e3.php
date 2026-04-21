@@ -7,19 +7,56 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in-up">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 font-poppins">QR Code Scanner</h1>
-            <p class="text-gray-600">Scan equipment QR codes for instant identification & validation</p>
+            <h1 class="text-3xl font-bold text-gray-900 font-poppins">QR Scanner</h1>
+            <p class="text-gray-600">Scan to issue, return, check-in, or look up assets</p>
         </div>
         <div class="flex space-x-3">
-            <?php if(auth()->user()->role !== 'student'): ?>
+            <?php if(in_array(auth()->user()->role, ['staff', 'admin'])): ?>
+            <a href="<?php echo e(route('qr.scan-history')); ?>" class="bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-sm hover:shadow-md flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>Scan Log</span>
+            </a>
             <form method="POST" action="<?php echo e(route('qr.batch-generate')); ?>">
                 <?php echo csrf_field(); ?>
                 <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-sm hover:shadow-md flex items-center space-x-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    <span>Batch Generate QR Codes</span>
+                    <span>Batch Generate</span>
                 </button>
             </form>
             <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Action Mode Selector -->
+    <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-4 animate-fade-in-up">
+        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Scan Mode</p>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <button @click="scanMode = 'lookup'" 
+                    :class="scanMode === 'lookup' ? 'ring-2 ring-gray-900 bg-gray-50' : 'hover:bg-gray-50'"
+                    class="flex flex-col items-center p-3 rounded-xl border border-gray-200 transition-all">
+                <svg class="w-6 h-6 mb-1 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <span class="text-xs font-semibold text-gray-700">Lookup</span>
+            </button>
+            <?php if(in_array(auth()->user()->role, ['staff', 'admin'])): ?>
+            <button @click="scanMode = 'issue'" 
+                    :class="scanMode === 'issue' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-blue-50'"
+                    class="flex flex-col items-center p-3 rounded-xl border border-gray-200 transition-all">
+                <svg class="w-6 h-6 mb-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                <span class="text-xs font-semibold text-gray-700">Issue</span>
+            </button>
+            <button @click="scanMode = 'return'" 
+                    :class="scanMode === 'return' ? 'ring-2 ring-purple-500 bg-purple-50' : 'hover:bg-purple-50'"
+                    class="flex flex-col items-center p-3 rounded-xl border border-gray-200 transition-all">
+                <svg class="w-6 h-6 mb-1 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                <span class="text-xs font-semibold text-gray-700">Return</span>
+            </button>
+            <?php endif; ?>
+            <button @click="scanMode = 'room_check_in'" 
+                    :class="scanMode === 'room_check_in' ? 'ring-2 ring-green-500 bg-green-50' : 'hover:bg-green-50'"
+                    class="flex flex-col items-center p-3 rounded-xl border border-gray-200 transition-all">
+                <svg class="w-6 h-6 mb-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                <span class="text-xs font-semibold text-gray-700">Room Check-in</span>
+            </button>
         </div>
     </div>
 
@@ -83,119 +120,133 @@
                 <span>Scan Result</span>
             </h2>
 
-            <template x-if="!scannedItem && !loading">
+            <!-- Empty State -->
+            <template x-if="!scanResult && !loading">
                 <div class="flex flex-col items-center justify-center h-64 text-gray-400">
                     <svg class="w-16 h-16 mb-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
                     <p>No item scanned yet</p>
-                    <p class="text-sm mt-1">Scan a QR code or enter it manually</p>
+                    <p class="text-sm mt-1">Select a mode and scan a QR code</p>
                 </div>
             </template>
 
+            <!-- Loading -->
             <template x-if="loading">
                 <div class="flex items-center justify-center h-64">
                     <div class="animate-spin w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full"></div>
                 </div>
             </template>
 
-            <template x-if="scannedItem && !loading">
+            <!-- Outcome Display -->
+            <template x-if="scanResult && !loading">
                 <div class="space-y-4">
-                    <div class="flex items-center space-x-4 pb-4 border-b border-gray-100">
-                        <div class="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center">
-                            <svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <!-- Outcome Banner -->
+                    <div class="rounded-xl p-4 flex items-start space-x-3"
+                         :class="{
+                            'bg-green-50 ring-1 ring-green-200': scanResult.outcome === 'success',
+                            'bg-yellow-50 ring-1 ring-yellow-200': scanResult.outcome === 'warning',
+                            'bg-red-50 ring-1 ring-red-200': scanResult.outcome === 'blocked'
+                         }">
+                        <!-- Icon -->
+                        <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+                             :class="{
+                                'bg-green-100': scanResult.outcome === 'success',
+                                'bg-yellow-100': scanResult.outcome === 'warning',
+                                'bg-red-100': scanResult.outcome === 'blocked'
+                             }">
+                            <template x-if="scanResult.outcome === 'success'">
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            </template>
+                            <template x-if="scanResult.outcome === 'warning'">
+                                <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            </template>
+                            <template x-if="scanResult.outcome === 'blocked'">
+                                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                            </template>
                         </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-900" x-text="scannedItem.name"></h3>
-                            <p class="text-sm text-gray-500" x-text="scannedItem.category"></p>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold"
+                               :class="{
+                                  'text-green-800': scanResult.outcome === 'success',
+                                  'text-yellow-800': scanResult.outcome === 'warning',
+                                  'text-red-800': scanResult.outcome === 'blocked'
+                               }"
+                               x-text="scanResult.outcome === 'success' ? 'Success' : (scanResult.outcome === 'warning' ? 'Warning' : 'Blocked')"></p>
+                            <p class="text-sm mt-0.5"
+                               :class="{
+                                  'text-green-700': scanResult.outcome === 'success',
+                                  'text-yellow-700': scanResult.outcome === 'warning',
+                                  'text-red-700': scanResult.outcome === 'blocked'
+                               }"
+                               x-text="scanResult.message"></p>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-gray-50 rounded-xl p-3">
-                            <p class="text-xs text-gray-500 uppercase tracking-wide">QR Code</p>
-                            <p class="text-sm font-semibold text-gray-900 mt-1" x-text="scannedItem.qr_code || 'Not assigned'"></p>
-                        </div>
-                        <div class="bg-gray-50 rounded-xl p-3">
-                            <p class="text-xs text-gray-500 uppercase tracking-wide">Status</p>
-                            <p class="text-sm font-semibold mt-1" :class="scannedItem.available_stock > 0 ? 'text-green-600' : 'text-red-600'" x-text="scannedItem.available_stock > 0 ? 'Available' : 'Out of Stock'"></p>
-                        </div>
-                        <div class="bg-gray-50 rounded-xl p-3">
-                            <p class="text-xs text-gray-500 uppercase tracking-wide">Available Stock</p>
-                            <p class="text-sm font-semibold text-gray-900 mt-1" x-text="scannedItem.available_stock + ' / ' + scannedItem.total_stock"></p>
-                        </div>
-                        <div class="bg-gray-50 rounded-xl p-3">
-                            <p class="text-xs text-gray-500 uppercase tracking-wide">Wear Level</p>
-                            <div class="mt-1">
-                                <div class="flex items-center space-x-2">
-                                    <div class="flex-1 bg-gray-200 rounded-full h-2">
-                                        <div class="h-2 rounded-full" :class="(scannedItem.wear_level || 0) >= 70 ? 'bg-red-500' : (scannedItem.wear_level || 0) >= 40 ? 'bg-yellow-500' : 'bg-green-500'" :style="'width:' + (scannedItem.wear_level || 0) + '%'"></div>
+                    <!-- Borrowings list (for return mode) -->
+                    <template x-if="scanResult.borrowings && scanResult.borrowings.length > 0">
+                        <div class="space-y-2">
+                            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Select Borrowing to Return</p>
+                            <template x-for="b in scanResult.borrowings" :key="b.id">
+                                <div class="rounded-xl p-3 flex items-center justify-between"
+                                     :class="b.is_overdue ? 'bg-red-50 ring-1 ring-red-200' : 'bg-gray-50 ring-1 ring-gray-200'">
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-900" x-text="b.user_name"></p>
+                                        <p class="text-xs text-gray-500">
+                                            Qty: <span x-text="b.quantity"></span> |
+                                            Due: <span x-text="b.expected_return_date || 'N/A'"></span>
+                                            <span x-show="b.is_overdue" class="text-red-600 font-bold ml-1">OVERDUE</span>
+                                        </p>
                                     </div>
-                                    <span class="text-sm font-semibold" x-text="(scannedItem.wear_level || 0) + '%'"></span>
+                                    <button @click="selectBorrowingForReturn(b.id)" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-all">
+                                        Return
+                                    </button>
                                 </div>
+                            </template>
+                        </div>
+                    </template>
+
+                    <!-- Item details (for lookup mode) -->
+                    <template x-if="scanResult.item && scanMode === 'lookup'">
+                        <div class="grid grid-cols-2 gap-3 mt-2">
+                            <div class="bg-gray-50 rounded-xl p-3">
+                                <p class="text-xs text-gray-500 uppercase">Name</p>
+                                <p class="text-sm font-semibold text-gray-900 mt-0.5" x-text="scanResult.item.name"></p>
+                            </div>
+                            <div class="bg-gray-50 rounded-xl p-3">
+                                <p class="text-xs text-gray-500 uppercase">Category</p>
+                                <p class="text-sm font-semibold text-gray-900 mt-0.5" x-text="scanResult.item.category || 'N/A'"></p>
+                            </div>
+                            <div class="bg-gray-50 rounded-xl p-3">
+                                <p class="text-xs text-gray-500 uppercase">Stock</p>
+                                <p class="text-sm font-semibold text-gray-900 mt-0.5" x-text="(scanResult.item.available_stock || 0) + ' / ' + (scanResult.item.total_stock || '?')"></p>
+                            </div>
+                            <div class="bg-gray-50 rounded-xl p-3">
+                                <p class="text-xs text-gray-500 uppercase">Status</p>
+                                <p class="text-sm font-semibold mt-0.5" :class="scanResult.item.available_stock > 0 ? 'text-green-600' : 'text-red-600'" x-text="scanResult.item.available_stock > 0 ? 'Available' : 'Out of Stock'"></p>
                             </div>
                         </div>
-                    </div>
+                    </template>
 
-                    <div class="bg-gray-50 rounded-xl p-3">
-                        <p class="text-xs text-gray-500 uppercase tracking-wide">Description</p>
-                        <p class="text-sm text-gray-700 mt-1" x-text="scannedItem.description || 'No description available'"></p>
-                    </div>
+                    <!-- Room details (for check-in) -->
+                    <template x-if="scanResult.room">
+                        <div class="bg-gray-50 rounded-xl p-3 mt-2">
+                            <p class="text-xs text-gray-500 uppercase">Room</p>
+                            <p class="text-sm font-semibold text-gray-900 mt-0.5" x-text="scanResult.room.name"></p>
+                        </div>
+                    </template>
 
-                    <div class="flex space-x-3 pt-2">
-                        <?php if(auth()->user()->role !== 'student'): ?>
-                        <a :href="'/staff/items/' + scannedItem.id + '/edit'" class="flex-1 text-center bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl font-semibold transition-all duration-200">Edit Item</a>
-                        <a :href="'/qr/generate/' + scannedItem.id" class="flex-1 text-center bg-gray-900 hover:bg-gray-800 text-white px-4 py-2.5 rounded-xl font-semibold transition-all duration-200">View QR</a>
-                        <?php endif; ?>
-                    </div>
+                    <!-- Reservation info (after check-in) -->
+                    <template x-if="scanResult.reservation">
+                        <div class="bg-green-50 rounded-xl p-3 mt-2 ring-1 ring-green-200">
+                            <p class="text-xs text-green-600 uppercase font-bold">Active Reservation</p>
+                            <p class="text-sm font-semibold text-gray-900 mt-1" x-text="scanResult.reservation.start + ' - ' + scanResult.reservation.end"></p>
+                            <p class="text-xs text-gray-600 mt-0.5" x-text="scanResult.reservation.purpose"></p>
+                        </div>
+                    </template>
 
-                    <!-- Borrowing Actions Section (for staff) -->
-                    <?php if(auth()->user()->isStaff() || auth()->user()->isAdmin()): ?>
-                    <div class="pt-4 border-t border-gray-100" x-show="scannedItem.pending_borrowings && scannedItem.pending_borrowings.length > 0">
-                        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center space-x-2">
-                            <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <span>Pending Issuances</span>
-                        </h4>
-                        <template x-for="borrowing in (scannedItem.pending_borrowings || [])" :key="borrowing.id">
-                            <div class="bg-amber-50 rounded-xl p-3 mb-2 flex items-center justify-between">
-                                <div>
-                                    <p class="text-sm font-medium text-gray-900" x-text="borrowing.user_name"></p>
-                                    <p class="text-xs text-gray-500">Qty: <span x-text="borrowing.quantity"></span> | Status: <span x-text="borrowing.status" class="capitalize"></span></p>
-                                </div>
-                                <form method="POST" :action="'/staff/borrowings/' + borrowing.id + '/issue'" x-show="borrowing.status === 'approved'">
-                                    <?php echo csrf_field(); ?>
-                                    <?php echo method_field('PATCH'); ?>
-                                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-sm font-semibold transition-all">
-                                        Issue via QR
-                                    </button>
-                                </form>
-                            </div>
-                        </template>
-                    </div>
-
-                    <div class="pt-4 border-t border-gray-100" x-show="scannedItem.issued_borrowings && scannedItem.issued_borrowings.length > 0">
-                        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center space-x-2">
-                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <span>Active Borrowings (Ready for Return)</span>
-                        </h4>
-                        <template x-for="borrowing in (scannedItem.issued_borrowings || [])" :key="borrowing.id">
-                            <div class="bg-green-50 rounded-xl p-3 mb-2 flex items-center justify-between">
-                                <div>
-                                    <p class="text-sm font-medium text-gray-900" x-text="borrowing.user_name"></p>
-                                    <p class="text-xs text-gray-500">Qty: <span x-text="borrowing.quantity"></span> | Due: <span x-text="borrowing.expected_return_date"></span></p>
-                                </div>
-                                <button type="button" @click="openReturnModalFromScan(borrowing.id)" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-sm font-semibold transition-all">
-                                    Return via QR
-                                </button>
-                            </div>
-                        </template>
-                    </div>
-                    <?php endif; ?>
-                </div>
-            </template>
-
-            <template x-if="error">
-                <div class="flex flex-col items-center justify-center h-64 text-red-500">
-                    <svg class="w-12 h-12 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    <p x-text="error"></p>
+                    <!-- Reset button -->
+                    <button @click="scanResult = null" class="w-full mt-3 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-colors">
+                        Scan Another
+                    </button>
                 </div>
             </template>
         </div>
@@ -207,9 +258,9 @@ function qrScanner() {
     return {
         cameraActive: false,
         manualCode: '',
-        scannedItem: null,
+        scanResult: null,
+        scanMode: 'lookup',
         loading: false,
-        error: null,
         stream: null,
 
         async startCamera() {
@@ -217,8 +268,9 @@ function qrScanner() {
                 this.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 this.$refs.video.srcObject = this.stream;
                 this.cameraActive = true;
+                this.startScanning();
             } catch (e) {
-                this.error = 'Camera access denied. Please allow camera permissions.';
+                this.scanResult = { outcome: 'blocked', message: 'Camera access denied. Please allow camera permissions.' };
             }
         },
 
@@ -230,35 +282,64 @@ function qrScanner() {
             this.cameraActive = false;
         },
 
+        startScanning() {
+            // Use BarcodeDetector API if available, otherwise fall back to manual entry
+            if ('BarcodeDetector' in window) {
+                const detector = new BarcodeDetector({ formats: ['qr_code'] });
+                const video = this.$refs.video;
+                const scan = async () => {
+                    if (!this.cameraActive || this.loading) {
+                        if (this.cameraActive) requestAnimationFrame(scan);
+                        return;
+                    }
+                    try {
+                        const barcodes = await detector.detect(video);
+                        if (barcodes.length > 0) {
+                            const code = barcodes[0].rawValue;
+                            this.manualCode = code;
+                            await this.executeScan(code);
+                            return; // Stop scanning after successful read
+                        }
+                    } catch (e) { /* ignore detection errors */ }
+                    if (this.cameraActive) requestAnimationFrame(scan);
+                };
+                requestAnimationFrame(scan);
+            }
+        },
+
         async lookupByCode() {
             if (!this.manualCode.trim()) return;
+            await this.executeScan(this.manualCode.trim());
+        },
+
+        async executeScan(code) {
             this.loading = true;
-            this.error = null;
-            this.scannedItem = null;
+            this.scanResult = null;
 
             try {
-                const resp = await fetch('/qr/lookup?code=' + encodeURIComponent(this.manualCode.trim()), {
-                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+                const resp = await fetch('/qr/scan-action', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ qr_code: code, action: this.scanMode })
                 });
                 const data = await resp.json();
-                if (data.success) {
-                    this.scannedItem = data.item;
-                } else {
-                    this.error = data.message || 'Item not found.';
-                }
+                this.scanResult = data;
             } catch (e) {
-                this.error = 'Failed to lookup item. Please try again.';
+                this.scanResult = { outcome: 'blocked', message: 'Network error. Please try again.' };
             }
             this.loading = false;
+        },
+
+        selectBorrowingForReturn(borrowingId) {
+            document.getElementById('scanReturnBorrowingId').value = borrowingId;
+            document.getElementById('scanReturnForm').action = `/staff/borrowings/${borrowingId}/return`;
+            document.getElementById('scanReturnModal').classList.remove('hidden');
         }
     };
-}
-
-// Return modal functions for QR-based returns
-function openReturnModalFromScan(borrowingId) {
-    document.getElementById('scanReturnBorrowingId').value = borrowingId;
-    document.getElementById('scanReturnForm').action = `/staff/borrowings/${borrowingId}/return`;
-    document.getElementById('scanReturnModal').classList.remove('hidden');
 }
 
 function closeScanReturnModal() {

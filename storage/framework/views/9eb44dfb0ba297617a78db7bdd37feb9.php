@@ -64,11 +64,10 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Pending</p>
-                    <p class="text-3xl font-bold text-orange-600 font-poppins"><?php echo e($pendingRequests + $pendingReservations + $pendingProcurement); ?></p>
+                    <p class="text-3xl font-bold text-orange-600 font-poppins"><?php echo e($pendingRequests + $pendingReservations); ?></p>
                     <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                         <?php if($pendingRequests > 0): ?><span class="text-xs text-orange-600 font-medium"><?php echo e($pendingRequests); ?> borrow</span><?php endif; ?>
                         <?php if($pendingReservations > 0): ?><span class="text-xs text-blue-600 font-medium"><?php echo e($pendingReservations); ?> reserv</span><?php endif; ?>
-                        <?php if($pendingProcurement > 0): ?><span class="text-xs text-purple-600 font-medium"><?php echo e($pendingProcurement); ?> procure</span><?php endif; ?>
                     </div>
                 </div>
                 <div class="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center">
