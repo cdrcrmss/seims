@@ -4,14 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\Borrowing;
+use App\Http\Controllers\AdminController;
+use App\Http\Requests\BorrowItemRequest;
+use App\Services\BorrowingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class StudentController extends Controller
 {
-    public function __construct()
+    protected BorrowingService $borrowingService;
+
+    public function __construct(BorrowingService $borrowingService)
     {
         $this->middleware('auth');
+        $this->borrowingService = $borrowingService;
     }
 
     /**
@@ -30,12 +37,12 @@ class StudentController extends Controller
         
         $user = Auth::user();
         
-        // Get available items (grouped by category)
+        // Get available items with pagination
         $availableItems = Item::where('available_stock', '>', 0)
             ->orderBy('name')
-            ->get();
+            ->paginate(20);
         
-        $itemsByCategory = $availableItems->groupBy('category');
+        $itemsByCategory = $availableItems->getCollection()->groupBy('category');
         
         // Get user's active borrowings
         $activeBorrowings = Borrowing::where('user_id', $user->id)
@@ -44,11 +51,11 @@ class StudentController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
         
-        // Get user's borrowing history
+        // Get user's borrowing history (paginated)
         $borrowingHistory = Borrowing::where('user_id', $user->id)
             ->with('item')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10, ['*'], 'history_page');
         
         return view('dashboard.student', compact(
             'availableItems',
@@ -58,45 +65,93 @@ class StudentController extends Controller
         ));
     }
 
-    public function borrowItem(Request $request)
+    /**
+     * Show the borrowing form page with available items.
+     */
+    public function borrowForm(Request $request)
     {
         $this->ensureStudent();
-        
-        $request->validate([
-            'item_id' => 'required|exists:items,id',
-            'quantity' => 'required|integer|min:1',
-            'expected_return_date' => 'required|date|after:today',
-            'notes' => 'nullable|string|max:500'
-        ]);
 
-        $item = Item::findOrFail($request->item_id);
-        
-        // Check if item is available and has enough stock
-        if ($item->available_stock < $request->quantity) {
-            return back()->with('error', 'Not enough stock available for this item.');
+        $user = Auth::user();
+        $settings = AdminController::loadSettings();
+        $maxDays = $settings['max_borrow_days'] ?? 7;
+        $maxItems = $settings['max_items_per_user'] ?? 5;
+
+        $search = $request->get('search');
+        $category = $request->get('category');
+
+        // Build query with optional search & category filters
+        $query = Item::where('available_stock', '>', 0);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('asset_code', 'like', "%{$search}%");
+            });
         }
 
-        // Check if user has any pending requests for this item
-        $existingRequest = Borrowing::where('user_id', Auth::id())
-            ->where('item_id', $item->id)
-            ->where('status', 'pending')
+        if ($category) {
+            $query->where('category', $category);
+        }
+
+        $availableItems = $query->orderBy('name')->paginate(12)->withQueryString();
+
+        // Get all categories for filter
+        $categories = Item::where('available_stock', '>', 0)
+            ->select('category')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category');
+
+        // Active borrow count for the user
+        $activeBorrowCount = Borrowing::where('user_id', $user->id)
+            ->whereIn('status', ['pending', 'approved', 'issued'])
+            ->count();
+
+        // Check for overdue items
+        $hasOverdue = Borrowing::where('user_id', $user->id)
+            ->where('status', 'issued')
+            ->where('expected_return_date', '<', now())
             ->exists();
 
-        if ($existingRequest) {
-            return back()->with('error', 'You already have a pending request for this item.');
+        // Pre-selected item (if coming from dashboard)
+        $selectedItemId = $request->get('item_id');
+        $selectedItem = $selectedItemId ? Item::find($selectedItemId) : null;
+
+        return view('student.borrowings.borrow', compact(
+            'availableItems',
+            'categories',
+            'activeBorrowCount',
+            'maxDays',
+            'maxItems',
+            'hasOverdue',
+            'selectedItem',
+            'search',
+            'category'
+        ));
+    }
+
+    /**
+     * Submit a borrow request (with strict validation & rate limiting).
+     */
+    public function borrowItem(BorrowItemRequest $request)
+    {
+        try {
+            // Merge purpose into notes field for the service
+            $data = $request->only(['item_id', 'quantity', 'expected_return_date']);
+            $purpose = $request->input('purpose');
+            $notes = $request->input('notes');
+            $data['notes'] = "Purpose: {$purpose}" . ($notes ? "\nAdditional Notes: {$notes}" : '');
+
+            $this->borrowingService->createBorrowRequest($data);
+
+            return redirect()
+                ->route('student.borrowings.index')
+                ->with('success', 'Borrowing request submitted successfully! Please wait for staff approval.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage())->withInput();
         }
-
-        // Create borrowing request
-        Borrowing::create([
-            'user_id' => Auth::id(),
-            'item_id' => $item->id,
-            'quantity' => $request->quantity,
-            'expected_return_date' => $request->expected_return_date,
-            'notes' => $request->notes,
-            'status' => 'pending'
-        ]);
-
-        return back()->with('success', 'Borrowing request submitted successfully! Please wait for approval.');
     }
 
     public function borrowings()
@@ -120,8 +175,40 @@ class StudentController extends Controller
             ->where('status', 'pending')
             ->firstOrFail();
 
-        $borrowing->delete();
+        try {
+            $this->borrowingService->cancelBorrowRequest($borrowing, 'Cancelled by student');
+            return back()->with('success', 'Borrowing request cancelled successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to cancel request: ' . $e->getMessage());
+        }
+    }
 
-        return back()->with('success', 'Borrowing request cancelled successfully.');
+    /**
+     * Request an extension for a borrowing.
+     */
+    public function requestExtension(Request $request, Borrowing $borrowing)
+    {
+        $this->ensureStudent();
+
+        // Ensure the borrowing belongs to the student
+        if ($borrowing->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $request->validate([
+            'extension_date' => 'required|date|after:today',
+            'extension_reason' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $this->borrowingService->requestExtension(
+                $borrowing,
+                $request->extension_date,
+                $request->extension_reason
+            );
+            return back()->with('success', 'Extension request submitted successfully!');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 }

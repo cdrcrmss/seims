@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Sign In - {{ config('app.name', 'INNOTRACK') }}</title>
+    <title>Sign In - {{ config('app.name', 'SEIMS') }}</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -12,12 +12,14 @@
     
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
     
     <style>
         * {
             box-sizing: border-box;
         }
+        
+        [x-cloak] { display: none !important; }
         
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -182,6 +184,17 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 14px rgba(22, 163, 74, 0.4);
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+        
+        .btn-primary .btn-content {
+            display: inline-flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
         }
 
         .btn-primary:hover {
@@ -307,7 +320,7 @@
                         <img src="{{ asset('images/spup_logo.png') }}" alt="SPUP Logo" style="width: 48px; height: 48px; object-fit: contain;">
                     </div>
                     <div>
-                        <h1 style="font-size: 28px; font-weight: 700; color: white; margin: 0; letter-spacing: -0.5px;">INNOTRACK</h1>
+                        <h1 style="font-size: 28px; font-weight: 700; color: white; margin: 0; letter-spacing: -0.5px;">SEIMS</h1>
                         <p style="font-size: 14px; color: rgba(255,255,255,0.6); margin: 4px 0 0 0;">Laboratory Management System</p>
                     </div>
                 </div>
@@ -366,7 +379,7 @@
             <!-- Footer -->
             <div class="animate-fade-in delay-400" style="position: absolute; bottom: 48px; left: 48px; right: 48px;">
                 <p style="font-size: 14px; color: rgba(255,255,255,0.4); margin: 0;">
-                    © {{ date('Y') }} INNOTRACK. All rights reserved.
+                    © {{ date('Y') }} SEIMS. All rights reserved.
                 </p>
             </div>
         </div>
@@ -379,7 +392,7 @@
                     <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #16a34a, #22c55e); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
                         <img src="{{ asset('images/spup_logo.png') }}" alt="SPUP Logo" style="width: 56px; height: 56px; object-fit: contain;">
                     </div>
-                    <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0;">INNOTRACK</h1>
+                    <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0;">SEIMS</h1>
                 </div>
 
                 <style>
@@ -412,7 +425,7 @@
                     password: ''
                 }" @submit="loading = true">
                     @csrf
-                    
+
                     <!-- Email Field -->
                     <div style="margin-bottom: 20px;">
                         <label for="email" style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
@@ -509,23 +522,44 @@
                         type="submit" 
                         class="btn-primary"
                         :disabled="loading"
-                        style="display: flex; align-items: center; justify-content: center; min-height: 56px;"
+                        style="min-height: 56px;"
                     >
-                        <span x-show="!loading" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                            Sign in
-                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                            </svg>
-                        </span>
-                        <span x-show="loading" x-cloak style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-                            <div class="spinner"></div>
-                            <span>Signing in...</span>
-                        </span>
+                        <template x-if="!loading">
+                            <span class="btn-content">
+                                Sign in
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink: 0;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                </svg>
+                            </span>
+                        </template>
+                        <template x-if="loading">
+                            <span class="btn-content">
+                                <div class="spinner"></div>
+                                Signing in...
+                            </span>
+                        </template>
                     </button>
                 </form>
 
                 <!-- Divider -->
                 <div style="display: flex; align-items: center; gap: 16px; margin: 32px 0;">
+                    <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
+                    <span style="font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">or</span>
+                    <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
+                </div>
+
+                <!-- Create Account Link -->
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <p style="font-size: 14px; color: #64748b; margin: 0;">
+                        Don't have an account?
+                        <a href="{{ route('register') }}" style="color: #16a34a; text-decoration: none; font-weight: 600; transition: color 0.2s;" onmouseover="this.style.color='#15803d'" onmouseout="this.style.color='#16a34a'">
+                            Create Account
+                        </a>
+                    </p>
+                </div>
+
+                <!-- Divider -->
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
                     <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
                     <span style="font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Need help?</span>
                     <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>

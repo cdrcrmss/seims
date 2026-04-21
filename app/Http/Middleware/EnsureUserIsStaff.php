@@ -6,6 +6,10 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * @deprecated Use StaffOrAdminMiddleware instead. This class is not registered in bootstrap/app.php.
+ * Kept for reference only - safe to delete.
+ */
 class EnsureUserIsStaff
 {
     /**

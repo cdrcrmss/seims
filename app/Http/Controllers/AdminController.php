@@ -23,13 +23,16 @@ class AdminController extends Controller
     {
         $search = $request->get('search');
         $role = $request->get('role');
+        $approval = $request->get('approval');
         
         // Get counts for each role
+        $pendingApprovalCount = User::where('is_approved', false)->count();
         $roleCounts = [
             'total' => User::count(),
             'admin' => User::where('role', 'admin')->count(),
             'staff' => User::where('role', 'staff')->count(),
             'student' => User::where('role', 'student')->count(),
+            'pending' => $pendingApprovalCount,
         ];
 
         $users = User::query()
@@ -40,10 +43,14 @@ class AdminController extends Controller
             ->when($role, function($query, $role) {
                 return $query->where('role', $role);
             })
+            ->when($approval === 'pending', function($query) {
+                return $query->where('is_approved', false);
+            })
+            ->orderByRaw('is_approved ASC') // Show pending first
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
-        return view('admin.users.index', compact('users', 'search', 'role', 'roleCounts'));
+        return view('admin.users.index', compact('users', 'search', 'role', 'approval', 'roleCounts'));
     }
 
     public function createUser()
@@ -56,16 +63,18 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6',
-            'role' => 'required|in:admin,staff,student',
+            'password' => 'required|string|min:8',
+            'role' => 'required|in:admin,staff,faculty,student',
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => $request->role,
         ]);
+        // Set role explicitly (not mass-assignable for security)
+        $user->role = $request->role;
+        $user->save();
 
         return redirect()->route('admin.users.index')
                         ->with('success', 'User created successfully!');
@@ -87,15 +96,26 @@ class AdminController extends Controller
                 'max:255',
                 Rule::unique('users')->ignore($user->id),
             ],
-            'role' => 'required|in:admin,staff,student',
+            'role' => 'required|in:admin,staff,faculty,student',
             'password' => 'nullable|string|min:8|confirmed',
         ]);
+
+        // Prevent the last admin from downgrading their own role
+        if ($user->id === auth()->id() && $user->role === 'admin' && $request->role !== 'admin') {
+            $adminCount = User::where('role', 'admin')->count();
+            if ($adminCount <= 1) {
+                return back()->withErrors(['role' => 'Cannot change your role. You are the last admin.'])->withInput();
+            }
+        }
 
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
-            'role' => $request->role,
         ]);
+
+        // Set role explicitly (not mass-assignable for security)
+        $user->role = $request->role;
+        $user->save();
 
         if ($request->filled('password')) {
             $user->update([
@@ -117,6 +137,41 @@ class AdminController extends Controller
         
         return redirect()->route('admin.users.index')
                         ->with('success', 'User deleted successfully!');
+    }
+
+    /**
+     * Approve a pending student account.
+     */
+    public function approveUser(User $user)
+    {
+        $user->update(['is_approved' => true]);
+
+        // Notify the student
+        \App\Models\Notification::create([
+            'user_id' => $user->id,
+            'type' => 'success',
+            'title' => 'Account Approved',
+            'message' => 'Your account has been approved by an administrator. You can now log in and use SEIMS.',
+            'action_url' => route('dashboard'),
+            'priority' => 'high',
+        ]);
+
+        return back()->with('success', $user->name . '\'s account has been approved.');
+    }
+
+    /**
+     * Reject (delete) a pending student account.
+     */
+    public function rejectUser(User $user)
+    {
+        if ($user->is_approved) {
+            return back()->withErrors(['error' => 'This account is already approved.']);
+        }
+
+        $name = $user->name;
+        $user->forceDelete(); // Permanently remove rejected registrations
+
+        return back()->with('success', $name . '\'s registration has been rejected and removed.');
     }
 
     /**
@@ -142,13 +197,19 @@ class AdminController extends Controller
                               ->pluck('count', 'category')
                               ->toArray();
 
-        // Recent activity (mock data - would be actual activity logs)
-        $recentActivity = [
-            ['action' => 'New user registered', 'user' => 'John Doe', 'time' => '2 hours ago'],
-            ['action' => 'Item returned', 'user' => 'Jane Smith', 'time' => '3 hours ago'],
-            ['action' => 'Borrowing request approved', 'user' => 'Mike Johnson', 'time' => '5 hours ago'],
-            ['action' => 'New item added', 'user' => 'Staff User', 'time' => '1 day ago'],
-        ];
+        // Recent activity from audit logs
+        $recentActivity = \App\Models\AuditLog::with('user')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($log) {
+                return [
+                    'action' => $log->action,
+                    'user' => $log->user ? $log->user->name : 'System',
+                    'time' => $log->created_at->diffForHumans(),
+                ];
+            })
+            ->toArray();
 
         // Top borrowers
         $topBorrowers = User::withCount(['borrowings' => function($query) {
@@ -181,8 +242,32 @@ class AdminController extends Controller
      */
     public function settings()
     {
-        // For now, basic settings view
-        return view('admin.settings.index');
+        $settings = self::loadSettings();
+        return view('admin.settings.index', compact('settings'));
+    }
+
+    /**
+     * Load settings from the JSON file, with sensible defaults.
+     */
+    public static function loadSettings(): array
+    {
+        $defaults = [
+            'system_name' => config('app.name', 'SEIMS'),
+            'max_borrow_days' => 7,
+            'max_items_per_user' => 5,
+        ];
+
+        if (\Illuminate\Support\Facades\Storage::disk('local')->exists('settings.json')) {
+            $stored = json_decode(
+                \Illuminate\Support\Facades\Storage::disk('local')->get('settings.json'),
+                true
+            );
+            if (is_array($stored)) {
+                return array_merge($defaults, $stored);
+            }
+        }
+
+        return $defaults;
     }
 
     public function updateSettings(Request $request)
@@ -193,8 +278,20 @@ class AdminController extends Controller
             'max_items_per_user' => 'required|integer|min:1|max:100',
         ]);
 
-        // Here you would typically save settings to database or config
-        // For now, just return success
+        // Persist settings to a JSON file in storage
+        $settings = [
+            'system_name' => $request->system_name,
+            'max_borrow_days' => (int) $request->max_borrow_days,
+            'max_items_per_user' => (int) $request->max_items_per_user,
+            'updated_at' => now()->toIso8601String(),
+            'updated_by' => auth()->id(),
+        ];
+
+        \Illuminate\Support\Facades\Storage::disk('local')->put(
+            'settings.json',
+            json_encode($settings, JSON_PRETTY_PRINT)
+        );
+
         return back()->with('success', 'Settings updated successfully!');
     }
 

@@ -5,12 +5,27 @@ namespace App\Http\Controllers;
 use App\Models\Item;
 use App\Models\Borrowing;
 use App\Models\User;
+use App\Models\Reservation;
+use App\Models\MaintenanceRecord;
+use App\Models\ProcurementRequest;
+use App\Models\Notification;
+use App\Services\PredictiveAnalyticsService;
+use App\Services\BorrowingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
+    protected $analytics;
+
+    public function __construct(PredictiveAnalyticsService $analytics)
+    {
+        $this->analytics = $analytics;
+    }
+
     /**
      * Display the appropriate dashboard based on user role.
      */
@@ -56,11 +71,35 @@ class DashboardController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get();
 
+            // User's reservations
+            $myReservations = Reservation::where('user_id', $user->id)
+                ->whereIn('status', ['pending', 'approved'])
+                ->with(['item', 'room'])
+                ->orderBy('start_datetime')
+                ->take(5)
+                ->get();
+
+            // Overdue count for student
+            $overdueCount = Borrowing::where('user_id', $user->id)
+                ->where('status', 'issued')
+                ->where('expected_return_date', '<', now())
+                ->count();
+
+            // Unread notifications
+            $notifications = Notification::where('user_id', $user->id)
+                ->whereNull('read_at')
+                ->orderBy('created_at', 'desc')
+                ->take(5)
+                ->get();
+
             return view('dashboard.student', compact(
                 'availableItems',
                 'itemsByCategory', 
                 'activeBorrowings',
-                'borrowingHistory'
+                'borrowingHistory',
+                'myReservations',
+                'overdueCount',
+                'notifications'
             ));
         } catch (\Exception $e) {
             return back()->with('error', 'Error loading dashboard: ' . $e->getMessage());
@@ -73,23 +112,82 @@ class DashboardController extends Controller
     private function adminDashboard()
     {
         try {
+            // Core stats
             $totalUsers = User::count();
             $totalItems = Item::count();
             $totalBorrowings = Borrowing::count();
             $pendingRequests = Borrowing::where('status', 'pending')->count();
             
-            // Get recent activity (last 10 borrowings)
+            // Extended stats
+            $activeBorrowings = Borrowing::whereIn('status', ['approved', 'issued'])->count();
+            $overdueItems = Borrowing::where('status', 'issued')
+                ->where('expected_return_date', '<', now())->count();
+            $lowStockItems = Item::whereColumn('available_stock', '<=', 'low_stock_threshold')->count();
+            $maintenanceDue = MaintenanceRecord::where('status', 'scheduled')
+                ->where('scheduled_date', '<=', now())->count();
+            $pendingProcurement = ProcurementRequest::where('status', 'pending')->count();
+            $pendingReservations = Reservation::where('status', 'pending')->count();
+
+            // System health score
+            $systemHealth = $this->analytics->getSystemHealthScore();
+
+            // User breakdown
+            $userBreakdown = [
+                'admins' => User::where('role', 'admin')->count(),
+                'staff' => User::where('role', 'staff')->count(),
+                'students' => User::where('role', 'student')->count(),
+            ];
+
+            // Monthly borrowing trend (last 6 months)
+            $monthlyTrend = [];
+            for ($i = 5; $i >= 0; $i--) {
+                $date = Carbon::now()->subMonths($i);
+                $monthlyTrend[] = [
+                    'month' => $date->format('M'),
+                    'count' => Borrowing::whereYear('created_at', $date->year)
+                        ->whereMonth('created_at', $date->month)->count(),
+                ];
+            }
+
+            // Recent activity (last 10 borrowings)
             $recentActivity = Borrowing::with(['user', 'item'])
                                      ->orderBy('created_at', 'desc')
                                      ->limit(10)
                                      ->get();
 
+            // Critical items (high wear or overdue maintenance)
+            $criticalItems = Item::where('wear_level', '>=', 60)
+                ->orWhere(function($q) {
+                    $q->whereNotNull('next_maintenance_date')
+                      ->where('next_maintenance_date', '<', now());
+                })
+                ->orderBy('wear_level', 'desc')
+                ->take(5)
+                ->get();
+
+            // Recent procurement
+            $recentProcurement = ProcurementRequest::with(['item', 'supplier'])
+                ->orderBy('created_at', 'desc')
+                ->take(5)
+                ->get();
+
+            // Upcoming maintenance
+            $upcomingMaintenance = MaintenanceRecord::with('item')
+                ->where('status', 'scheduled')
+                ->orderBy('scheduled_date')
+                ->take(5)
+                ->get();
+
             return view('dashboard.admin', compact(
-                'totalUsers', 'totalItems', 'totalBorrowings', 'pendingRequests', 'recentActivity'
+                'totalUsers', 'totalItems', 'totalBorrowings', 'pendingRequests',
+                'activeBorrowings', 'overdueItems', 'lowStockItems', 'maintenanceDue',
+                'pendingProcurement', 'pendingReservations', 'systemHealth',
+                'userBreakdown', 'monthlyTrend', 'recentActivity',
+                'criticalItems', 'recentProcurement', 'upcomingMaintenance'
             ));
         } catch (\Exception $e) {
             \Log::error('Admin Dashboard Error: ' . $e->getMessage());
-            return redirect()->route('login')->withErrors(['error' => 'Dashboard error occurred.']);
+            return back()->with('error', 'An error occurred loading the dashboard. Please try again.');
         }
     }
 
@@ -100,12 +198,40 @@ class DashboardController extends Controller
     {
         try {
             $totalItems = Item::count();
-            $lowStockItems = Item::where('available_stock', '<', 5)->count();
+            $lowStockItems = Item::whereColumn('available_stock', '<=', 'low_stock_threshold')->count();
             $pendingRequests = Borrowing::where('status', 'pending')->count();
             $overdueItems = Borrowing::where('status', 'issued')
                                    ->where('expected_return_date', '<', now())
                                    ->count();
-            
+
+            // Extended stats
+            $activeBorrowings = Borrowing::whereIn('status', ['approved', 'issued'])->count();
+            $maintenanceDue = MaintenanceRecord::where('status', 'scheduled')
+                ->where('scheduled_date', '<=', now())->count();
+            $upcomingMaintenance = MaintenanceRecord::with('item')
+                ->where('status', 'scheduled')
+                ->orderBy('scheduled_date')
+                ->take(5)
+                ->get();
+            $pendingReservations = Reservation::where('status', 'pending')->count();
+
+            // System health
+            $systemHealth = $this->analytics->getSystemHealthScore();
+
+            // Overdue borrowings list
+            $overdueBorrowings = Borrowing::with(['user', 'item'])
+                ->where('status', 'issued')
+                ->where('expected_return_date', '<', now())
+                ->orderBy('expected_return_date')
+                ->take(5)
+                ->get();
+
+            // Low stock items list
+            $lowStockItemsList = Item::whereColumn('available_stock', '<=', 'low_stock_threshold')
+                ->orderBy('available_stock')
+                ->take(5)
+                ->get();
+
             // Get pending borrowings for quick action
             $pendingBorrowings = Borrowing::where('status', 'pending')
                                          ->with(['user', 'item'])
@@ -114,22 +240,21 @@ class DashboardController extends Controller
                                          ->get();
 
             return view('dashboard.staff', compact(
-                'totalItems',
-                'lowStockItems',
-                'pendingRequests',
-                'overdueItems',
-                'pendingBorrowings'
+                'totalItems', 'lowStockItems', 'pendingRequests', 'overdueItems',
+                'activeBorrowings', 'maintenanceDue', 'upcomingMaintenance',
+                'pendingReservations', 'systemHealth', 'overdueBorrowings',
+                'lowStockItemsList', 'pendingBorrowings'
             ));
         } catch (\Exception $e) {
             \Log::error('Staff Dashboard Error: ' . $e->getMessage());
-            return redirect()->route('login')->withErrors(['error' => 'Dashboard error occurred.']);
+            return back()->with('error', 'An error occurred loading the dashboard. Please try again.');
         }
     }
 
     /**
      * Request to borrow an item (for students)
      */
-    public function requestBorrow(Request $request)
+    public function requestBorrow(Request $request, BorrowingService $borrowingService)
     {
         // Only allow students to borrow
         if (!Auth::user()->isStudent()) {
@@ -143,28 +268,15 @@ class DashboardController extends Controller
             'notes' => 'nullable|string|max:500',
         ]);
 
-        $item = Item::findOrFail($request->item_id);
+        try {
+            $borrowingService->createBorrowRequest($request->only([
+                'item_id', 'quantity', 'expected_return_date', 'notes'
+            ]));
 
-        // Check if enough stock is available
-        if (!$item->isAvailable($request->quantity)) {
-            return back()->withErrors(['quantity' => 'Insufficient stock available.']);
+            return back()->with('success', 'Borrow request submitted successfully!');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        // Create borrowing request
-        Borrowing::create([
-            'user_id' => Auth::id(),
-            'item_id' => $item->id,
-            'quantity' => $request->quantity,
-            'status' => 'pending',
-            'requested_date' => now(),
-            'expected_return_date' => $request->expected_return_date,
-            'notes' => $request->notes,
-        ]);
-
-        // Update available stock
-        $item->decrement('available_stock', $request->quantity);
-
-        return back()->with('success', 'Borrow request submitted successfully!');
     }
 
     /**

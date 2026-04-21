@@ -1,10 +1,10 @@
-# InnoTrack - Laboratory Equipment Inventory Management System
+# SEIMS - Laboratory Equipment Inventory Management System
 
 A modern, feature-rich laboratory equipment inventory and borrowing management system built with Laravel and Tailwind CSS.
 
 ## Project Description
 
-InnoTrack is a comprehensive inventory management system designed for educational institutions to track laboratory equipment, manage borrowing requests, and streamline the equipment lending process. The platform provides role-based access for administrators, staff, and students.
+SEIMS is a comprehensive inventory management system designed for educational institutions to track laboratory equipment, manage borrowing requests, and streamline the equipment lending process. The platform provides role-based access for administrators, staff, and students.
 
 ## Features
 
@@ -50,7 +50,7 @@ InnoTrack is a comprehensive inventory management system designed for educationa
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd innotrack
+cd SEIMS
 
 # Install PHP dependencies
 composer install

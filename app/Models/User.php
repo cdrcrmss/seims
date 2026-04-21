@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -21,7 +22,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'student_id',
         'role',
+        'is_approved',
     ];
 
     /**
@@ -44,7 +47,16 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_approved' => 'boolean',
         ];
+    }
+
+    /**
+     * Check if the user account is approved.
+     */
+    public function isApproved(): bool
+    {
+        return (bool) $this->is_approved;
     }
 
     /**
@@ -65,12 +77,43 @@ class User extends Authenticatable
         return $this->role === 'student';
     }
 
+    public function isFaculty(): bool
+    {
+        return $this->role === 'faculty';
+    }
+
+    /**
+     * Check if user can approve faculty-level requests
+     */
+    public function canApproveFacultyLevel(): bool
+    {
+        return in_array($this->role, ['faculty', 'staff', 'admin']);
+    }
+
+    /**
+     * Check if user can approve staff-level requests (final approval)
+     */
+    public function canApproveStaffLevel(): bool
+    {
+        return in_array($this->role, ['staff', 'admin']);
+    }
+
     /**
      * Relationships
      */
     public function borrowings()
     {
         return $this->hasMany(Borrowing::class);
+    }
+
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
     }
 
     /**

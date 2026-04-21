@@ -14,6 +14,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'staff_or_admin' => \App\Http\Middleware\StaffOrAdminMiddleware::class,
+            'approved' => \App\Http\Middleware\EnsureUserIsApproved::class,
+            'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
+        ]);
+
+        // Register AuditLog middleware globally for web requests
+        $middleware->web(append: [
+            \App\Http\Middleware\AuditLogMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

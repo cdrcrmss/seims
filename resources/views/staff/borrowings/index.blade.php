@@ -7,14 +7,14 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white font-poppins">Borrowing Requests</h1>
-            <p class="text-gray-600 dark:text-gray-400">Review and manage student borrowing requests</p>
+            <h1 class="text-3xl font-bold text-gray-900 font-poppins">Borrowing Requests</h1>
+            <p class="text-gray-600">Review and manage student borrowing requests</p>
         </div>
         <div class="flex items-center space-x-4">
             <!-- Status Filter with Alpine.js -->
             <div class="relative" x-data="{ open: false }">
                 <button @click="open = !open" type="button" 
-                        class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center justify-between min-w-[150px]">
+                        class="px-4 py-2 bg-white border border-gray-300 rounded-xl text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center justify-between min-w-[150px]">
                     <span x-text="statusFilter === '' ? 'All Status' : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)">All Status</span>
                     <svg class="w-4 h-4 ml-2" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -28,14 +28,14 @@
                      x-transition:leave="transition ease-in duration-75"
                      x-transition:leave-start="transform opacity-100 scale-100"
                      x-transition:leave-end="transform opacity-0 scale-95"
-                     class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                     class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
                     <div class="py-1">
-                        <button @click="statusFilter = ''; open = false" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400">All Status</button>
-                        <button @click="statusFilter = 'pending'; open = false" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400">Pending</button>
-                        <button @click="statusFilter = 'approved'; open = false" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400">Approved</button>
-                        <button @click="statusFilter = 'issued'; open = false" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400">Issued</button>
-                        <button @click="statusFilter = 'returned'; open = false" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400">Returned</button>
-                        <button @click="statusFilter = 'rejected'; open = false" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400">Rejected</button>
+                        <button @click="statusFilter = ''; open = false" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600">All Status</button>
+                        <button @click="statusFilter = 'pending'; open = false" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600">Pending</button>
+                        <button @click="statusFilter = 'approved'; open = false" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600">Approved</button>
+                        <button @click="statusFilter = 'issued'; open = false" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600">Issued</button>
+                        <button @click="statusFilter = 'returned'; open = false" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600">Returned</button>
+                        <button @click="statusFilter = 'rejected'; open = false" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600">Rejected</button>
                     </div>
                 </div>
             </div>
@@ -44,70 +44,70 @@
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <div class="glass rounded-2xl p-6 shadow-xl card-hover">
+        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Pending</p>
-                    <p class="text-3xl font-bold text-amber-600 dark:text-amber-400 font-poppins">{{ $statusCounts['pending'] }}</p>
+                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Pending</p>
+                    <p class="text-3xl font-bold text-amber-600 font-poppins">{{ $statusCounts['pending'] }}</p>
                 </div>
                 <div class="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                 </div>
             </div>
         </div>
 
-        <div class="glass rounded-2xl p-6 shadow-xl card-hover">
+        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Approved</p>
-                    <p class="text-3xl font-bold text-teal-600 dark:text-teal-400 font-poppins">{{ $statusCounts['approved'] }}</p>
+                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Approved</p>
+                    <p class="text-3xl font-bold text-teal-600 font-poppins">{{ $statusCounts['approved'] }}</p>
                 </div>
                 <div class="w-12 h-12 bg-teal-500/20 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                 </div>
             </div>
         </div>
 
-        <div class="glass rounded-2xl p-6 shadow-xl card-hover">
+        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Issued</p>
-                    <p class="text-3xl font-bold text-green-600 dark:text-green-400 font-poppins">{{ $statusCounts['issued'] }}</p>
+                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Issued</p>
+                    <p class="text-3xl font-bold text-green-600 font-poppins">{{ $statusCounts['issued'] }}</p>
                 </div>
                 <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                 </div>
             </div>
         </div>
 
-        <div class="glass rounded-2xl p-6 shadow-xl card-hover">
+        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Returned</p>
-                    <p class="text-3xl font-bold text-emerald-600 dark:text-emerald-400 font-poppins">{{ $statusCounts['returned'] }}</p>
+                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Returned</p>
+                    <p class="text-3xl font-bold text-emerald-600 font-poppins">{{ $statusCounts['returned'] }}</p>
                 </div>
                 <div class="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
                     </svg>
                 </div>
             </div>
         </div>
 
-        <div class="glass rounded-2xl p-6 shadow-xl card-hover">
+        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Rejected</p>
-                    <p class="text-3xl font-bold text-red-600 dark:text-red-400 font-poppins">{{ $statusCounts['rejected'] }}</p>
+                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Rejected</p>
+                    <p class="text-3xl font-bold text-red-600 font-poppins">{{ $statusCounts['rejected'] }}</p>
                 </div>
                 <div class="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </div>
@@ -116,15 +116,15 @@
     </div>
 
     <!-- Borrowing Requests -->
-    <div class="glass rounded-3xl shadow-xl overflow-hidden">
-        <div class="p-6 border-b border-white/10">
+    <div class="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white">All Requests</h2>
+                <h2 class="text-xl font-bold text-gray-900">All Requests</h2>
                 <div class="flex items-center space-x-4">
                     <!-- Search -->
                     <div class="relative">
                         <input type="text" id="searchInput" placeholder="Search requests..." 
-                               class="pl-10 pr-4 py-2 bg-white/10 dark:bg-white/5 border border-white/20 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                               class="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
@@ -135,14 +135,14 @@
 
         <div class="divide-y divide-white/10">
             @forelse($borrowings as $borrowing)
-                <div class="p-6 hover:bg-white/5 dark:hover:bg-white/5 transition-colors">
+                <div class="p-6 hover:bg-white/5 transition-colors">
                     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                         <!-- Request Info -->
                         <div class="flex-1">
                             <div class="flex items-start space-x-4">
                                 <!-- Item Image -->
-                                <div class="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
-                                    @if($borrowing->item->image_path)
+                                <div class="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
+                                    @if($borrowing->item?->image_path)
                                         <img src="{{ $borrowing->item->image_url }}" alt="{{ $borrowing->item->name }}" class="w-full h-full object-cover">
                                     @else
                                         <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,44 +154,44 @@
                                 <!-- Request Details -->
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center space-x-2 mb-1">
-                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white truncate">{{ $borrowing->item->name }}</h3>
+                                        <h3 class="text-lg font-semibold text-gray-900 truncate">{{ $borrowing->item?->name ?? 'Deleted Item' }}</h3>
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                            {{ $borrowing->status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800/20 dark:text-yellow-300' : 
-                                               ($borrowing->status === 'approved' ? 'bg-blue-100 text-blue-800 dark:bg-blue-800/20 dark:text-blue-300' : 
-                                                ($borrowing->status === 'issued' ? 'bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-300' : 
-                                                 ($borrowing->status === 'returned' ? 'bg-purple-100 text-purple-800 dark:bg-purple-800/20 dark:text-purple-300' : 
-                                                  'bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-300'))) }}">
+                                            {{ $borrowing->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                               ($borrowing->status === 'approved' ? 'bg-blue-100 text-blue-800' : 
+                                                ($borrowing->status === 'issued' ? 'bg-green-100 text-green-800' : 
+                                                 ($borrowing->status === 'returned' ? 'bg-purple-100 text-purple-800' : 
+                                                  'bg-red-100 text-red-800'))) }}">
                                             {{ ucfirst($borrowing->status) }}
                                         </span>
                                     </div>
 
                                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                                         <div>
-                                            <p class="text-gray-500 dark:text-gray-400">Requested by</p>
-                                            <p class="font-medium text-gray-900 dark:text-white">{{ $borrowing->user->name }}</p>
-                                            @if($borrowing->user->student_id)
-                                                <p class="text-xs text-gray-500 dark:text-gray-400">ID: {{ $borrowing->user->student_id }}</p>
+                                            <p class="text-gray-500">Requested by</p>
+                                            <p class="font-medium text-gray-900">{{ $borrowing->user?->name ?? 'Unknown User' }}</p>
+                                            @if($borrowing->user?->student_id)
+                                                <p class="text-xs text-gray-500">ID: {{ $borrowing->user->student_id }}</p>
                                             @endif
                                         </div>
                                         <div>
-                                            <p class="text-gray-500 dark:text-gray-400">Quantity</p>
-                                            <p class="font-medium text-gray-900 dark:text-white">{{ $borrowing->quantity }}</p>
+                                            <p class="text-gray-500">Quantity</p>
+                                            <p class="font-medium text-gray-900">{{ $borrowing->quantity }}</p>
                                         </div>
                                         <div>
-                                            <p class="text-gray-500 dark:text-gray-400">Requested Date</p>
-                                            <p class="font-medium text-gray-900 dark:text-white">{{ $borrowing->created_at->format('M d, Y') }}</p>
+                                            <p class="text-gray-500">Requested Date</p>
+                                            <p class="font-medium text-gray-900">{{ $borrowing->created_at->format('M d, Y') }}</p>
                                         </div>
                                         @if($borrowing->expected_return_date)
                                             <div>
-                                                <p class="text-gray-500 dark:text-gray-400">Expected Return</p>
-                                                <p class="font-medium text-gray-900 dark:text-white">{{ $borrowing->expected_return_date->format('M d, Y') }}</p>
+                                                <p class="text-gray-500">Expected Return</p>
+                                                <p class="font-medium text-gray-900">{{ $borrowing->expected_return_date->format('M d, Y') }}</p>
                                             </div>
                                         @endif
                                     </div>
 
                                     @if($borrowing->notes)
                                         <div class="mt-3">
-                                            <p class="text-sm text-gray-600 dark:text-gray-300">
+                                            <p class="text-sm text-gray-600">
                                                 <span class="font-medium">Notes:</span> {{ $borrowing->notes }}
                                             </p>
                                         </div>
@@ -203,39 +203,58 @@
                         <!-- Actions -->
                         <div class="flex flex-wrap gap-2 lg:flex-col lg:items-end">
                             @if($borrowing->status === 'pending')
-                                <form method="POST" action="{{ route('staff.borrowings.approve', $borrowing) }}" class="inline">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm font-medium rounded-lg hover:from-green-600 hover:to-green-700 transition-colors shadow-md">
-                                        Approve
-                                    </button>
-                                </form>
-                                <form method="POST" action="{{ route('staff.borrowings.reject', $borrowing) }}" class="inline">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-medium rounded-lg hover:from-red-600 hover:to-red-700 transition-colors shadow-md">
-                                        Reject
-                                    </button>
-                                </form>
+                                <div class="flex items-center gap-2">
+                                    <form method="POST" action="{{ route('staff.borrowings.approve', $borrowing) }}" class="inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                            Approve
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ route('staff.borrowings.reject', $borrowing) }}" class="inline" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Reject Request', message: 'Are you sure you want to reject this borrow request?', type: 'danger' })">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg text-red-700 bg-red-50 hover:bg-red-100 ring-1 ring-red-200/60 transition-colors">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            Reject
+                                        </button>
+                                    </form>
+                                </div>
                             @elseif($borrowing->status === 'approved')
                                 <form method="POST" action="{{ route('staff.borrowings.issue', $borrowing) }}" class="inline">
                                     @csrf
                                     @method('PATCH')
-                                    <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-blue-700 transition-colors shadow-md">
+                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                         Issue Item
                                     </button>
                                 </form>
                             @elseif($borrowing->status === 'issued')
-                                <form method="POST" action="{{ route('staff.borrowings.return', $borrowing) }}" class="inline">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-purple-600 hover:to-purple-700 transition-colors shadow-md">
-                                        Mark Returned
-                                    </button>
-                                </form>
+                                <button type="button" 
+                                        onclick="openReturnModal({{ $borrowing->id }}, '{{ addslashes($borrowing->item?->name ?? 'Item') }}', '{{ addslashes($borrowing->user?->name ?? 'User') }}')" 
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                                    Mark Returned
+                                </button>
                             @endif
 
-                            <button onclick="showBorrowingDetails({{ $borrowing->toJson() }})" class="px-4 py-2 bg-white/10 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-white/20 dark:hover:bg-white/10 transition-colors">
+                            @if($borrowing->status === 'returned' && $borrowing->return_condition)
+                                <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md
+                                    {{ $borrowing->return_condition === 'good' ? 'bg-green-50 text-green-700' : 
+                                       ($borrowing->return_condition === 'fair' ? 'bg-yellow-50 text-yellow-700' : 
+                                        ($borrowing->return_condition === 'needs_repair' ? 'bg-orange-50 text-orange-700' : 
+                                         'bg-red-50 text-red-700')) }}">
+                                    <span class="w-1.5 h-1.5 rounded-full 
+                                        {{ $borrowing->return_condition === 'good' ? 'bg-green-500' : 
+                                           ($borrowing->return_condition === 'fair' ? 'bg-yellow-500' : 
+                                            ($borrowing->return_condition === 'needs_repair' ? 'bg-orange-500' : 'bg-red-500')) }}"></span>
+                                    {{ ucfirst(str_replace('_', ' ', $borrowing->return_condition)) }}
+                                </span>
+                            @endif
+
+                            <button onclick="showBorrowingDetails({{ $borrowing->toJson() }})" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg text-gray-600 bg-gray-50 hover:bg-gray-100 ring-1 ring-gray-200/60 transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 Details
                             </button>
                         </div>
@@ -247,8 +266,8 @@
                         <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                         </svg>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">No borrowing requests</h3>
-                        <p class="text-gray-600 dark:text-gray-400">No borrowing requests found matching your criteria.</p>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">No borrowing requests</h3>
+                        <p class="text-gray-600">No borrowing requests found matching your criteria.</p>
                     </div>
                 </div>
             @endforelse
@@ -256,7 +275,7 @@
 
         <!-- Pagination -->
         @if($borrowings->hasPages())
-            <div class="px-6 py-4 border-t border-white/10">
+            <div class="px-6 py-4 border-t border-gray-200">
                 {{ $borrowings->links() }}
             </div>
         @endif
@@ -264,22 +283,18 @@
 
     <!-- Details Modal -->
     <div id="detailsModal" tabindex="-1" aria-hidden="true" class="fixed inset-0 z-50 hidden overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-            <!-- Background overlay -->
-            <div class="fixed inset-0 transition-opacity bg-gray-900/80 backdrop-blur-sm" onclick="closeModal()"></div>
+        <div class="flex items-center justify-center min-h-screen px-4 py-8">
+            <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" onclick="closeModal()"></div>
             
-            <!-- Modal panel -->
-            <div class="relative z-10 w-full max-w-2xl bg-white dark:bg-gray-800 rounded-3xl shadow-2xl">
-                <div class="flex items-start justify-between p-6 border-b border-gray-200 dark:border-gray-700 rounded-t-3xl">
-                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Borrowing Request Details</h3>
-                    <button type="button" onclick="closeModal()" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
-                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                        </svg>
+            <div class="relative z-10 w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-900">Request Details</h3>
+                    <button type="button" onclick="closeModal()" class="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
-                <div id="modalContent" class="p-6">
-                    <!-- Content will be populated by JavaScript -->
+                <div id="modalContent" class="px-6 py-5">
+                    <!-- Content populated by JS -->
                 </div>
             </div>
         </div>
@@ -292,65 +307,117 @@
     }
 
     function showBorrowingDetails(borrowing) {
+        const statusMap = {
+            pending: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500' },
+            approved: { bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500' },
+            issued: { bg: 'bg-green-50', text: 'text-green-700', dot: 'bg-green-500' },
+            returned: { bg: 'bg-purple-50', text: 'text-purple-700', dot: 'bg-purple-500' },
+            rejected: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500' },
+        };
+        const s = statusMap[borrowing.status] || statusMap.pending;
+        
+        const itemName = borrowing.item ? borrowing.item.name : 'Deleted Item';
+        const itemCategory = borrowing.item ? borrowing.item.category : '—';
+        const userName = borrowing.user ? borrowing.user.name : 'Unknown User';
+        const userEmail = borrowing.user ? borrowing.user.email : '—';
+        const studentId = borrowing.user && borrowing.user.student_id ? borrowing.user.student_id : null;
+
         const content = `
-            <div class="space-y-6">
-                <!-- Item Info -->
-                <div class="flex items-center space-x-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-xl">
-                    <div class="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800 dark:to-green-900 rounded-xl flex items-center justify-center">
-                        <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                        </svg>
-                    </div>
+            <div class="space-y-5">
+                <!-- Item & Status -->
+                <div class="flex items-center justify-between">
                     <div>
-                        <h4 class="text-lg font-semibold text-gray-900 dark:text-white">${borrowing.item.name}</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">${borrowing.item.category}</p>
+                        <h4 class="text-base font-bold text-gray-900">${itemName}</h4>
+                        <p class="text-xs text-gray-500">${itemCategory}</p>
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md ${s.bg} ${s.text}">
+                        <span class="w-1.5 h-1.5 rounded-full ${s.dot}"></span>
+                        ${borrowing.status.charAt(0).toUpperCase() + borrowing.status.slice(1)}
+                    </span>
+                </div>
+
+                <hr class="border-gray-100">
+
+                <!-- Student Info -->
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Student Information</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <p class="text-xs text-gray-500">Name</p>
+                            <p class="text-sm font-semibold text-gray-900">${userName}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Email</p>
+                            <p class="text-sm font-semibold text-gray-900 truncate">${userEmail}</p>
+                        </div>
+                        ${studentId ? `
+                        <div>
+                            <p class="text-xs text-gray-500">Student ID</p>
+                            <p class="text-sm font-semibold text-gray-900">${studentId}</p>
+                        </div>` : ''}
                     </div>
                 </div>
 
-                <!-- Request Details -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                        <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Requested by</label>
-                        <p class="font-semibold text-gray-900 dark:text-white">${borrowing.user.name}</p>
-                        ${borrowing.user.student_id ? `<p class="text-sm text-gray-500 dark:text-gray-400">ID: ${borrowing.user.student_id}</p>` : ''}
-                    </div>
-                    <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                        <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Email</label>
-                        <p class="font-semibold text-gray-900 dark:text-white">${borrowing.user.email}</p>
-                    </div>
-                    <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                        <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Quantity</label>
-                        <p class="font-semibold text-gray-900 dark:text-white">${borrowing.quantity}</p>
-                    </div>
-                    <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                        <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Status</label>
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold
-                            ${borrowing.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300' : 
-                              borrowing.status === 'approved' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300' : 
-                              borrowing.status === 'issued' ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300' : 
-                              borrowing.status === 'returned' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300' : 
-                              'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300'}">
-                            ${borrowing.status.charAt(0).toUpperCase() + borrowing.status.slice(1)}
-                        </span>
-                    </div>
-                    <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                        <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Request Date</label>
-                        <p class="font-semibold text-gray-900 dark:text-white">${new Date(borrowing.created_at).toLocaleDateString()}</p>
-                    </div>
-                    ${borrowing.expected_return_date ? `
-                        <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                            <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Expected Return</label>
-                            <p class="font-semibold text-gray-900 dark:text-white">${new Date(borrowing.expected_return_date).toLocaleDateString()}</p>
+                <hr class="border-gray-100">
+
+                <!-- Borrowing Info -->
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Borrowing Details</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <p class="text-xs text-gray-500">Quantity</p>
+                            <p class="text-sm font-semibold text-gray-900">${borrowing.quantity}</p>
                         </div>
-                    ` : ''}
+                        <div>
+                            <p class="text-xs text-gray-500">Request Date</p>
+                            <p class="text-sm font-semibold text-gray-900">${new Date(borrowing.created_at).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</p>
+                        </div>
+                        ${borrowing.expected_return_date ? `
+                        <div>
+                            <p class="text-xs text-gray-500">Expected Return</p>
+                            <p class="text-sm font-semibold text-gray-900">${new Date(borrowing.expected_return_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</p>
+                        </div>` : ''}
+                        ${borrowing.approved_date ? `
+                        <div>
+                            <p class="text-xs text-gray-500">Approved Date</p>
+                            <p class="text-sm font-semibold text-gray-900">${new Date(borrowing.approved_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</p>
+                        </div>` : ''}
+                        ${borrowing.issued_date ? `
+                        <div>
+                            <p class="text-xs text-gray-500">Issued Date</p>
+                            <p class="text-sm font-semibold text-gray-900">${new Date(borrowing.issued_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</p>
+                        </div>` : ''}
+                        ${borrowing.returned_date ? `
+                        <div>
+                            <p class="text-xs text-gray-500">Returned Date</p>
+                            <p class="text-sm font-semibold text-gray-900">${new Date(borrowing.returned_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</p>
+                        </div>` : ''}
+                        ${borrowing.return_condition ? `
+                        <div>
+                            <p class="text-xs text-gray-500">Return Condition</p>
+                            <p class="text-sm font-semibold text-gray-900">${borrowing.return_condition.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+                        </div>` : ''}
+                    </div>
                 </div>
 
                 ${borrowing.notes ? `
-                    <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                        <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Notes</label>
-                        <p class="text-gray-900 dark:text-white">${borrowing.notes}</p>
-                    </div>
-                ` : ''}
+                <hr class="border-gray-100">
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Notes</p>
+                    <p class="text-sm text-gray-700 leading-relaxed">${borrowing.notes}</p>
+                </div>` : ''}
+
+                ${borrowing.rejection_reason ? `
+                <div class="bg-red-50 rounded-lg p-3 mt-2">
+                    <p class="text-xs font-semibold text-red-700 mb-0.5">Rejection Reason</p>
+                    <p class="text-sm text-red-600">${borrowing.rejection_reason}</p>
+                </div>` : ''}
+
+                ${borrowing.return_notes ? `
+                <div class="bg-gray-50 rounded-lg p-3 mt-2">
+                    <p class="text-xs font-semibold text-gray-600 mb-0.5">Return Notes</p>
+                    <p class="text-sm text-gray-700">${borrowing.return_notes}</p>
+                </div>` : ''}
             </div>
         `;
         
@@ -358,19 +425,102 @@
         document.getElementById('detailsModal').classList.remove('hidden');
     }
 
-    // Simple search functionality
-    document.getElementById('searchInput').addEventListener('input', function() {
-        // This would typically be handled server-side with proper pagination
-        // For now, we'll implement basic client-side search
-        const searchTerm = this.value.toLowerCase();
-        // Implementation would filter the displayed results
-    });
+    // Return Modal Functions
+    function openReturnModal(borrowingId, itemName, userName) {
+        document.getElementById('returnBorrowingId').value = borrowingId;
+        document.getElementById('returnForm').action = `/staff/borrowings/${borrowingId}/return`;
+        document.getElementById('returnItemName').textContent = itemName || 'Item';
+        document.getElementById('returnUserName').textContent = userName || 'User';
+        document.getElementById('returnModal').classList.remove('hidden');
+        // Reset radio buttons
+        document.querySelectorAll('#returnForm input[name="return_condition"]').forEach(r => r.checked = false);
+        document.getElementById('return_notes').value = '';
+    }
 
-    document.getElementById('statusFilter').addEventListener('change', function() {
-        // This would typically trigger a page reload with the filter applied
-        // For now, we'll implement basic client-side filtering
-        const selectedStatus = this.value;
-        // Implementation would filter the displayed results
-    });
+    function closeReturnModal() {
+        document.getElementById('returnModal').classList.add('hidden');
+    }
 </script>
+
+<!-- Return Modal -->
+<div id="returnModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+        <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" onclick="closeReturnModal()"></div>
+        
+        <div class="relative z-10 w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden">
+            <form id="returnForm" method="POST" action="">
+                @csrf
+                @method('PATCH')
+                <input type="hidden" id="returnBorrowingId" name="borrowing_id" value="">
+                
+                <!-- Header -->
+                <div class="px-6 py-4 border-b border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-900">Return Item</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                        <span id="returnItemName" class="font-medium text-gray-700"></span>
+                        &middot; by <span id="returnUserName" class="font-medium text-gray-700"></span>
+                    </p>
+                </div>
+                
+                <div class="px-6 py-5 space-y-4">
+                    <!-- Condition -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Item Condition</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="return_condition" value="good" class="peer hidden" required>
+                                <div class="peer-checked:ring-2 peer-checked:ring-green-500 peer-checked:bg-green-50 border border-gray-200 rounded-xl p-3 text-center transition-all hover:border-green-300">
+                                    <svg class="w-6 h-6 mx-auto mb-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span class="text-xs font-semibold text-gray-700">Good</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="return_condition" value="fair" class="peer hidden">
+                                <div class="peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-yellow-50 border border-gray-200 rounded-xl p-3 text-center transition-all hover:border-yellow-300">
+                                    <svg class="w-6 h-6 mx-auto mb-1 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span class="text-xs font-semibold text-gray-700">Fair</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="return_condition" value="needs_repair" class="peer hidden">
+                                <div class="peer-checked:ring-2 peer-checked:ring-orange-500 peer-checked:bg-orange-50 border border-gray-200 rounded-xl p-3 text-center transition-all hover:border-orange-300">
+                                    <svg class="w-6 h-6 mx-auto mb-1 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    <span class="text-xs font-semibold text-gray-700">Needs Repair</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="return_condition" value="damaged" class="peer hidden">
+                                <div class="peer-checked:ring-2 peer-checked:ring-red-500 peer-checked:bg-red-50 border border-gray-200 rounded-xl p-3 text-center transition-all hover:border-red-300">
+                                    <svg class="w-6 h-6 mx-auto mb-1 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                    <span class="text-xs font-semibold text-gray-700">Damaged</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Notes -->
+                    <div>
+                        <label for="return_notes" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Notes <span class="font-normal normal-case text-gray-400">(optional)</span></label>
+                        <textarea id="return_notes" name="return_notes" rows="2" 
+                                  class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                                  placeholder="Any observations about the item..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Footer -->
+                <div class="flex gap-2 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                    <button type="button" onclick="closeReturnModal()" 
+                            class="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 inline-flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        Confirm Return
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
