@@ -162,10 +162,10 @@
                     </div>
 
                     <!-- Submit -->
-                    <div class="flex gap-3 pt-1">
+                    <div class="flex gap-3 pt-2">
                         <button type="submit"
                                 :disabled="submitting || purpose.length < 10"
-                                :class="(!submitting && purpose.length >= 10) ? 'bg-green-600 hover:bg-green-700 shadow-sm hover:shadow-md' : 'bg-gray-300 cursor-not-allowed'"
+                                :class="(!submitting && purpose.length >= 10) ? 'bg-green-600 hover:bg-green-700 shadow-sm hover:shadow-md' : 'bg-green-400 cursor-not-allowed opacity-60'"
                                 class="flex-1 py-3 text-white font-semibold rounded-xl text-sm transition-all duration-200 flex items-center justify-center gap-2">
                             <template x-if="!submitting">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
