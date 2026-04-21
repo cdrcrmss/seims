@@ -138,11 +138,16 @@ Route::middleware(['auth', 'approved'])->group(function () {
         // Scanner and lookup available to all authenticated users
         Route::get('/scanner', [\App\Http\Controllers\QrCodeController::class, 'scanner'])->name('scanner');
         Route::get('/lookup/{item?}', [\App\Http\Controllers\QrCodeController::class, 'lookup'])->name('lookup');
+        
+        // Unified scan action endpoint (all authenticated users)
+        Route::post('/scan-action', [\App\Http\Controllers\QrCodeController::class, 'scanAction'])->name('scan-action');
 
         // Generate and batch-generate restricted to staff/admin
         Route::middleware(['staff_or_admin'])->group(function () {
             Route::get('/generate/{item}', [\App\Http\Controllers\QrCodeController::class, 'generate'])->name('generate');
+            Route::get('/generate-room/{room}', [\App\Http\Controllers\QrCodeController::class, 'generateForRoom'])->name('generate-room');
             Route::post('/batch-generate', [\App\Http\Controllers\QrCodeController::class, 'batchGenerate'])->name('batch-generate');
+            Route::get('/scan-history', [\App\Http\Controllers\QrCodeController::class, 'scanHistory'])->name('scan-history');
         });
     });
 });

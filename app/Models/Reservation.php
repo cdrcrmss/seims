@@ -30,6 +30,8 @@ class Reservation extends Model
         'cancellation_reason',
         'conflict_detected',
         'conflict_resolution_notes',
+        'checked_in_at',
+        'no_show_count',
     ];
 
     /**
@@ -44,6 +46,7 @@ class Reservation extends Model
             'end_datetime' => 'datetime',
             'approved_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'checked_in_at' => 'datetime',
             'conflict_detected' => 'boolean',
         ];
     }

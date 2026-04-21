@@ -26,6 +26,7 @@ class Room extends Model
         'facilities',
         'status',
         'image_path',
+        'room_code',
     ];
 
     /**
