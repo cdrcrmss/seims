@@ -88,7 +88,7 @@ class Reservation extends Model
      */
     public function hasConflict()
     {
-        $query = self::whereIn('status', ['approved', 'pending'])
+        $query = self::whereIn('status', ['approved', 'pending', 'checked_in'])
             ->where('id', '!=', $this->id ?? 0);
 
         // Build resource conflict conditions using OR logic

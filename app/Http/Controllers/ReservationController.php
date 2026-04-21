@@ -119,8 +119,8 @@ class ReservationController extends Controller
     {
         $this->authorize('delete', $reservation);
 
-        // Prevent cancelling already completed/cancelled reservations
-        if (in_array($reservation->status, ['cancelled', 'completed'])) {
+        // Prevent cancelling reservations in terminal states
+        if (in_array($reservation->status, ['cancelled', 'completed', 'no_show', 'rejected'])) {
             return back()->withErrors(['error' => 'This reservation cannot be cancelled.']);
         }
 

@@ -139,8 +139,15 @@ class MaintenanceRecord extends Model
     /**
      * Auto-create a maintenance ticket from a return inspection.
      */
-    public static function createFromReturnInspection(int $itemId, int $borrowingId, string $returnCondition, ?string $notes = null): self
+    public static function createFromReturnInspection(int $itemId, int $borrowingId, string $returnCondition, ?string $notes = null): ?self
     {
+        // Prevent duplicate open tickets for the same item
+        $existing = static::where('item_id', $itemId)
+            ->whereIn('sla_status', [self::SLA_OPEN, self::SLA_IN_PROGRESS, self::SLA_WAITING_PARTS])
+            ->exists();
+
+        if ($existing) return null;
+
         $item = Item::find($itemId);
         $priority = $returnCondition === 'damaged' ? 'critical' : 'high';
         $maintenanceType = $returnCondition === 'damaged' ? 'emergency' : 'corrective';

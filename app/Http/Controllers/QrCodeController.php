@@ -489,6 +489,14 @@ class QrCodeController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(50);
 
-        return view('qr.scan-history', compact('events'));
+        // Stats from full DB, not just current page
+        $scanStats = [
+            'today' => ScanEvent::whereDate('created_at', today())->count(),
+            'success' => ScanEvent::where('outcome', 'success')->count(),
+            'warning' => ScanEvent::where('outcome', 'warning')->count(),
+            'blocked' => ScanEvent::where('outcome', 'blocked')->count(),
+        ];
+
+        return view('qr.scan-history', compact('events', 'scanStats'));
     }
 }

@@ -18,27 +18,21 @@
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        @php
-            $todayScans = $events->where('created_at', '>=', today())->count();
-            $successCount = $events->where('outcome', 'success')->count();
-            $warningCount = $events->where('outcome', 'warning')->count();
-            $blockedCount = $events->where('outcome', 'blocked')->count();
-        @endphp
         <div class="bg-white rounded-xl ring-1 ring-gray-200 p-4">
             <p class="text-xs font-bold text-gray-500 uppercase">Today</p>
-            <p class="text-2xl font-bold text-gray-900 mt-1">{{ $todayScans }}</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">{{ $scanStats['today'] }}</p>
         </div>
         <div class="bg-green-50 rounded-xl ring-1 ring-green-200 p-4">
             <p class="text-xs font-bold text-green-600 uppercase">Success</p>
-            <p class="text-2xl font-bold text-green-700 mt-1">{{ $successCount }}</p>
+            <p class="text-2xl font-bold text-green-700 mt-1">{{ $scanStats['success'] }}</p>
         </div>
         <div class="bg-yellow-50 rounded-xl ring-1 ring-yellow-200 p-4">
             <p class="text-xs font-bold text-yellow-600 uppercase">Warning</p>
-            <p class="text-2xl font-bold text-yellow-700 mt-1">{{ $warningCount }}</p>
+            <p class="text-2xl font-bold text-yellow-700 mt-1">{{ $scanStats['warning'] }}</p>
         </div>
         <div class="bg-red-50 rounded-xl ring-1 ring-red-200 p-4">
             <p class="text-xs font-bold text-red-600 uppercase">Blocked</p>
-            <p class="text-2xl font-bold text-red-700 mt-1">{{ $blockedCount }}</p>
+            <p class="text-2xl font-bold text-red-700 mt-1">{{ $scanStats['blocked'] }}</p>
         </div>
     </div>
 

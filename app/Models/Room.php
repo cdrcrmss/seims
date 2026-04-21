@@ -66,7 +66,7 @@ class Room extends Model
     public function isAvailable($startDateTime, $endDateTime)
     {
         return !$this->reservations()
-            ->where('status', 'approved')
+            ->whereIn('status', ['approved', 'checked_in'])
             ->where(function ($q) use ($startDateTime, $endDateTime) {
                 $q->whereBetween('start_datetime', [$startDateTime, $endDateTime])
                     ->orWhereBetween('end_datetime', [$startDateTime, $endDateTime])

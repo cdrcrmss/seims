@@ -43,7 +43,7 @@ class OperationalInboxController extends Controller
         $urgentMaintenance = MaintenanceRecord::with('item')
             ->openTickets()
             ->whereIn('priority', ['critical', 'high'])
-            ->orderByRaw("FIELD(priority, 'critical', 'high')")
+            ->orderByRaw("CASE priority WHEN 'critical' THEN 1 WHEN 'high' THEN 2 ELSE 3 END")
             ->limit(10)
             ->get();
 
