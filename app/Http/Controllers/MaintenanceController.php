@@ -88,30 +88,87 @@ class MaintenanceController extends Controller
             'condition_after' => 'required|string',
             'wear_level' => 'required|integer|min:0|max:100',
             'issues_found' => 'nullable|string',
+            'fault_type' => 'nullable|string|max:100',
+            'parts_used' => 'nullable|string',
+            'labor_minutes' => 'nullable|integer|min:0',
             'actions_taken' => 'required|string',
             'cost' => 'nullable|numeric|min:0',
         ]);
 
+        $partsArray = $request->parts_used
+            ? array_map('trim', explode(',', $request->parts_used))
+            : null;
+
         $maintenance->update([
             'status' => 'completed',
+            'sla_status' => MaintenanceRecord::SLA_COMPLETED,
             'completed_date' => $request->completed_date,
             'condition_after' => $request->condition_after,
             'wear_level' => $request->wear_level,
             'issues_found' => $request->issues_found,
+            'fault_type' => $request->fault_type,
+            'parts_used' => $partsArray,
+            'labor_minutes' => $request->labor_minutes,
             'actions_taken' => $request->actions_taken,
             'cost' => $request->cost,
             'next_maintenance_date' => MaintenanceRecord::predictNextMaintenance($maintenance->item),
         ]);
 
-        // Update item wear level
+        // Update item wear level and restore status
         $maintenance->item->update([
             'wear_level' => $request->wear_level,
+            'status' => 'available',
             'last_maintenance_date' => $request->completed_date,
             'next_maintenance_date' => $maintenance->next_maintenance_date,
         ]);
 
         return redirect()->route('maintenance.index')
-            ->with('success', 'Maintenance record completed successfully!');
+            ->with('success', 'Maintenance completed! Item restored to available.');
+    }
+
+    /**
+     * Start work on a maintenance ticket (SLA: open -> in_progress).
+     */
+    public function startWork(MaintenanceRecord $maintenance)
+    {
+        if (!in_array($maintenance->sla_status, ['open', 'waiting_parts'])) {
+            return back()->withErrors(['error' => 'Cannot start work on this ticket.']);
+        }
+
+        $maintenance->update([
+            'sla_status' => MaintenanceRecord::SLA_IN_PROGRESS,
+            'started_at' => $maintenance->started_at ?? now(),
+            'performed_by' => auth()->id(),
+        ]);
+
+        return back()->with('success', 'Maintenance work started.');
+    }
+
+    /**
+     * Mark ticket as waiting for parts (SLA: in_progress -> waiting_parts).
+     */
+    public function waitingParts(Request $request, MaintenanceRecord $maintenance)
+    {
+        $maintenance->update([
+            'sla_status' => MaintenanceRecord::SLA_WAITING_PARTS,
+            'notes' => $maintenance->notes . "\n[Waiting for parts] " . ($request->input('parts_note', '')),
+        ]);
+
+        return back()->with('success', 'Ticket marked as waiting for parts.');
+    }
+
+    /**
+     * Verify a completed maintenance (SLA: completed -> verified).
+     */
+    public function verify(MaintenanceRecord $maintenance)
+    {
+        if ($maintenance->sla_status !== MaintenanceRecord::SLA_COMPLETED) {
+            return back()->withErrors(['error' => 'Only completed tickets can be verified.']);
+        }
+
+        $maintenance->update(['sla_status' => MaintenanceRecord::SLA_VERIFIED]);
+
+        return back()->with('success', 'Maintenance verified and closed.');
     }
 
     /**

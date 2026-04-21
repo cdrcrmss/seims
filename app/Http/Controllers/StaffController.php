@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\Borrowing;
+use App\Models\MaintenanceRecord;
 use App\Models\Notification;
 use App\Models\User;
 use App\Mail\BorrowingApproved;
@@ -470,19 +471,32 @@ class StaffController extends Controller
                     'priority' => $isOverdue || in_array($request->return_condition, ['needs_repair', 'damaged']) ? 'high' : 'normal',
                 ]);
 
-                // If item needs repair, notify staff/admin
+                // If item needs repair, auto-create maintenance ticket and notify staff
                 if ($request->return_condition === 'needs_repair' || $request->return_condition === 'damaged') {
+                    // Auto-create maintenance ticket
+                    MaintenanceRecord::createFromReturnInspection(
+                        $item->id,
+                        $borrowing->id,
+                        $request->return_condition,
+                        $request->return_notes
+                    );
+
                     $staffUsers = User::whereIn('role', ['staff', 'admin'])->where('id', '!=', auth()->id())->get();
                     foreach ($staffUsers as $staff) {
                         Notification::create([
                             'user_id' => $staff->id,
                             'type' => 'danger',
-                            'title' => 'Item Needs Attention',
-                            'message' => '"' . $item->name . '" was returned in ' . $conditionLabel . ' condition by ' . ($borrowing->user?->name ?? 'a student') . '. Wear level: ' . $item->wear_level . '%.',
-                            'action_url' => route('staff.items.edit', $item),
+                            'title' => 'Maintenance Ticket Created',
+                            'message' => '"' . $item->name . '" was returned in ' . $conditionLabel . ' condition by ' . ($borrowing->user?->name ?? 'a student') . '. A maintenance ticket has been auto-created. Wear level: ' . $item->wear_level . '%.',
+                            'action_url' => route('maintenance.index'),
                             'priority' => 'high',
                         ]);
                     }
+                }
+
+                // Auto-create preventive ticket if wear level hits threshold
+                if ($item->wear_level >= 60 && !in_array($request->return_condition, ['needs_repair', 'damaged'])) {
+                    MaintenanceRecord::createFromUsageThreshold($item);
                 }
             });
 

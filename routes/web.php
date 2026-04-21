@@ -114,13 +114,16 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::patch('/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('cancel');
     });
 
-    // Maintenance & Condition Monitoring Module (Predictive Alerts)
+    // Maintenance & Condition Monitoring Module (Predictive Alerts + SLA)
     Route::middleware(['staff_or_admin'])->prefix('maintenance')->name('maintenance.')->group(function () {
         Route::get('/', [MaintenanceController::class, 'index'])->name('index');
         Route::get('/dashboard', [MaintenanceController::class, 'dashboard'])->name('dashboard');
         Route::get('/create', [MaintenanceController::class, 'create'])->name('create');
         Route::post('/', [MaintenanceController::class, 'store'])->name('store');
         Route::patch('/{maintenance}/complete', [MaintenanceController::class, 'complete'])->name('complete');
+        Route::patch('/{maintenance}/start-work', [MaintenanceController::class, 'startWork'])->name('start-work');
+        Route::patch('/{maintenance}/waiting-parts', [MaintenanceController::class, 'waitingParts'])->name('waiting-parts');
+        Route::patch('/{maintenance}/verify', [MaintenanceController::class, 'verify'])->name('verify');
         Route::post('/generate-alerts', [MaintenanceController::class, 'generatePredictiveAlerts'])->name('generate-alerts');
     });
 
