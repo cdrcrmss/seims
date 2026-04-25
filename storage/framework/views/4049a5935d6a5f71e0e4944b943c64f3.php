@@ -12,7 +12,7 @@
     
     <!-- Scripts -->
     <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
     
     <style>
         * { box-sizing: border-box; }
@@ -360,21 +360,17 @@
                     </div>
                     
                     <!-- Submit Button -->
-                    <button type="submit" class="btn-primary" :disabled="loading">
-                        <template x-if="!loading">
-                            <span class="btn-content">
-                                Create Account
-                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink: 0;">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                                </svg>
-                            </span>
-                        </template>
-                        <template x-if="loading">
-                            <span class="btn-content">
-                                <div class="spinner"></div>
-                                Creating account...
-                            </span>
-                        </template>
+                    <button type="submit" class="btn-primary" :disabled="loading" style="min-height: 56px;">
+                        <span x-show="!loading" class="btn-content">
+                            Create Account
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink: 0;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                            </svg>
+                        </span>
+                        <span x-show="loading" x-cloak class="btn-content">
+                            <div class="spinner"></div>
+                            Creating account...
+                        </span>
                     </button>
                 </form>
 

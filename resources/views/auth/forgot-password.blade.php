@@ -130,7 +130,7 @@
 
             <button type="submit" class="btn-primary" :disabled="loading" style="margin-bottom: 20px; min-height: 56px;">
                 <span x-show="!loading">Send Reset Link</span>
-                <span x-show="loading" x-cloak>Sending...</span>
+                <span x-show="loading" style="display:none">Sending...</span>
             </button>
         </form>
 
