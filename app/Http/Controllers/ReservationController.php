@@ -150,6 +150,42 @@ class ReservationController extends Controller
     }
 
     /**
+     * Mark a reservation as no-show (Staff/Admin)
+     */
+    public function markNoShow(Reservation $reservation)
+    {
+        $this->authorize('update', $reservation);
+
+        if ($reservation->status !== 'approved') {
+            return back()->withErrors(['error' => 'Only approved reservations can be marked as no-show.']);
+        }
+
+        $reservation->update([
+            'status' => 'no_show',
+        ]);
+
+        return back()->with('success', 'Reservation marked as no-show.');
+    }
+
+    /**
+     * Mark a reservation as completed (Staff/Admin)
+     */
+    public function complete(Reservation $reservation)
+    {
+        $this->authorize('update', $reservation);
+
+        if (!in_array($reservation->status, ['approved', 'checked_in'])) {
+            return back()->withErrors(['error' => 'Only approved or checked-in reservations can be completed.']);
+        }
+
+        $reservation->update([
+            'status' => 'completed',
+        ]);
+
+        return back()->with('success', 'Reservation marked as completed.');
+    }
+
+    /**
      * Check availability for a time period (API endpoint)
      */
     public function checkAvailability(Request $request)

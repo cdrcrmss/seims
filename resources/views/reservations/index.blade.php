@@ -241,6 +241,34 @@
                                         Approve
                                     </button>
                                 </form>
+
+                                <form method="POST" action="{{ route('reservations.reject', $reservation) }}" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Reject Reservation', message: 'Are you sure you want to reject this reservation? This action cannot be undone.', type: 'danger' })">
+                                    @csrf @method('PATCH')
+                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-50 text-red-700 hover:bg-red-100 ring-1 ring-red-200/60 transition-all duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                        Reject
+                                    </button>
+                                </form>
+                                @endif
+
+                                @if(in_array(auth()->user()->role, ['staff', 'admin']) && in_array($reservation->status, ['approved', 'checked_in']))
+                                <form method="POST" action="{{ route('reservations.complete', $reservation) }}" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Complete Reservation', message: 'Mark this reservation as completed?', type: 'success' })">
+                                    @csrf @method('PATCH')
+                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 ring-1 ring-blue-200/60 transition-all duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        Complete
+                                    </button>
+                                </form>
+                                @endif
+
+                                @if(in_array(auth()->user()->role, ['staff', 'admin']) && $reservation->status === 'approved')
+                                <form method="POST" action="{{ route('reservations.no-show', $reservation) }}" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Mark as No-Show', message: 'Are you sure you want to mark this student as a no-show? This action cannot be undone.', type: 'danger' })">
+                                    @csrf @method('PATCH')
+                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 ring-1 ring-amber-200/60 transition-all duration-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        No-Show
+                                    </button>
+                                </form>
                                 @endif
 
                                 @if($reservation->status === 'pending' || ($reservation->status === 'approved' && (auth()->id() === $reservation->user_id || in_array(auth()->user()->role, ['staff', 'admin']))))

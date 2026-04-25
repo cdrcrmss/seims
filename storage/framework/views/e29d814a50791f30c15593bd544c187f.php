@@ -190,11 +190,11 @@
         }
         
         .btn-primary .btn-content {
-            display: inline-flex !important;
-            flex-direction: row !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 8px !important;
+            display: inline-flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .btn-primary:hover {
@@ -544,7 +544,7 @@ unset($__errorArgs, $__bag); ?>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                             </svg>
                         </span>
-                        <span x-show="loading" x-cloak class="btn-content">
+                        <span x-show="loading" style="display:none" class="btn-content">
                             <div class="spinner"></div>
                             Signing in...
                         </span>

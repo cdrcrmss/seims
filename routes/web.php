@@ -105,6 +105,8 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::middleware(['staff_or_admin'])->group(function () {
             Route::patch('/{reservation}/approve', [ReservationController::class, 'approve'])->name('approve');
             Route::patch('/{reservation}/reject', [ReservationController::class, 'reject'])->name('reject');
+            Route::patch('/{reservation}/no-show', [ReservationController::class, 'markNoShow'])->name('no-show');
+            Route::patch('/{reservation}/complete', [ReservationController::class, 'complete'])->name('complete');
         });
         
         // Cancel own reservation
