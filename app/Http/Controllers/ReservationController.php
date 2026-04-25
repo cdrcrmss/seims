@@ -167,8 +167,8 @@ class ReservationController extends Controller
         if ($request->item_id) {
             $item = Item::find($request->item_id);
 
-            // Query overlapping approved reservations for this item and time window
-            $itemConflicts = Reservation::where('status', 'approved')
+            // Query overlapping active reservations for this item and time window
+            $itemConflicts = Reservation::whereIn('status', ['pending', 'approved', 'checked_in'])
                 ->where('item_id', $request->item_id)
                 ->where(function ($q) use ($request) {
                     $q->whereBetween('start_datetime', [$request->start_datetime, $request->end_datetime])
@@ -199,7 +199,7 @@ class ReservationController extends Controller
                 $available = false;
 
                 // Also fetch the specific room conflicts for the response
-                $roomConflicts = Reservation::where('status', 'approved')
+                $roomConflicts = Reservation::whereIn('status', ['pending', 'approved', 'checked_in'])
                     ->where('room_id', $request->room_id)
                     ->where(function ($q) use ($request) {
                         $q->whereBetween('start_datetime', [$request->start_datetime, $request->end_datetime])

@@ -132,9 +132,7 @@ class StoreReservationRequest extends FormRequest
 
         if (RateLimiter::tooManyAttempts($key, 5)) {
             $seconds = RateLimiter::availableIn($key);
-            abort(back()->withErrors([
-                'rate_limit' => "You're submitting too quickly. Please wait {$seconds} seconds.",
-            ])->withInput());
+            abort(429, "You're submitting too quickly. Please wait {$seconds} seconds.");
         }
 
         RateLimiter::hit($key, 300); // 5 minute decay

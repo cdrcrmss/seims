@@ -10,7 +10,7 @@
     <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700,800&display=swap" rel="stylesheet">
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
     
     <style>
         * { box-sizing: border-box; }
@@ -153,13 +153,9 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn-primary" :disabled="loading" style="margin-bottom: 20px;">
-                <template x-if="!loading">
-                    <span>Reset Password</span>
-                </template>
-                <template x-if="loading">
-                    <span>Resetting...</span>
-                </template>
+            <button type="submit" class="btn-primary" :disabled="loading" style="margin-bottom: 20px; min-height: 56px;">
+                <span x-show="!loading">Reset Password</span>
+                <span x-show="loading" x-cloak>Resetting...</span>
             </button>
         </form>
 

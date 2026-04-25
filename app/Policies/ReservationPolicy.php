@@ -45,8 +45,8 @@ class ReservationPolicy
      */
     public function delete(User $user, Reservation $reservation): bool
     {
-        // Cannot cancel already completed or cancelled reservations
-        if (in_array($reservation->status, ['cancelled', 'completed'])) {
+        // Cannot cancel reservations in terminal states
+        if (in_array($reservation->status, ['cancelled', 'completed', 'no_show', 'rejected'])) {
             return false;
         }
 
