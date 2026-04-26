@@ -142,7 +142,10 @@
                                  :style="
                                      res.status === 'pending' ? 'background: #fffbeb; color: #b45309; border-left: 2px solid #f59e0b;' :
                                      res.status === 'approved' ? 'background: #f0fdf4; color: #15803d; border-left: 2px solid #22c55e;' :
+                                     res.status === 'checked_in' ? 'background: #eff6ff; color: #1d4ed8; border-left: 2px solid #3b82f6;' :
                                      res.status === 'cancelled' ? 'background: #fef2f2; color: #dc2626; border-left: 2px solid #ef4444;' :
+                                     res.status === 'rejected' ? 'background: #fef2f2; color: #b91c1c; border-left: 2px solid #dc2626;' :
+                                     res.status === 'no_show' ? 'background: #fffbeb; color: #92400e; border-left: 2px solid #d97706;' :
                                      'background: #f9fafb; color: #6b7280; border-left: 2px solid #9ca3af;'
                                  "
                                  :title="res.title + ' — ' + res.user + ' — ' + res.purpose"
@@ -219,7 +222,10 @@
                                 $statusColors = [
                                     'pending' => 'bg-yellow-50 text-yellow-700',
                                     'approved' => 'bg-green-50 text-green-700',
+                                    'checked_in' => 'bg-blue-50 text-blue-700',
                                     'cancelled' => 'bg-red-50 text-red-700',
+                                    'rejected' => 'bg-red-50 text-red-600',
+                                    'no_show' => 'bg-amber-50 text-amber-700',
                                     'completed' => 'bg-gray-100 text-gray-700',
                                 ];
                             @endphp
