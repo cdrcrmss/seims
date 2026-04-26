@@ -123,6 +123,9 @@ class AuditLogMiddleware
             'index' => 'list',
             'approve' => 'approve',
             'reject' => 'reject',
+            'markNoShow' => 'no_show',
+            'complete' => 'complete',
+            'cancel' => 'cancel',
             'issue' => 'issue',
             'return' => 'return',
         ];
@@ -181,7 +184,7 @@ class AuditLogMiddleware
 
         // Approval/rejection actions
         $action = $this->determineAction($request);
-        if (in_array($action, ['approve', 'reject', 'delete'])) {
+        if (in_array($action, ['approve', 'reject', 'delete', 'no_show', 'complete', 'cancel'])) {
             return 'warning';
         }
 

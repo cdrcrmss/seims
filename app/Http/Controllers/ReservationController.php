@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CheckAvailabilityRequest;
 use App\Http\Requests\StoreReservationRequest;
 use App\Models\Reservation;
 use App\Models\Room;
-use App\Models\Item;
+use App\Services\ReservationConflictService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,9 +23,8 @@ class ReservationController extends Controller
             ->where(function($query) use ($user) {
                 $query->where('user_id', $user->id);
                 
-                // Only staff/admin can see others' approved reservations
                 if (in_array($user->role, ['staff', 'admin'])) {
-                    $query->orWhere('status', 'approved');
+                    $query->orWhereIn('status', ['pending', 'approved', 'checked_in']);
                 }
             })
             ->orderBy('start_datetime', 'desc')
@@ -38,6 +38,8 @@ class ReservationController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', Reservation::class);
+
         $user = Auth::user();
         $rooms = Room::where('status', 'available')->get();
 
@@ -63,8 +65,7 @@ class ReservationController extends Controller
         $reservation->user_id = Auth::id();
         $reservation->status = 'pending';
 
-        // Conflict Detective: Check for scheduling conflicts
-        if ($reservation->hasConflict()) {
+        if (ReservationConflictService::hasConflict($reservation)) {
             $reservation->conflict_detected = true;
             return back()->withErrors([
                 'conflict' => 'A scheduling conflict was detected. The selected resource is already reserved for this time period.'
@@ -84,8 +85,7 @@ class ReservationController extends Controller
     {
         $this->authorize('update', $reservation);
 
-        // Recheck for conflicts before approval
-        if ($reservation->hasConflict()) {
+        if (ReservationConflictService::hasConflict($reservation)) {
             return back()->withErrors([
                 'conflict' => 'Cannot approve: A scheduling conflict exists.'
             ]);
@@ -107,8 +107,7 @@ class ReservationController extends Controller
     {
         $this->authorize('delete', $reservation);
 
-        // Prevent cancelling already completed/cancelled reservations
-        if (in_array($reservation->status, ['cancelled', 'completed'])) {
+        if (in_array($reservation->status, ['cancelled', 'completed', 'no_show', 'rejected'])) {
             return back()->withErrors(['error' => 'This reservation cannot be cancelled.']);
         }
 
@@ -188,78 +187,17 @@ class ReservationController extends Controller
     /**
      * Check availability for a time period (API endpoint)
      */
-    public function checkAvailability(Request $request)
+    public function checkAvailability(CheckAvailabilityRequest $request)
     {
-        $request->validate([
-            'item_id' => 'nullable|exists:items,id',
-            'room_id' => 'nullable|exists:rooms,id',
-            'start_datetime' => 'required|date',
-            'end_datetime' => 'required|date|after:start_datetime',
-        ]);
-
-        $available = true;
-        $conflicts = [];
-
-        if ($request->item_id) {
-            $item = Item::find($request->item_id);
-
-            // Query overlapping active reservations for this item and time window
-            $itemConflicts = Reservation::whereIn('status', ['pending', 'approved', 'checked_in'])
-                ->where('item_id', $request->item_id)
-                ->where(function ($q) use ($request) {
-                    $q->whereBetween('start_datetime', [$request->start_datetime, $request->end_datetime])
-                        ->orWhereBetween('end_datetime', [$request->start_datetime, $request->end_datetime])
-                        ->orWhere(function ($q2) use ($request) {
-                            $q2->where('start_datetime', '<=', $request->start_datetime)
-                                ->where('end_datetime', '>=', $request->end_datetime);
-                        });
-                })
-                ->get();
-
-            if ($itemConflicts->isNotEmpty()) {
-                $available = false;
-                foreach ($itemConflicts as $conflict) {
-                    $conflicts[] = [
-                        'type' => 'item',
-                        'reservation_id' => $conflict->id,
-                        'start_datetime' => $conflict->start_datetime->toDateTimeString(),
-                        'end_datetime' => $conflict->end_datetime->toDateTimeString(),
-                    ];
-                }
-            }
-        }
-
-        if ($request->room_id) {
-            $room = Room::find($request->room_id);
-            if (!$room->isAvailable($request->start_datetime, $request->end_datetime)) {
-                $available = false;
-
-                // Also fetch the specific room conflicts for the response
-                $roomConflicts = Reservation::whereIn('status', ['pending', 'approved', 'checked_in'])
-                    ->where('room_id', $request->room_id)
-                    ->where(function ($q) use ($request) {
-                        $q->whereBetween('start_datetime', [$request->start_datetime, $request->end_datetime])
-                            ->orWhereBetween('end_datetime', [$request->start_datetime, $request->end_datetime])
-                            ->orWhere(function ($q2) use ($request) {
-                                $q2->where('start_datetime', '<=', $request->start_datetime)
-                                    ->where('end_datetime', '>=', $request->end_datetime);
-                            });
-                    })
-                    ->get();
-
-                foreach ($roomConflicts as $conflict) {
-                    $conflicts[] = [
-                        'type' => 'room',
-                        'reservation_id' => $conflict->id,
-                        'start_datetime' => $conflict->start_datetime->toDateTimeString(),
-                        'end_datetime' => $conflict->end_datetime->toDateTimeString(),
-                    ];
-                }
-            }
-        }
+        $conflicts = ReservationConflictService::getConflicts(
+            $request->item_id,
+            $request->room_id,
+            $request->start_datetime,
+            $request->end_datetime
+        );
 
         return response()->json([
-            'available' => $available,
+            'available' => empty($conflicts),
             'conflicts' => $conflicts,
         ]);
     }

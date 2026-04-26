@@ -9,6 +9,7 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\TrashController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -61,6 +62,13 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
         Route::put('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
         Route::get('/borrowings', [AdminController::class, 'borrowings'])->name('borrowings');
+
+        // Trash / Soft-Delete Recovery
+        Route::get('/trash', [TrashController::class, 'index'])->name('trash.index');
+        Route::patch('/trash/users/{id}/restore', [TrashController::class, 'restoreUser'])->name('trash.users.restore');
+        Route::delete('/trash/users/{id}/force', [TrashController::class, 'forceDeleteUser'])->name('trash.users.force-delete');
+        Route::patch('/trash/reservations/{id}/restore', [TrashController::class, 'restoreReservation'])->name('trash.reservations.restore');
+        Route::delete('/trash/reservations/{id}/force', [TrashController::class, 'forceDeleteReservation'])->name('trash.reservations.force-delete');
     });
     
     // Staff Routes (accessible by both staff and admin)

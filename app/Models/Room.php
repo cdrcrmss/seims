@@ -64,15 +64,10 @@ class Room extends Model
      */
     public function isAvailable($startDateTime, $endDateTime)
     {
-        return !$this->reservations()
-            ->where('status', 'approved')
-            ->where(function ($q) use ($startDateTime, $endDateTime) {
-                $q->whereBetween('start_datetime', [$startDateTime, $endDateTime])
-                    ->orWhereBetween('end_datetime', [$startDateTime, $endDateTime])
-                    ->orWhere(function ($q2) use ($startDateTime, $endDateTime) {
-                        $q2->where('start_datetime', '<=', $startDateTime)
-                            ->where('end_datetime', '>=', $endDateTime);
-                    });
-            })->exists();
+        $query = $this->reservations()
+            ->whereIn('status', \App\Services\ReservationConflictService::ACTIVE_STATUSES);
+
+        return !\App\Services\ReservationConflictService::applyOverlapConditions($query, $startDateTime, $endDateTime)
+            ->exists();
     }
 }

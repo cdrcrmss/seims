@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Reservation;
+use App\Services\ReservationConflictService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -87,36 +88,13 @@ class StoreReservationRequest extends FormRequest
             }
 
             // 4. Duplicate reservation check — same room in overlapping time for this user
-            $duplicateExists = Reservation::where('user_id', $user->id)
-                ->whereIn('status', ['pending', 'approved'])
-                ->where('room_id', $this->room_id)
-                ->where(function ($q) {
-                    $q->whereBetween('start_datetime', [$this->start_datetime, $this->end_datetime])
-                        ->orWhereBetween('end_datetime', [$this->start_datetime, $this->end_datetime])
-                        ->orWhere(function ($q2) {
-                            $q2->where('start_datetime', '<=', $this->start_datetime)
-                                ->where('end_datetime', '>=', $this->end_datetime);
-                        });
-                })->exists();
-
-            if ($duplicateExists) {
+            if (ReservationConflictService::userHasDuplicate($user->id, $this->room_id, $this->start_datetime, $this->end_datetime)) {
                 $validator->errors()->add('room_id', 'You already have a reservation for this room during the selected time.');
                 return;
             }
 
             // 5. Conflict detection — anyone's approved reservation for this room
-            $roomConflict = Reservation::where('status', 'approved')
-                ->where('room_id', $this->room_id)
-                ->where(function ($q) {
-                    $q->whereBetween('start_datetime', [$this->start_datetime, $this->end_datetime])
-                        ->orWhereBetween('end_datetime', [$this->start_datetime, $this->end_datetime])
-                        ->orWhere(function ($q2) {
-                            $q2->where('start_datetime', '<=', $this->start_datetime)
-                                ->where('end_datetime', '>=', $this->end_datetime);
-                        });
-                })->exists();
-
-            if ($roomConflict) {
+            if (ReservationConflictService::roomHasApprovedConflict($this->room_id, $this->start_datetime, $this->end_datetime)) {
                 $validator->errors()->add('conflict', 'The selected room is already reserved during this time period.');
                 return;
             }

@@ -81,37 +81,11 @@ class Reservation extends Model
     }
 
     /**
-     * Check for scheduling conflicts (checks both pending and approved reservations)
+     * Check for scheduling conflicts (delegates to ReservationConflictService)
      */
     public function hasConflict()
     {
-        $query = self::whereIn('status', ['approved', 'pending'])
-            ->where('id', '!=', $this->id ?? 0);
-
-        // Build resource conflict conditions using OR logic
-        $query->where(function ($resourceQuery) {
-            $hasCondition = false;
-            if ($this->item_id) {
-                $resourceQuery->where('item_id', $this->item_id);
-                $hasCondition = true;
-            }
-            if ($this->room_id) {
-                if ($hasCondition) {
-                    $resourceQuery->orWhere('room_id', $this->room_id);
-                } else {
-                    $resourceQuery->where('room_id', $this->room_id);
-                }
-            }
-        });
-
-        return $query->where(function ($q) {
-            $q->whereBetween('start_datetime', [$this->start_datetime, $this->end_datetime])
-                ->orWhereBetween('end_datetime', [$this->start_datetime, $this->end_datetime])
-                ->orWhere(function ($q2) {
-                    $q2->where('start_datetime', '<=', $this->start_datetime)
-                        ->where('end_datetime', '>=', $this->end_datetime);
-                });
-        })->exists();
+        return \App\Services\ReservationConflictService::hasConflict($this);
     }
 
     /**

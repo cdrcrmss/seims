@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Notification;
+use App\Jobs\NotifyAdminsOfRegistration;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -50,18 +50,8 @@ class RegisteredUserController extends Controller
         // Fire Registered event to send verification email
         event(new Registered($user));
 
-        // Notify all admins about the new registration
-        $admins = User::where('role', 'admin')->get();
-        foreach ($admins as $admin) {
-            Notification::create([
-                'user_id' => $admin->id,
-                'type' => 'warning',
-                'title' => 'New Student Registration',
-                'message' => $user->name . ' (' . $user->student_id . ') has registered and is awaiting approval.',
-                'action_url' => route('admin.users.index', ['role' => 'student', 'approval' => 'pending']),
-                'priority' => 'high',
-            ]);
-        }
+        // Queue admin notifications (non-blocking)
+        NotifyAdminsOfRegistration::dispatch($user->id, $user->name, $user->student_id);
 
         // Do NOT auto-login — redirect to a waiting page
         return redirect()->route('login')->with('status', 'Your account has been created and is pending admin approval. You will be notified once approved.');

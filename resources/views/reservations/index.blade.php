@@ -56,8 +56,8 @@
             <p class="text-gray-600">Book and manage laboratory & classroom reservations</p>
         </div>
         <div class="flex items-center space-x-3">
-            <!-- View Toggle -->
-            <div class="flex bg-gray-100 rounded-xl p-1">
+            <!-- View Toggle (hidden on mobile — calendar doesn't work well on small screens) -->
+            <div class="hidden sm:flex bg-gray-100 rounded-xl p-1">
                 <button @click="viewMode = 'list'" 
                         :class="viewMode === 'list' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'"
                         class="px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center space-x-2">
@@ -78,7 +78,7 @@
         </div>
     </div>
 
-    <!-- Calendar View -->
+    <!-- Calendar View (hidden on small screens) -->
     <div x-show="viewMode === 'calendar'" x-transition
          x-data="{
             get today() {
@@ -86,7 +86,7 @@
                 return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
             }
          }"
-         class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm overflow-hidden">
+         class="hidden sm:block bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm overflow-hidden">
 
         <!-- Calendar Header -->
         <div class="flex items-center justify-between px-6 py-4" style="background: linear-gradient(135deg, #16a34a, #059669);">
@@ -234,39 +234,43 @@
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end space-x-2">
                                 @if(in_array(auth()->user()->role, ['staff', 'admin']) && $reservation->status === 'pending')
-                                <form method="POST" action="{{ route('reservations.approve', $reservation) }}" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Approve Reservation', message: 'Are you sure you want to approve this reservation?', type: 'success' })">
+                                <form method="POST" action="{{ route('reservations.approve', $reservation) }}" x-data="{ loading: false }" @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Approve Reservation', message: 'Are you sure you want to approve this reservation?', type: 'success' })" @submit="loading = true">
                                     @csrf @method('PATCH')
-                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-50 text-green-700 hover:bg-green-100 ring-1 ring-green-200/60 transition-all duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                        Approve
+                                    <button type="submit" :disabled="loading" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-50 text-green-700 hover:bg-green-100 ring-1 ring-green-200/60 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <svg x-show="!loading" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        <svg x-show="loading" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                        <span x-text="loading ? 'Approving...' : 'Approve'"></span>
                                     </button>
                                 </form>
 
-                                <form method="POST" action="{{ route('reservations.reject', $reservation) }}" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Reject Reservation', message: 'Are you sure you want to reject this reservation? This action cannot be undone.', type: 'danger' })">
+                                <form method="POST" action="{{ route('reservations.reject', $reservation) }}" x-data="{ loading: false }" @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Reject Reservation', message: 'Are you sure you want to reject this reservation? This action cannot be undone.', type: 'danger' })" @submit="loading = true">
                                     @csrf @method('PATCH')
-                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-50 text-red-700 hover:bg-red-100 ring-1 ring-red-200/60 transition-all duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-                                        Reject
+                                    <button type="submit" :disabled="loading" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-50 text-red-700 hover:bg-red-100 ring-1 ring-red-200/60 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <svg x-show="!loading" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                        <svg x-show="loading" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                        <span x-text="loading ? 'Rejecting...' : 'Reject'"></span>
                                     </button>
                                 </form>
                                 @endif
 
                                 @if(in_array(auth()->user()->role, ['staff', 'admin']) && in_array($reservation->status, ['approved', 'checked_in']))
-                                <form method="POST" action="{{ route('reservations.complete', $reservation) }}" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Complete Reservation', message: 'Mark this reservation as completed?', type: 'success' })">
+                                <form method="POST" action="{{ route('reservations.complete', $reservation) }}" x-data="{ loading: false }" @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Complete Reservation', message: 'Mark this reservation as completed?', type: 'success' })" @submit="loading = true">
                                     @csrf @method('PATCH')
-                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 ring-1 ring-blue-200/60 transition-all duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        Complete
+                                    <button type="submit" :disabled="loading" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 ring-1 ring-blue-200/60 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <svg x-show="!loading" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <svg x-show="loading" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                        <span x-text="loading ? 'Completing...' : 'Complete'"></span>
                                     </button>
                                 </form>
                                 @endif
 
                                 @if(in_array(auth()->user()->role, ['staff', 'admin']) && $reservation->status === 'approved')
-                                <form method="POST" action="{{ route('reservations.no-show', $reservation) }}" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Mark as No-Show', message: 'Are you sure you want to mark this student as a no-show? This action cannot be undone.', type: 'danger' })">
+                                <form method="POST" action="{{ route('reservations.no-show', $reservation) }}" x-data="{ loading: false }" @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Mark as No-Show', message: 'Are you sure you want to mark this student as a no-show? This action cannot be undone.', type: 'danger' })" @submit="loading = true">
                                     @csrf @method('PATCH')
-                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 ring-1 ring-amber-200/60 transition-all duration-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        No-Show
+                                    <button type="submit" :disabled="loading" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 ring-1 ring-amber-200/60 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <svg x-show="!loading" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <svg x-show="loading" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                        <span x-text="loading ? 'Processing...' : 'No-Show'"></span>
                                     </button>
                                 </form>
                                 @endif

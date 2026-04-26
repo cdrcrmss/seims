@@ -124,8 +124,16 @@
                 </div>
             </div>
             @empty
-            <div class="px-5 py-10 text-center">
-                <p class="text-sm text-gray-400">No active borrowings</p>
+            <div class="px-5 py-12 text-center">
+                <div class="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                </div>
+                <p class="text-sm font-semibold text-gray-700 mb-1">No active borrowings yet</p>
+                <p class="text-xs text-gray-400 mb-4">Get started by browsing available equipment and placing a borrow request.</p>
+                <a href="{{ route('student.borrow') }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white text-xs font-semibold rounded-xl hover:bg-green-700 transition-colors shadow-sm">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    Borrow Equipment
+                </a>
             </div>
             @endforelse
         </div>

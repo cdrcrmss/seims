@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Item;
 use App\Models\Borrowing;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
@@ -251,23 +252,25 @@ class AdminController extends Controller
      */
     public static function loadSettings(): array
     {
-        $defaults = [
-            'system_name' => config('app.name', 'SEIMS'),
-            'max_borrow_days' => 7,
-            'max_items_per_user' => 5,
-        ];
+        return Cache::remember('system_settings', 3600, function () {
+            $defaults = [
+                'system_name' => config('app.name', 'SEIMS'),
+                'max_borrow_days' => 7,
+                'max_items_per_user' => 5,
+            ];
 
-        if (\Illuminate\Support\Facades\Storage::disk('local')->exists('settings.json')) {
-            $stored = json_decode(
-                \Illuminate\Support\Facades\Storage::disk('local')->get('settings.json'),
-                true
-            );
-            if (is_array($stored)) {
-                return array_merge($defaults, $stored);
+            if (\Illuminate\Support\Facades\Storage::disk('local')->exists('settings.json')) {
+                $stored = json_decode(
+                    \Illuminate\Support\Facades\Storage::disk('local')->get('settings.json'),
+                    true
+                );
+                if (is_array($stored)) {
+                    return array_merge($defaults, $stored);
+                }
             }
-        }
 
-        return $defaults;
+            return $defaults;
+        });
     }
 
     public function updateSettings(Request $request)
@@ -291,6 +294,8 @@ class AdminController extends Controller
             'settings.json',
             json_encode($settings, JSON_PRETTY_PRINT)
         );
+
+        Cache::forget('system_settings');
 
         return back()->with('success', 'Settings updated successfully!');
     }

@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // Schedule overdue borrowing reminders daily at 8 AM
 Schedule::command('borrowings:send-overdue-reminders')->dailyAt('08:00');
+
+// Auto-complete past reservations every hour
+Schedule::command('reservations:auto-complete')->hourly();
