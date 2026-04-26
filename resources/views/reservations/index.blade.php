@@ -270,18 +270,32 @@
     </div>
 
     <!-- Cancel Modal -->
-    <div x-show="showCancelModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-        <div @click.away="showCancelModal = false" class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md mx-4">
-            <h3 class="text-lg font-bold text-gray-900 mb-4">Cancel Reservation</h3>
+    <div x-show="showCancelModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" @click="showCancelModal = false"></div>
+        <div @click.stop class="relative bg-white rounded-2xl shadow-2xl ring-1 ring-gray-200/50 overflow-hidden w-full max-w-md">
+            <div class="px-6 pt-6 pb-4">
+                <div class="flex items-center gap-3 mb-1">
+                    <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 font-poppins">Cancel Reservation</h3>
+                        <p class="text-xs text-gray-500">This action cannot be undone</p>
+                    </div>
+                </div>
+            </div>
             <form :action="'/reservations/' + cancelId + '/cancel'" method="POST">
                 @csrf @method('PATCH')
-                <textarea name="reason" x-model="cancelReason" rows="3" placeholder="Reason for cancellation (optional)" class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all mb-4"></textarea>
-                <div class="flex space-x-3">
-                    <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200">
+                <div class="px-6 pb-5">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Reason <span class="font-normal normal-case text-gray-400">(optional)</span></label>
+                    <textarea name="reason" x-model="cancelReason" rows="3" placeholder="Tell us why you're cancelling..." class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all resize-none placeholder:text-gray-300"></textarea>
+                </div>
+                <div class="flex gap-3 px-6 py-4 bg-gray-50/80 border-t border-gray-100">
+                    <button type="button" @click="showCancelModal = false" class="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 rounded-xl transition-all duration-200">Back</button>
+                    <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        Confirm Cancel
+                        Cancel Reservation
                     </button>
-                    <button type="button" @click="showCancelModal = false" class="flex-1 inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-200">Back</button>
                 </div>
             </form>
         </div>

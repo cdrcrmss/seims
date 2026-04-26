@@ -204,10 +204,10 @@
                         <div class="flex flex-wrap gap-2 lg:flex-col lg:items-end">
                             @if($borrowing->status === 'pending')
                                 <div class="flex items-center gap-2">
-                                    <form method="POST" action="{{ route('staff.borrowings.approve', $borrowing) }}" class="inline">
+                                    <form method="POST" action="{{ route('staff.borrowings.approve', $borrowing) }}" class="inline" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Approve Request', message: 'Are you sure you want to approve this borrow request?', type: 'success' })">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">
+                                        <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-green-50 text-green-700 hover:bg-green-100 ring-1 ring-green-200/60 transition-all duration-200">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                             Approve
                                         </button>
@@ -215,17 +215,17 @@
                                     <form method="POST" action="{{ route('staff.borrowings.reject', $borrowing) }}" class="inline" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Reject Request', message: 'Are you sure you want to reject this borrow request?', type: 'danger' })">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg text-red-700 bg-red-50 hover:bg-red-100 ring-1 ring-red-200/60 transition-colors">
+                                        <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-red-50 text-red-700 hover:bg-red-100 ring-1 ring-red-200/60 transition-all duration-200">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                             Reject
                                         </button>
                                     </form>
                                 </div>
                             @elseif($borrowing->status === 'approved')
-                                <form method="POST" action="{{ route('staff.borrowings.issue', $borrowing) }}" class="inline">
+                                <form method="POST" action="{{ route('staff.borrowings.issue', $borrowing) }}" class="inline" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Issue Item', message: 'Confirm issuing this item to the student?', type: 'success' })">
                                     @csrf
                                     @method('PATCH')
-                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 ring-1 ring-blue-200/60 transition-all duration-200">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                         Issue Item
                                     </button>
@@ -238,7 +238,7 @@
                                 @endphp
                                 <button type="button" 
                                         onclick="openReturnModal({{ $borrowing->id }}, '{{ addslashes($borrowing->item?->name ?? 'Item') }}', '{{ addslashes($borrowing->user?->name ?? 'User') }}', '{{ $expectedReturnFormatted }}', {{ $isOverdue ? 'true' : 'false' }}, {{ $overdueDays }})" 
-                                        class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg {{ $isOverdue ? 'bg-red-600 hover:bg-red-700' : 'bg-purple-600 hover:bg-purple-700' }} text-white transition-colors">
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg {{ $isOverdue ? 'bg-red-50 text-red-700 hover:bg-red-100 ring-1 ring-red-200/60' : 'bg-purple-50 text-purple-700 hover:bg-purple-100 ring-1 ring-purple-200/60' }} transition-all duration-200">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
                                     {{ $isOverdue ? 'Return (Overdue)' : 'Mark Returned' }}
                                 </button>
@@ -461,60 +461,82 @@
 <!-- Return Modal -->
 <div id="returnModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-modal="true">
     <div class="flex items-center justify-center min-h-screen px-4 py-8">
-        <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" onclick="closeReturnModal()"></div>
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeReturnModal()"></div>
         
-        <div class="relative z-10 w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div class="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden ring-1 ring-gray-200/50">
             <form id="returnForm" method="POST" action="">
                 @csrf
                 @method('PATCH')
                 <input type="hidden" id="returnBorrowingId" name="borrowing_id" value="">
                 
                 <!-- Header -->
-                <div class="px-6 py-4 border-b border-gray-100">
-                    <h3 class="text-lg font-bold text-gray-900">Return Item</h3>
-                    <p class="text-xs text-gray-500 mt-0.5">
-                        <span id="returnItemName" class="font-medium text-gray-700"></span>
-                        &middot; by <span id="returnUserName" class="font-medium text-gray-700"></span>
-                    </p>
+                <div class="px-6 pt-6 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900">Return Item</h3>
+                            <p class="text-xs text-gray-500">
+                                <span id="returnItemName" class="font-semibold text-gray-700"></span>
+                                <span class="mx-1 text-gray-300">&middot;</span>
+                                <span id="returnUserName" class="text-gray-500"></span>
+                            </p>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="px-6 py-5 space-y-4">
+                <div class="px-6 pb-5 space-y-5">
                     <!-- Overdue Warning -->
-                    <div id="returnOverdueWarning" class="hidden bg-red-50 ring-1 ring-red-200 rounded-xl p-3 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <p id="returnOverdueMsg" class="text-xs font-semibold text-red-700"></p>
+                    <div id="returnOverdueWarning" class="hidden bg-red-50 ring-1 ring-red-200/80 rounded-xl p-3.5 flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <p id="returnOverdueMsg" class="text-xs font-semibold text-red-700 leading-relaxed pt-1.5"></p>
                     </div>
 
                     <!-- Condition -->
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Item Condition</label>
-                        <div class="grid grid-cols-2 gap-2">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Item Condition</label>
+                        <div class="grid grid-cols-2 gap-2.5">
                             <label class="cursor-pointer">
                                 <input type="radio" name="return_condition" value="good" class="peer hidden" required>
-                                <div class="peer-checked:ring-2 peer-checked:ring-green-500 peer-checked:bg-green-50 border border-gray-200 rounded-xl p-3 text-center transition-all hover:border-green-300">
-                                    <svg class="w-6 h-6 mx-auto mb-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    <span class="text-xs font-semibold text-gray-700">Good</span>
+                                <div class="peer-checked:ring-2 peer-checked:ring-green-500 peer-checked:bg-green-50 peer-checked:border-green-200 border border-gray-200 rounded-xl p-4 text-center transition-all duration-200 hover:border-green-300">
+                                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-2">
+                                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </div>
+                                    <span class="text-xs font-bold text-gray-700">Good</span>
+                                    <p class="text-[10px] text-gray-400 mt-0.5">No issues</p>
                                 </div>
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="return_condition" value="fair" class="peer hidden">
-                                <div class="peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-yellow-50 border border-gray-200 rounded-xl p-3 text-center transition-all hover:border-yellow-300">
-                                    <svg class="w-6 h-6 mx-auto mb-1 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    <span class="text-xs font-semibold text-gray-700">Fair</span>
+                                <div class="peer-checked:ring-2 peer-checked:ring-yellow-500 peer-checked:bg-yellow-50 peer-checked:border-yellow-200 border border-gray-200 rounded-xl p-4 text-center transition-all duration-200 hover:border-yellow-300">
+                                    <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-2">
+                                        <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </div>
+                                    <span class="text-xs font-bold text-gray-700">Fair</span>
+                                    <p class="text-[10px] text-gray-400 mt-0.5">Minor wear</p>
                                 </div>
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="return_condition" value="needs_repair" class="peer hidden">
-                                <div class="peer-checked:ring-2 peer-checked:ring-orange-500 peer-checked:bg-orange-50 border border-gray-200 rounded-xl p-3 text-center transition-all hover:border-orange-300">
-                                    <svg class="w-6 h-6 mx-auto mb-1 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                    <span class="text-xs font-semibold text-gray-700">Needs Repair</span>
+                                <div class="peer-checked:ring-2 peer-checked:ring-orange-500 peer-checked:bg-orange-50 peer-checked:border-orange-200 border border-gray-200 rounded-xl p-4 text-center transition-all duration-200 hover:border-orange-300">
+                                    <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-2">
+                                        <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                                    </div>
+                                    <span class="text-xs font-bold text-gray-700">Needs Repair</span>
+                                    <p class="text-[10px] text-gray-400 mt-0.5">Requires fix</p>
                                 </div>
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="return_condition" value="damaged" class="peer hidden">
-                                <div class="peer-checked:ring-2 peer-checked:ring-red-500 peer-checked:bg-red-50 border border-gray-200 rounded-xl p-3 text-center transition-all hover:border-red-300">
-                                    <svg class="w-6 h-6 mx-auto mb-1 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-                                    <span class="text-xs font-semibold text-gray-700">Damaged</span>
+                                <div class="peer-checked:ring-2 peer-checked:ring-red-500 peer-checked:bg-red-50 peer-checked:border-red-200 border border-gray-200 rounded-xl p-4 text-center transition-all duration-200 hover:border-red-300">
+                                    <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-2">
+                                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                    </div>
+                                    <span class="text-xs font-bold text-gray-700">Damaged</span>
+                                    <p class="text-[10px] text-gray-400 mt-0.5">Broken/lost</p>
                                 </div>
                             </label>
                         </div>
@@ -524,20 +546,20 @@
                     <div>
                         <label for="return_notes" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Notes <span class="font-normal normal-case text-gray-400">(optional)</span></label>
                         <textarea id="return_notes" name="return_notes" rows="2" 
-                                  class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
-                                  placeholder="Any observations about the item..."></textarea>
+                                  class="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none placeholder:text-gray-300"
+                                  placeholder="Any observations about the item condition..."></textarea>
                     </div>
                 </div>
                 
                 <!-- Footer -->
-                <div class="flex gap-2 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <div class="flex gap-3 px-6 py-4 bg-gray-50/80 border-t border-gray-100">
                     <button type="button" onclick="closeReturnModal()" 
-                            class="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-colors">
+                            class="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 rounded-xl transition-all duration-200">
                         Cancel
                     </button>
                     <button type="submit" 
-                            class="flex-1 inline-flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            class="flex-1 inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                         Confirm Return
                     </button>
                 </div>

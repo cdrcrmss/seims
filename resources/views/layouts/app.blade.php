@@ -513,9 +513,10 @@
     {{-- TOAST NOTIFICATIONS (modern centered style)    --}}
     {{-- ============================================== --}}
     @if(session('success'))
-        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)" x-cloak
-             class="fixed inset-0 z-[90] flex items-center justify-center p-4 pointer-events-none" role="alert">
-            <div class="pointer-events-auto bg-white rounded-2xl shadow-2xl ring-1 ring-gray-100 p-6 text-center transform" style="width: 360px; max-width: 90vw;"
+        <div x-data="{ show: true }" x-show="show" x-cloak
+             class="fixed inset-0 z-[90] flex items-center justify-center p-4" role="alert">
+            <div class="fixed inset-0 bg-gray-900/30 backdrop-blur-sm" @click="show = false"></div>
+            <div class="relative bg-white rounded-2xl shadow-2xl ring-1 ring-gray-100 p-6 text-center transform" style="width: 360px; max-width: 90vw;"
                  x-transition:enter="ease-out duration-300"
                  x-transition:enter-start="opacity-0 scale-90 translate-y-4"
                  x-transition:enter-end="opacity-100 scale-100 translate-y-0"
@@ -533,9 +534,10 @@
     @endif
 
     @if(session('info'))
-        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)" x-cloak
-             class="fixed inset-0 z-[90] flex items-center justify-center p-4 pointer-events-none" role="alert">
-            <div class="pointer-events-auto bg-white rounded-2xl shadow-2xl ring-1 ring-gray-100 p-6 text-center transform" style="width: 360px; max-width: 90vw;"
+        <div x-data="{ show: true }" x-show="show" x-cloak
+             class="fixed inset-0 z-[90] flex items-center justify-center p-4" role="alert">
+            <div class="fixed inset-0 bg-gray-900/30 backdrop-blur-sm" @click="show = false"></div>
+            <div class="relative bg-white rounded-2xl shadow-2xl ring-1 ring-gray-100 p-6 text-center transform" style="width: 360px; max-width: 90vw;"
                  x-transition:enter="ease-out duration-300"
                  x-transition:enter-start="opacity-0 scale-90 translate-y-4"
                  x-transition:enter-end="opacity-100 scale-100 translate-y-0"
