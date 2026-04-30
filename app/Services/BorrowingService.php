@@ -133,7 +133,7 @@ class BorrowingService
             throw new \Exception('Only approved or issued borrowings can be extended.');
         }
 
-        if ($newReturnDate <= $borrowing->expected_return_date) {
+        if (\Carbon\Carbon::parse($newReturnDate)->lte($borrowing->expected_return_date)) {
             throw new \Exception('New return date must be after the current return date.');
         }
 

@@ -104,8 +104,9 @@ class StoreReservationRequest extends FormRequest
                 return;
             }
 
-            // 5. Conflict detection — anyone's approved reservation for this room
-            $roomConflict = Reservation::where('status', 'approved')
+            // 5. Conflict detection — anyone's active reservation for this room
+            $roomConflict = Reservation::whereIn('status', ['pending', 'approved'])
+                ->where('user_id', '!=', $user->id)
                 ->where('room_id', $this->room_id)
                 ->where(function ($q) {
                     $q->whereBetween('start_datetime', [$this->start_datetime, $this->end_datetime])
@@ -132,9 +133,9 @@ class StoreReservationRequest extends FormRequest
 
         if (RateLimiter::tooManyAttempts($key, 5)) {
             $seconds = RateLimiter::availableIn($key);
-            abort(back()->withErrors([
+            throw \Illuminate\Validation\ValidationException::withMessages([
                 'rate_limit' => "You're submitting too quickly. Please wait {$seconds} seconds.",
-            ])->withInput());
+            ]);
         }
 
         RateLimiter::hit($key, 300); // 5 minute decay

@@ -120,8 +120,10 @@ class AnalyticsController extends Controller
     {
         // Only predict for items that have wear or maintenance history
         $items = Item::with(['maintenanceRecords', 'borrowings'])
-            ->where('wear_level', '>', 0)
-            ->orWhereHas('maintenanceRecords')
+            ->where(function ($q) {
+                $q->where('wear_level', '>', 0)
+                  ->orWhereHas('maintenanceRecords');
+            })
             ->get();
 
         $predictions = [];

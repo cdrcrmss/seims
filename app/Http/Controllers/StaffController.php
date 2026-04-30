@@ -37,8 +37,10 @@ class StaffController extends Controller
 
         $items = Item::query()
             ->when($search, function($query, $search) {
-                return $query->where('name', 'like', "%{$search}%")
-                           ->orWhere('description', 'like', "%{$search}%");
+                return $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
             })
             ->when($category, function($query, $category) {
                 return $query->where('category', $category);
@@ -283,10 +285,12 @@ class StaffController extends Controller
                 return $query->where('status', $status);
             })
             ->when($search, function($query, $search) {
-                return $query->whereHas('user', function($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%");
-                })->orWhereHas('item', function($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%");
+                return $query->where(function($q) use ($search) {
+                    $q->whereHas('user', function($q2) use ($search) {
+                        $q2->where('name', 'like', "%{$search}%");
+                    })->orWhereHas('item', function($q2) use ($search) {
+                        $q2->where('name', 'like', "%{$search}%");
+                    });
                 });
             })
             ->orderBy('created_at', 'desc')

@@ -22,9 +22,9 @@ class ReservationController extends Controller
             ->where(function($query) use ($user) {
                 $query->where('user_id', $user->id);
                 
-                // Only staff/admin can see others' approved reservations
+                // Staff/admin can see others' active reservations
                 if (in_array($user->role, ['staff', 'admin'])) {
-                    $query->orWhere('status', 'approved');
+                    $query->orWhereIn('status', ['pending', 'approved', 'checked_in']);
                 }
             })
             ->orderBy('start_datetime', 'desc')
