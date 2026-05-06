@@ -49,6 +49,18 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Check if the authenticated user's account is approved
+        $user = Auth::user();
+        if ($user && !$user->is_approved && $user->role === 'student') {
+            Auth::logout();
+            $this->session()->invalidate();
+            $this->session()->regenerateToken();
+
+            throw ValidationException::withMessages([
+                'email' => 'Your account is pending admin approval. You will be notified once approved.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

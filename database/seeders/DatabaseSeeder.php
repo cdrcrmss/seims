@@ -27,35 +27,35 @@ class DatabaseSeeder extends Seeder
         $admin = User::create([
             'name' => 'Admin User',
             'email' => 'admin@SEIMS.com',
-            'password' => Hash::make('password123'),
+            'password' => 'password123',
             'role' => 'admin',
         ]);
 
         $staff = User::create([
             'name' => 'Staff Member',
             'email' => 'staff@SEIMS.com',
-            'password' => Hash::make('password123'),
+            'password' => 'password123',
             'role' => 'staff',
         ]);
 
         $student = User::create([
             'name' => 'Student User',
             'email' => 'student@SEIMS.com',
-            'password' => Hash::make('password123'),
+            'password' => 'password123',
             'role' => 'student',
         ]);
 
         $student2 = User::create([
             'name' => 'Maria Santos',
             'email' => 'maria@SEIMS.com',
-            'password' => Hash::make('password123'),
+            'password' => 'password123',
             'role' => 'student',
         ]);
 
         $student3 = User::create([
             'name' => 'Juan Dela Cruz',
             'email' => 'juan@SEIMS.com',
-            'password' => Hash::make('password123'),
+            'password' => 'password123',
             'role' => 'student',
         ]);
 

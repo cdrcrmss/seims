@@ -72,7 +72,7 @@ class AdminController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => $request->password,
             'is_approved' => true,
         ]);
         // Set role explicitly (not mass-assignable for security)
@@ -122,7 +122,7 @@ class AdminController extends Controller
 
         if ($request->filled('password')) {
             $user->update([
-                'password' => Hash::make($request->password),
+                'password' => $request->password,
             ]);
         }
 
