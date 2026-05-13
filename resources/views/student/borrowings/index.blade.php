@@ -21,69 +21,56 @@
     </div>
 
     <!-- Stats Cards -->
+    @php
+        $allMyBorrowings = \App\Models\Borrowing::where('user_id', auth()->id())->get();
+        $cardStats = [
+            ['label' => 'Pending', 'count' => $allMyBorrowings->where('status', 'pending')->count(), 'filter' => 'pending', 'color' => 'amber'],
+            ['label' => 'Approved', 'count' => $allMyBorrowings->where('status', 'approved')->count(), 'filter' => 'approved', 'color' => 'teal'],
+            ['label' => 'Active', 'count' => $allMyBorrowings->where('status', 'issued')->count(), 'filter' => 'issued', 'color' => 'green'],
+            ['label' => 'Returned', 'count' => $allMyBorrowings->where('status', 'returned')->count(), 'filter' => 'returned', 'color' => 'emerald'],
+        ];
+    @endphp
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
+        @foreach($cardStats as $card)
+        <a href="{{ route('student.borrowings.index', ['status' => $card['filter']]) }}" class="bg-white rounded-2xl p-6 ring-1 {{ ($status ?? '') === $card['filter'] ? 'ring-2 ring-' . $card['color'] . '-400' : 'ring-gray-100' }} shadow-sm card-hover cursor-pointer hover:ring-{{ $card['color'] }}-200 transition-all">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Pending</p>
-                    <p class="text-3xl font-bold text-amber-600 font-poppins">{{ $borrowings->where('status', 'pending')->count() }}</p>
+                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">{{ $card['label'] }}</p>
+                    <p class="text-3xl font-bold text-{{ $card['color'] }}-600 font-poppins">{{ $card['count'] }}</p>
                 </div>
-                <div class="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Approved</p>
-                    <p class="text-3xl font-bold text-teal-600 font-poppins">{{ $borrowings->where('status', 'approved')->count() }}</p>
-                </div>
-                <div class="w-12 h-12 bg-teal-500/20 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
+                <div class="w-12 h-12 bg-{{ $card['color'] }}-500/20 rounded-xl flex items-center justify-center">
+                    @if($card['filter'] === 'pending')
+                        <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    @elseif($card['filter'] === 'approved')
+                        <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    @elseif($card['filter'] === 'issued')
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    @elseif($card['filter'] === 'returned')
+                        <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                    @endif
                 </div>
             </div>
-        </div>
-
-        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Active</p>
-                    <p class="text-3xl font-bold text-green-600 font-poppins">{{ $borrowings->where('status', 'issued')->count() }}</p>
-                </div>
-                <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Returned</p>
-                    <p class="text-3xl font-bold text-emerald-600 font-poppins">{{ $borrowings->where('status', 'returned')->count() }}</p>
-                </div>
-                <div class="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
-                    </svg>
-                </div>
-            </div>
-        </div>
+        </a>
+        @endforeach
     </div>
 
     <!-- Borrowing List -->
     <div class="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm overflow-hidden">
         <div class="p-6 border-b border-gray-200">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <h2 class="text-xl font-bold text-gray-900">All Borrowings</h2>
+                <h2 class="text-xl font-bold text-gray-900">
+                    @if($status ?? false)
+                        {{ ucfirst($status === 'issued' ? 'Active' : $status) }} Borrowings
+                    @else
+                        All Borrowings
+                    @endif
+                </h2>
+                @if($status ?? false)
+                    <a href="{{ route('student.borrowings.index') }}" class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        Clear Filter
+                    </a>
+                @endif
             </div>
         </div>
 
@@ -149,6 +136,18 @@
                                             <p class="text-sm text-red-800">
                                                 <span class="font-medium">Rejection Reason:</span> {{ $borrowing->rejection_reason }}
                                             </p>
+                                            @if($borrowing->rejector)
+                                                <p class="text-xs text-red-600 mt-1">Rejected by {{ $borrowing->rejector->name }} on {{ $borrowing->rejected_date?->format('M d, Y') }}</p>
+                                            @endif
+                                        </div>
+                                    @endif
+
+                                    @if($borrowing->approver && in_array($borrowing->status, ['approved', 'issued', 'returned']))
+                                        <div class="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                            <p class="text-sm text-blue-800">
+                                                <span class="font-medium">Approved by:</span> {{ $borrowing->approver->name }}
+                                                @if($borrowing->approved_date) on {{ $borrowing->approved_date->format('M d, Y') }}@endif
+                                            </p>
                                         </div>
                                     @endif
 
@@ -156,6 +155,7 @@
                                         <div class="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
                                             <p class="text-sm text-green-800">
                                                 <span class="font-medium">Issued on:</span> {{ $borrowing->issued_date->format('M d, Y') }}
+                                                @if($borrowing->issuer) by {{ $borrowing->issuer->name }}@endif
                                             </p>
                                         </div>
                                     @endif
@@ -164,6 +164,7 @@
                                         <div class="mt-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
                                             <p class="text-sm text-purple-800">
                                                 <span class="font-medium">Returned on:</span> {{ $borrowing->returned_date->format('M d, Y') }}
+                                                @if($borrowing->returnedToUser) to {{ $borrowing->returnedToUser->name }}@endif
                                             </p>
                                         </div>
                                     @endif
@@ -213,7 +214,7 @@
         <!-- Pagination -->
         @if($borrowings->hasPages())
             <div class="px-6 py-4 border-t border-gray-200">
-                {{ $borrowings->links() }}
+                {{ $borrowings->appends(['status' => $status ?? ''])->links() }}
             </div>
         @endif
     </div>

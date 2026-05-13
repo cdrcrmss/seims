@@ -25,7 +25,7 @@ class StoreReservationRequest extends FormRequest
     {
         return [
             'reservation_type' => 'required|in:room',
-            'start_datetime'   => 'required|date|after:now',
+            'start_datetime'   => 'required|date|after_or_equal:today',
             'end_datetime'     => 'required|date|after:start_datetime',
             'purpose'          => 'required|string|min:10|max:500',
             'room_id'          => 'required|exists:rooms,id',

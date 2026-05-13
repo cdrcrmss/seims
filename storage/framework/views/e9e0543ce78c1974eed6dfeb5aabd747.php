@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('title', 'Borrowing Requests'); ?>
 
 <?php $__env->startSection('content'); ?>
@@ -44,7 +42,7 @@
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
+        <a href="<?php echo e(route('staff.borrowings.index', ['status' => 'pending'])); ?>" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover cursor-pointer hover:ring-amber-200 transition-all">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Pending</p>
@@ -56,9 +54,9 @@
                     </svg>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
+        <a href="<?php echo e(route('staff.borrowings.index', ['status' => 'approved'])); ?>" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover cursor-pointer hover:ring-teal-200 transition-all">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Approved</p>
@@ -70,9 +68,9 @@
                     </svg>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
+        <a href="<?php echo e(route('staff.borrowings.index', ['status' => 'issued'])); ?>" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover cursor-pointer hover:ring-green-200 transition-all">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Issued</p>
@@ -84,9 +82,9 @@
                     </svg>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
+        <a href="<?php echo e(route('staff.borrowings.index', ['status' => 'returned'])); ?>" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover cursor-pointer hover:ring-emerald-200 transition-all">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Returned</p>
@@ -98,9 +96,9 @@
                     </svg>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
+        <a href="<?php echo e(route('staff.borrowings.index', ['status' => 'rejected'])); ?>" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover cursor-pointer hover:ring-red-200 transition-all">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Rejected</p>
@@ -112,7 +110,7 @@
                     </svg>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Borrowing Requests -->
@@ -122,12 +120,47 @@
                 <h2 class="text-xl font-bold text-gray-900">All Requests</h2>
                 <div class="flex items-center space-x-4">
                     <!-- Search -->
-                    <div class="relative">
+                    <div class="relative" x-data="searchComponent()" @click.away="showSuggestions = false">
                         <input type="text" id="searchInput" placeholder="Search requests..." 
-                               class="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                               x-model="query"
+                               @input="filterRows(); updateSuggestions()"
+                               @focus="if(query.length > 0) showSuggestions = true"
+                               @keydown.escape="showSuggestions = false"
+                               @keydown.arrow-down.prevent="highlightNext()"
+                               @keydown.arrow-up.prevent="highlightPrev()"
+                               @keydown.enter.prevent="selectHighlighted()"
+                               autocomplete="off"
+                               class="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-green-500 w-64">
                         <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
+                        <button x-show="query.length > 0" @click="query = ''; filterRows(); showSuggestions = false" type="button" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+
+                        <!-- Suggestions Dropdown -->
+                        <div x-show="showSuggestions && suggestions.length > 0" 
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-gray-200 z-50 max-h-60 overflow-y-auto">
+                            <template x-for="(suggestion, index) in suggestions" :key="index">
+                                <button @click="selectSuggestion(suggestion)" 
+                                        :class="{ 'bg-green-50': highlightedIndex === index }"
+                                        class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors flex items-center gap-3 border-b border-gray-50 last:border-0">
+                                    <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-medium text-gray-900 truncate" x-text="suggestion.name"></p>
+                                        <p class="text-xs text-gray-500 truncate" x-text="suggestion.detail"></p>
+                                    </div>
+                                </button>
+                            </template>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -135,10 +168,10 @@
 
         <div class="divide-y divide-white/10">
             <?php $__empty_1 = true; $__currentLoopData = $borrowings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $borrowing): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                <div class="p-6 hover:bg-white/5 transition-colors">
-                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                <div class="p-6 hover:bg-white/5 transition-colors borrowing-row" data-search="<?php echo e(strtolower(($borrowing->item?->name ?? '') . ' ' . ($borrowing->user?->name ?? '') . ' ' . ($borrowing->user?->student_id ?? '') . ' ' . $borrowing->status . ' ' . ($borrowing->notes ?? ''))); ?>">
+                    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                         <!-- Request Info -->
-                        <div class="flex-1">
+                        <div class="flex-1 min-w-0">
                             <div class="flex items-start space-x-4">
                                 <!-- Item Image -->
                                 <div class="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -165,6 +198,9 @@
 
                                         </span>
                                     </div>
+                                    <?php if($borrowing->itemUnit): ?>
+                                        <p class="text-xs text-indigo-600 font-mono font-semibold mb-1">Unit: <?php echo e($borrowing->itemUnit->unit_code); ?></p>
+                                    <?php endif; ?>
 
                                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                                         <div>
@@ -203,60 +239,66 @@
                         </div>
 
                         <!-- Actions -->
-                        <div class="flex flex-wrap gap-2 lg:flex-col lg:items-end">
+                        <div style="width:176px;min-width:176px;" class="flex flex-col gap-2">
                             <?php if($borrowing->status === 'pending'): ?>
-                                <div class="flex items-center gap-2">
-                                    <form method="POST" action="<?php echo e(route('staff.borrowings.approve', $borrowing)); ?>" class="inline">
+                                <div class="flex gap-2">
+                                    <form method="POST" action="<?php echo e(route('staff.borrowings.approve', $borrowing)); ?>" class="flex-1">
                                         <?php echo csrf_field(); ?>
                                         <?php echo method_field('PATCH'); ?>
-                                        <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">
+                                        <button type="submit" class="w-full flex items-center justify-center gap-1.5 h-9 text-xs font-semibold rounded-lg bg-green-600 text-white hover:bg-green-700 shadow-sm transition-all">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                             Approve
                                         </button>
                                     </form>
-                                    <form method="POST" action="<?php echo e(route('staff.borrowings.reject', $borrowing)); ?>" class="inline" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Reject Request', message: 'Are you sure you want to reject this borrow request?', type: 'danger' })">
+                                    <form method="POST" action="<?php echo e(route('staff.borrowings.reject', $borrowing)); ?>" class="flex-1" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Reject Request', message: 'Are you sure you want to reject this borrow request?', type: 'danger' })">
                                         <?php echo csrf_field(); ?>
                                         <?php echo method_field('PATCH'); ?>
-                                        <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg text-red-700 bg-red-50 hover:bg-red-100 ring-1 ring-red-200/60 transition-colors">
+                                        <button type="submit" class="w-full flex items-center justify-center gap-1.5 h-9 text-xs font-semibold rounded-lg text-red-700 bg-red-50 hover:bg-red-100 ring-1 ring-red-200 transition-all">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                             Reject
                                         </button>
                                     </form>
                                 </div>
                             <?php elseif($borrowing->status === 'approved'): ?>
-                                <form method="POST" action="<?php echo e(route('staff.borrowings.issue', $borrowing)); ?>" class="inline">
+                                <button type="submit" form="issue-form-<?php echo e($borrowing->id); ?>" class="w-full flex items-center justify-center gap-1.5 h-9 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition-all">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    Issue Item
+                                </button>
+                                <form id="issue-form-<?php echo e($borrowing->id); ?>" method="POST" action="<?php echo e(route('staff.borrowings.issue', $borrowing)); ?>" class="hidden">
                                     <?php echo csrf_field(); ?>
                                     <?php echo method_field('PATCH'); ?>
-                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                        Issue Item
-                                    </button>
                                 </form>
                             <?php elseif($borrowing->status === 'issued'): ?>
+                                <?php
+                                    $isOverdue = $borrowing->expected_return_date && $borrowing->expected_return_date < now();
+                                    $overdueDays = $isOverdue ? (int) now()->diffInDays($borrowing->expected_return_date) : 0;
+                                    $expectedReturnFormatted = $borrowing->expected_return_date ? $borrowing->expected_return_date->format('M d, Y') : '';
+                                ?>
                                 <button type="button" 
-                                        onclick="openReturnModal(<?php echo e($borrowing->id); ?>, '<?php echo e(addslashes($borrowing->item?->name ?? 'Item')); ?>', '<?php echo e(addslashes($borrowing->user?->name ?? 'User')); ?>')" 
-                                        class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors">
+                                        onclick="openReturnModal(<?php echo e($borrowing->id); ?>, '<?php echo e(addslashes($borrowing->item?->name ?? 'Item')); ?>', '<?php echo e(addslashes($borrowing->user?->name ?? 'User')); ?>', '<?php echo e($expectedReturnFormatted); ?>', <?php echo e($isOverdue ? 'true' : 'false'); ?>, <?php echo e($overdueDays); ?>)" 
+                                        class="w-full flex items-center justify-center gap-1.5 h-9 text-xs font-semibold rounded-lg <?php echo e($isOverdue ? 'bg-red-600 hover:bg-red-700' : 'bg-purple-600 hover:bg-purple-700'); ?> text-white shadow-sm transition-all">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
-                                    Mark Returned
+                                    <?php echo e($isOverdue ? 'Return (Overdue)' : 'Mark Returned'); ?>
+
                                 </button>
                             <?php endif; ?>
 
                             <?php if($borrowing->status === 'returned' && $borrowing->return_condition): ?>
-                                <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md
-                                    <?php echo e($borrowing->return_condition === 'good' ? 'bg-green-50 text-green-700' : 
-                                       ($borrowing->return_condition === 'fair' ? 'bg-yellow-50 text-yellow-700' : 
-                                        ($borrowing->return_condition === 'needs_repair' ? 'bg-orange-50 text-orange-700' : 
-                                         'bg-red-50 text-red-700'))); ?>">
+                                <div class="w-full flex items-center justify-center gap-1.5 h-9 text-xs font-semibold rounded-lg
+                                    <?php echo e($borrowing->return_condition === 'good' ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 
+                                       ($borrowing->return_condition === 'fair' ? 'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200' : 
+                                        ($borrowing->return_condition === 'needs_repair' ? 'bg-orange-50 text-orange-700 ring-1 ring-orange-200' : 
+                                         'bg-red-50 text-red-700 ring-1 ring-red-200'))); ?>">
                                     <span class="w-1.5 h-1.5 rounded-full 
                                         <?php echo e($borrowing->return_condition === 'good' ? 'bg-green-500' : 
                                            ($borrowing->return_condition === 'fair' ? 'bg-yellow-500' : 
                                             ($borrowing->return_condition === 'needs_repair' ? 'bg-orange-500' : 'bg-red-500'))); ?>"></span>
                                     <?php echo e(ucfirst(str_replace('_', ' ', $borrowing->return_condition))); ?>
 
-                                </span>
+                                </div>
                             <?php endif; ?>
 
-                            <button onclick="showBorrowingDetails(<?php echo e($borrowing->toJson()); ?>)" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg text-gray-600 bg-gray-50 hover:bg-gray-100 ring-1 ring-gray-200/60 transition-colors">
+                            <button onclick="showBorrowingDetails(<?php echo e($borrowing->toJson()); ?>)" class="w-full flex items-center justify-center gap-1.5 h-9 text-xs font-semibold rounded-lg text-gray-600 bg-gray-50 hover:bg-gray-100 ring-1 ring-gray-200 transition-all">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 Details
                             </button>
@@ -306,6 +348,74 @@
 </div>
 
 <script>
+    function searchComponent() {
+        return {
+            query: '',
+            suggestions: [],
+            showSuggestions: false,
+            highlightedIndex: -1,
+
+            filterRows() {
+                const q = this.query.toLowerCase().trim();
+                document.querySelectorAll('.borrowing-row').forEach(row => {
+                    const data = row.getAttribute('data-search') || '';
+                    row.style.display = (q === '' || data.includes(q)) ? '' : 'none';
+                });
+            },
+
+            updateSuggestions() {
+                const q = this.query.toLowerCase().trim();
+                if (q.length === 0) {
+                    this.suggestions = [];
+                    this.showSuggestions = false;
+                    return;
+                }
+
+                const seen = new Set();
+                const results = [];
+                document.querySelectorAll('.borrowing-row').forEach(row => {
+                    const data = row.getAttribute('data-search') || '';
+                    if (data.includes(q)) {
+                        const nameEl = row.querySelector('h3');
+                        const userEl = row.querySelector('.text-gray-900.font-medium');
+                        const name = nameEl ? nameEl.textContent.trim() : '';
+                        const user = userEl ? userEl.textContent.trim() : '';
+                        const key = name + '|' + user;
+                        if (!seen.has(key)) {
+                            seen.add(key);
+                            results.push({ name: name, detail: 'Requested by ' + user });
+                        }
+                    }
+                });
+                this.suggestions = results.slice(0, 6);
+                this.showSuggestions = results.length > 0;
+                this.highlightedIndex = -1;
+            },
+
+            selectSuggestion(suggestion) {
+                this.query = suggestion.name;
+                this.showSuggestions = false;
+                this.filterRows();
+            },
+
+            highlightNext() {
+                if (this.suggestions.length === 0) return;
+                this.highlightedIndex = (this.highlightedIndex + 1) % this.suggestions.length;
+            },
+
+            highlightPrev() {
+                if (this.suggestions.length === 0) return;
+                this.highlightedIndex = this.highlightedIndex <= 0 ? this.suggestions.length - 1 : this.highlightedIndex - 1;
+            },
+
+            selectHighlighted() {
+                if (this.highlightedIndex >= 0 && this.highlightedIndex < this.suggestions.length) {
+                    this.selectSuggestion(this.suggestions[this.highlightedIndex]);
+                }
+            }
+        };
+    }
+
     function closeModal() {
         document.getElementById('detailsModal').classList.add('hidden');
     }
@@ -322,6 +432,8 @@
         
         const itemName = borrowing.item ? borrowing.item.name : 'Deleted Item';
         const itemCategory = borrowing.item ? borrowing.item.category : '—';
+        const unitCode = borrowing.item_unit ? borrowing.item_unit.unit_code : null;
+        const unitQr = borrowing.item_unit ? borrowing.item_unit.qr_code : null;
         const userName = borrowing.user ? borrowing.user.name : 'Unknown User';
         const userEmail = borrowing.user ? borrowing.user.email : '—';
         const studentId = borrowing.user && borrowing.user.student_id ? borrowing.user.student_id : null;
@@ -339,6 +451,18 @@
                         ${borrowing.status.charAt(0).toUpperCase() + borrowing.status.slice(1)}
                     </span>
                 </div>
+
+                ${unitCode ? `
+                <div class="bg-gray-50 rounded-lg px-3 py-2.5 flex items-center gap-3">
+                    <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Assigned Unit</p>
+                        <p class="text-sm font-bold text-gray-900 font-mono">${unitCode}</p>
+                        ${unitQr ? `<p class="text-[10px] text-gray-400 font-mono truncate">${unitQr}</p>` : ''}
+                    </div>
+                </div>` : ''}
 
                 <hr class="border-gray-100">
 
@@ -404,6 +528,54 @@
                     </div>
                 </div>
 
+                ${(borrowing.approver || borrowing.issuer || borrowing.rejector || borrowing.returned_to_user) ? `
+                <hr class="border-gray-100">
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Action History</p>
+                    <div class="space-y-2">
+                        ${borrowing.approver ? `
+                        <div class="flex items-center gap-2 bg-blue-50 rounded-lg px-3 py-2">
+                            <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
+                                <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs text-blue-700"><span class="font-semibold">Approved by</span> ${borrowing.approver.name}</p>
+                                ${borrowing.approved_date ? `<p class="text-[10px] text-blue-500">${new Date(borrowing.approved_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</p>` : ''}
+                            </div>
+                        </div>` : ''}
+                        ${borrowing.issuer ? `
+                        <div class="flex items-center gap-2 bg-green-50 rounded-lg px-3 py-2">
+                            <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+                                <svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs text-green-700"><span class="font-semibold">Issued by</span> ${borrowing.issuer.name}</p>
+                                ${borrowing.issued_date ? `<p class="text-[10px] text-green-500">${new Date(borrowing.issued_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</p>` : ''}
+                            </div>
+                        </div>` : ''}
+                        ${borrowing.rejector ? `
+                        <div class="flex items-center gap-2 bg-red-50 rounded-lg px-3 py-2">
+                            <div class="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+                                <svg class="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs text-red-700"><span class="font-semibold">Rejected by</span> ${borrowing.rejector.name}</p>
+                                ${borrowing.rejected_date ? `<p class="text-[10px] text-red-500">${new Date(borrowing.rejected_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</p>` : ''}
+                            </div>
+                        </div>` : ''}
+                        ${borrowing.returned_to_user ? `
+                        <div class="flex items-center gap-2 bg-purple-50 rounded-lg px-3 py-2">
+                            <div class="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
+                                <svg class="w-3 h-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs text-purple-700"><span class="font-semibold">Returned to</span> ${borrowing.returned_to_user.name}</p>
+                                ${borrowing.returned_date ? `<p class="text-[10px] text-purple-500">${new Date(borrowing.returned_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</p>` : ''}
+                            </div>
+                        </div>` : ''}
+                    </div>
+                </div>` : ''}
+
                 ${borrowing.notes ? `
                 <hr class="border-gray-100">
                 <div>
@@ -430,11 +602,22 @@
     }
 
     // Return Modal Functions
-    function openReturnModal(borrowingId, itemName, userName) {
+    function openReturnModal(borrowingId, itemName, userName, expectedReturn, isOverdue, overdueDays) {
         document.getElementById('returnBorrowingId').value = borrowingId;
         document.getElementById('returnForm').action = `/staff/borrowings/${borrowingId}/return`;
         document.getElementById('returnItemName').textContent = itemName || 'Item';
         document.getElementById('returnUserName').textContent = userName || 'User';
+        
+        // Show overdue warning if applicable
+        const overdueEl = document.getElementById('returnOverdueWarning');
+        const overdueMsg = document.getElementById('returnOverdueMsg');
+        if (isOverdue && overdueDays > 0) {
+            overdueEl.classList.remove('hidden');
+            overdueMsg.textContent = `This item is ${overdueDays} day${overdueDays > 1 ? 's' : ''} overdue (expected: ${expectedReturn})`;
+        } else {
+            overdueEl.classList.add('hidden');
+        }
+        
         document.getElementById('returnModal').classList.remove('hidden');
         // Reset radio buttons
         document.querySelectorAll('#returnForm input[name="return_condition"]').forEach(r => r.checked = false);
@@ -467,6 +650,12 @@
                 </div>
                 
                 <div class="px-6 py-5 space-y-4">
+                    <!-- Overdue Warning -->
+                    <div id="returnOverdueWarning" class="hidden bg-red-50 ring-1 ring-red-200 rounded-xl p-3 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <p id="returnOverdueMsg" class="text-xs font-semibold text-red-700"></p>
+                    </div>
+
                     <!-- Condition -->
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Item Condition</label>

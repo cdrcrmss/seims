@@ -61,6 +61,8 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
         Route::put('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
         Route::get('/borrowings', [AdminController::class, 'borrowings'])->name('borrowings');
+        Route::patch('/borrowings/{borrowing}/archive', [AdminController::class, 'archiveBorrowing'])->name('borrowings.archive');
+        Route::patch('/borrowings/{borrowing}/unarchive', [AdminController::class, 'unarchiveBorrowing'])->name('borrowings.unarchive');
     });
     
     // Staff Routes (accessible by both staff and admin)
@@ -73,7 +75,13 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::put('/items/{item}', [StaffController::class, 'updateItem'])->name('items.update');
         Route::delete('/items/{item}', [StaffController::class, 'deleteItem'])->name('items.delete');
         Route::post('/items/bulk-import', [StaffController::class, 'bulkImportItems'])->name('items.bulk-import');
-        
+        Route::get('/items/{item}/units', [StaffController::class, 'getItemUnits'])->name('items.units');
+
+        // Direct Borrowing (Staff/Admin can borrow items directly)
+        Route::get('/borrow', [StaffController::class, 'borrowForm'])->name('borrow.form');
+        Route::post('/borrow', [StaffController::class, 'borrowItem'])->name('borrow');
+        Route::get('/api/search-items', [StaffController::class, 'searchItems'])->name('api.search-items');
+
         // Borrowing Management
         Route::get('/borrowings', [StaffController::class, 'borrowings'])->name('borrowings.index');
         Route::patch('/borrowings/{borrowing}/approve', [StaffController::class, 'approveBorrowing'])->name('borrowings.approve');
@@ -82,7 +90,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::patch('/borrowings/{borrowing}/return', [StaffController::class, 'returnBorrowing'])->name('borrowings.return');
         Route::patch('/borrowings/{borrowing}/approve-extension', [StaffController::class, 'approveExtension'])->name('borrowings.approve-extension');
         Route::patch('/borrowings/{borrowing}/reject-extension', [StaffController::class, 'rejectExtension'])->name('borrowings.reject-extension');
-        
+
         // Reports
         Route::get('/reports', [StaffController::class, 'reports'])->name('reports');
     });
@@ -92,11 +100,15 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::get('/borrowings', [StudentController::class, 'borrowings'])->name('borrowings.index');
         Route::delete('/borrowings/{borrowing}/cancel', [StudentController::class, 'cancelRequest'])->name('borrowings.cancel');
         Route::post('/borrowings/{borrowing}/extend', [StudentController::class, 'requestExtension'])->name('borrowings.extend');
+        Route::get('/api/search-items', [StudentController::class, 'searchItems'])->name('api.search-items');
     });
 
     // Reservation & Scheduling Module (Conflict Detective)
     Route::prefix('reservations')->name('reservations.')->group(function () {
-        Route::get('/', [ReservationController::class, 'index'])->name('index');
+        Route::middleware(['staff_or_admin'])->group(function () {
+            Route::get('/', [ReservationController::class, 'index'])->name('index');
+        });
+        Route::get('/calendar', [ReservationController::class, 'calendar'])->name('calendar');
         Route::get('/create', [ReservationController::class, 'create'])->middleware('throttle:reservation-page')->name('create');
         Route::post('/', [ReservationController::class, 'store'])->middleware('throttle:reservation-submit')->name('store');
         Route::post('/check-availability', [ReservationController::class, 'checkAvailability'])->name('check-availability');

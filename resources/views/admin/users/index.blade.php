@@ -21,7 +21,7 @@
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
+        <a href="{{ route('admin.users.index') }}" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover cursor-pointer hover:ring-green-200 transition-all block">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Total Users</p>
@@ -33,9 +33,9 @@
                     </svg>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
+        <a href="{{ route('admin.users.index', ['role' => 'admin']) }}" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover cursor-pointer hover:ring-emerald-200 transition-all block">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Admins</p>
@@ -47,9 +47,9 @@
                     </svg>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
+        <a href="{{ route('admin.users.index', ['role' => 'staff']) }}" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover cursor-pointer hover:ring-teal-200 transition-all block">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Staff</p>
@@ -61,9 +61,9 @@
                     </svg>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
+        <a href="{{ route('admin.users.index', ['role' => 'student']) }}" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover cursor-pointer hover:ring-lime-200 transition-all block">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Students</p>
@@ -76,7 +76,7 @@
                     </svg>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Pending Approval Alert -->

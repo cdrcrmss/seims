@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Item extends Model
 {
@@ -71,6 +72,11 @@ class Item extends Model
     public function borrowings()
     {
         return $this->hasMany(Borrowing::class);
+    }
+
+    public function units()
+    {
+        return $this->hasMany(ItemUnit::class);
     }
 
     public function reservations()
@@ -188,7 +194,7 @@ class Item extends Model
     public function generateQRCode(): string
     {
         if (!$this->qr_code) {
-            $this->qr_code = 'SEIMS-' . str_pad($this->id, 6, '0', STR_PAD_LEFT) . '-' . strtoupper(substr(md5($this->name), 0, 6));
+            $this->qr_code = 'SEIMS-' . str_pad($this->id, 6, '0', STR_PAD_LEFT) . '-' . strtoupper(Str::random(8));
             $this->save();
         }
 

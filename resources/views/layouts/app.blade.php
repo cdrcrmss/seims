@@ -148,6 +148,11 @@
                     <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
                     Requests
                 </a>
+                <a href="{{ route('staff.borrow.form') }}"
+                   class="flex items-center px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('staff.borrow.form') ? 'sidebar-link-active' : 'sidebar-link' }}">
+                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"></path></svg>
+                    Borrow Items
+                </a>
                 @endif
 
                 @if(auth()->user()->role === 'student')
@@ -164,6 +169,7 @@
                 @endif
 
                 {{-- Modules --}}
+                @if(auth()->user()->isStaff() || auth()->user()->isAdmin())
                 <p class="px-3 mt-5 mb-2 text-[10px] font-bold text-white/40 uppercase tracking-widest">Modules</p>
 
                 <a href="{{ route('reservations.index') }}"
@@ -172,7 +178,6 @@
                     Reservations
                 </a>
 
-                @if(auth()->user()->isStaff() || auth()->user()->isAdmin())
                 <a href="{{ route('maintenance.dashboard') }}"
                    class="flex items-center px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('maintenance.*') ? 'sidebar-link-active' : 'sidebar-link' }}">
                     <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
@@ -212,51 +217,6 @@
                 @endif
             </nav>
 
-            {{-- User card at bottom --}}
-            <div class="border-t border-white/10 p-4">
-                <div x-data="{ open: false }" class="relative">
-                    <button @click="open = !open" class="w-full flex items-center space-x-3 px-2 py-2 rounded-xl hover:bg-white/10 transition-colors">
-                        <div class="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
-                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                        </div>
-                        <div class="flex-1 text-left min-w-0">
-                            <p class="text-sm font-medium text-white truncate">{{ auth()->user()->name }}</p>
-                            <p class="text-xs text-white/50 capitalize">{{ auth()->user()->role }}</p>
-                        </div>
-                        <svg class="w-4 h-4 text-white/40 flex-shrink-0 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-                        </svg>
-                    </button>
-
-                    {{-- Dropdown flies upward --}}
-                    <div x-show="open" @click.away="open = false" x-cloak
-                         x-transition:enter="transition ease-out duration-150"
-                         x-transition:enter-start="opacity-0 translate-y-2"
-                         x-transition:enter-end="opacity-100 translate-y-0"
-                         x-transition:leave="transition ease-in duration-100"
-                         x-transition:leave-start="opacity-100 translate-y-0"
-                         x-transition:leave-end="opacity-0 translate-y-2"
-                         class="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
-                        <div class="px-4 py-2 border-b border-gray-100">
-                            <p class="text-sm font-medium text-gray-900">{{ auth()->user()->name }}</p>
-                            <p class="text-xs text-gray-500">{{ auth()->user()->email }}</p>
-                        </div>
-                        <a href="{{ route('profile') }}" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                            <svg class="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                            Profile Settings
-                        </a>
-                        <div class="border-t border-gray-100">
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="flex items-center w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
-                                    <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                                    Sign out
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </aside>
 
         {{-- ============================================================ --}}
@@ -548,6 +508,26 @@
                 <h4 class="text-base font-bold text-gray-900 font-poppins mb-1">Information</h4>
                 <p class="text-sm text-gray-500">{{ session('info') }}</p>
                 <button @click="show = false" class="mt-4 px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors w-full">OK</button>
+            </div>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div x-data="{ show: true }" x-show="show" x-cloak
+             class="fixed inset-0 z-[90] flex items-center justify-center p-4 pointer-events-none" role="alert">
+            <div class="pointer-events-auto bg-white rounded-2xl shadow-2xl ring-1 ring-gray-100 p-6 text-center transform" style="width: 360px; max-width: 90vw;"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 scale-90 translate-y-4"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 scale-90 translate-y-4">
+                <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3 ring-4 ring-red-50">
+                    <svg class="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h4 class="text-base font-bold text-gray-900 font-poppins mb-1">Error</h4>
+                <p class="text-sm text-gray-500">{{ session('error') }}</p>
+                <button @click="show = false" class="mt-4 px-5 py-2 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 transition-colors w-full">OK</button>
             </div>
         </div>
     @endif

@@ -3,20 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\Item;
+use App\Models\ItemUnit;
 use App\Models\Borrowing;
 use App\Models\Notification;
 use App\Models\User;
 use App\Mail\BorrowingApproved;
 use App\Mail\BorrowingRejected;
+use App\Services\BorrowingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class StaffController extends Controller
 {
-    public function __construct()
+    protected BorrowingService $borrowingService;
+
+    public function __construct(BorrowingService $borrowingService)
     {
         $this->middleware(['auth', 'staff_or_admin']);
+        $this->borrowingService = $borrowingService;
     }
 
     /**
@@ -102,7 +107,7 @@ class StaffController extends Controller
             $imagePath = $request->file('image')->store('items', 'public');
         }
 
-        Item::create([
+        $item = Item::create([
             'name' => $request->name,
             'description' => $request->description,
             'category' => $request->category,
@@ -111,8 +116,29 @@ class StaffController extends Controller
             'image_path' => $imagePath,
         ]);
 
+        // Auto-assign QR code for the item
+        $item->update(['qr_code' => 'SEIMS-' . str_pad($item->id, 6, '0', STR_PAD_LEFT) . '-' . strtoupper(\Illuminate\Support\Str::random(8))]);
+
+        // Create individual units for tracking
+        $this->createUnitsForItem($item);
+
         return redirect()->route('staff.items.index')
                         ->with('success', 'Item added successfully!');
+    }
+
+    public function getItemUnits(Item $item)
+    {
+        $units = $item->units()->with('currentBorrower:id,name')->get()->map(fn($u) => [
+            'id' => $u->id,
+            'unit_code' => $u->unit_code,
+            'qr_code' => $u->qr_code,
+            'status' => $u->status,
+            'condition' => $u->condition,
+            'current_borrower' => $u->currentBorrower?->name ?? null,
+            'notes' => $u->notes,
+        ]);
+
+        return response()->json(['units' => $units, 'item_name' => $item->name, 'total' => $units->count()]);
     }
 
     public function editItem(Item $item)
@@ -181,27 +207,54 @@ class StaffController extends Controller
     }
 
     /**
-     * Bulk import items from CSV.
-     * Expected CSV columns: name, description, category, total_stock, available_stock
+     * Bulk import items from Excel/CSV.
+     * Expected columns: name, description, category, total_stock, available_stock
      */
     public function bulkImportItems(Request $request)
     {
         $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt|max:2048',
+            'import_file' => 'required|file|mimes:xlsx,xls,csv,txt|max:5120',
         ]);
 
-        $file = $request->file('csv_file');
+        $file = $request->file('import_file');
+        $extension = strtolower($file->getClientOriginalExtension());
+
+        // Use maatwebsite/excel for xlsx/xls files
+        if (in_array($extension, ['xlsx', 'xls'])) {
+            try {
+                $import = new \App\Imports\ItemsImport();
+                $import->import($file);
+
+                $importedCount = $import->getImportedCount();
+                $errors = [];
+
+                foreach ($import->errors() as $error) {
+                    $errors[] = "Row {$error->row()}: " . implode(', ', $error->errors());
+                }
+
+                $message = "Successfully imported {$importedCount} item(s).";
+                if (count($errors) > 0) {
+                    $message .= ' Errors: ' . implode(' | ', array_slice($errors, 0, 5));
+                }
+
+                return back()->with('success', $message);
+            } catch (\Exception $e) {
+                return back()->with('error', 'Failed to import file: ' . $e->getMessage());
+            }
+        }
+
+        // Fallback: CSV import
         $handle = fopen($file->getRealPath(), 'r');
 
         if (!$handle) {
-            return back()->with('error', 'Could not read the CSV file.');
+            return back()->with('error', 'Could not read the file.');
         }
 
         // Read header row
         $header = fgetcsv($handle);
         if (!$header) {
             fclose($handle);
-            return back()->with('error', 'CSV file is empty or invalid.');
+            return back()->with('error', 'File is empty or invalid.');
         }
 
         // Normalize headers (trim whitespace, lowercase)
@@ -214,7 +267,7 @@ class StaffController extends Controller
         foreach ($required as $col) {
             if (!in_array($col, $header)) {
                 fclose($handle);
-                return back()->with('error', 'CSV is missing required column: ' . $col);
+                return back()->with('error', 'File is missing required column: ' . $col);
             }
         }
 
@@ -224,6 +277,10 @@ class StaffController extends Controller
 
         while (($data = fgetcsv($handle)) !== false) {
             $row++;
+            if (count($data) !== count($header)) {
+                $errors[] = "Row {$row}: Column count mismatch.";
+                continue;
+            }
             $rowData = array_combine($header, $data);
 
             // Basic validation
@@ -242,13 +299,19 @@ class StaffController extends Controller
                 continue;
             }
 
-            Item::create([
+            $item = Item::create([
                 'name' => trim($rowData['name']),
                 'description' => trim($rowData['description'] ?? ''),
                 'category' => trim($rowData['category']),
                 'total_stock' => $totalStock,
                 'available_stock' => min($availableStock, $totalStock),
             ]);
+
+            // Auto-assign QR code
+            $item->update(['qr_code' => 'SEIMS-' . str_pad($item->id, 6, '0', STR_PAD_LEFT) . '-' . strtoupper(\Illuminate\Support\Str::random(8))]);
+
+            // Create individual units
+            $this->createUnitsForItem($item);
 
             $imported++;
         }
@@ -261,6 +324,96 @@ class StaffController extends Controller
         }
 
         return back()->with('success', $message);
+    }
+
+    /**
+     * Direct Borrowing for Staff/Admin
+     */
+    public function borrowForm(Request $request)
+    {
+        $search = $request->get('search');
+        $category = $request->get('category');
+
+        $settings = AdminController::loadSettings();
+        $maxDays = $settings['max_borrow_days'] ?? 7;
+
+        // Build query with optional search & category filters
+        $query = Item::where('available_stock', '>', 0);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('asset_code', 'like', "%{$search}%");
+            });
+        }
+
+        if ($category) {
+            $query->where('category', $category);
+        }
+
+        $availableItems = $query->orderBy('name')->paginate(12)->withQueryString();
+
+        // Get all categories for filter
+        $categories = Item::where('available_stock', '>', 0)
+            ->select('category')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category');
+
+        // Pre-selected item (if coming from dashboard)
+        $selectedItemId = $request->get('item_id');
+        $selectedItem = $selectedItemId ? Item::find($selectedItemId) : null;
+
+        return view('staff.borrowings.borrow', compact(
+            'availableItems',
+            'categories',
+            'maxDays',
+            'selectedItem',
+            'search',
+            'category'
+        ));
+    }
+
+    /**
+     * API endpoint for live item search
+     */
+    public function searchItems(Request $request)
+    {
+        $search = $request->get('q', '');
+
+        $items = Item::where('available_stock', '>', 0)
+            ->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('asset_code', 'like', "%{$search}%");
+            })
+            ->orderBy('name')
+            ->limit(10)
+            ->get(['id', 'name', 'category', 'available_stock', 'asset_code', 'image_path']);
+
+        return response()->json($items);
+    }
+
+    public function borrowItem(Request $request)
+    {
+        $request->validate([
+            'item_id' => 'required|exists:items,id',
+            'quantity' => 'required|integer|min:1|max:10',
+            'expected_return_date' => 'required|date|after:today',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $data = $request->only(['item_id', 'quantity', 'expected_return_date', 'notes']);
+            $this->borrowingService->createDirectBorrow($data);
+
+            return redirect()
+                ->route('staff.borrowings.index')
+                ->with('success', 'Item borrowed successfully!');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage())->withInput();
+        }
     }
 
     /**
@@ -280,7 +433,7 @@ class StaffController extends Controller
             'rejected' => Borrowing::where('status', 'rejected')->count(),
         ];
 
-        $borrowings = Borrowing::with(['user', 'item'])
+        $borrowings = Borrowing::with(['user', 'item', 'itemUnit', 'approver', 'issuer', 'rejector', 'returnedToUser'])
             ->when($status, function($query, $status) {
                 return $query->where('status', $status);
             })
@@ -371,7 +524,7 @@ class StaffController extends Controller
                     'title' => 'Borrow Request Rejected',
                     'message' => 'Your request to borrow "' . $borrowing->item->name . '" has been rejected. Reason: ' . ($request->rejection_reason ?? 'No reason provided.'),
                     'action_url' => route('student.borrowings.index'),
-                    'priority' => 'normal',
+                    'priority' => 'medium',
                 ]);
 
                 // Send email notification
@@ -403,11 +556,24 @@ class StaffController extends Controller
                     throw new \Exception('Cannot issue: insufficient stock available.');
                 }
 
-                $borrowing->update([
+                // Assign an available unit to this borrowing
+                $unit = ItemUnit::where('item_id', $borrowing->item_id)
+                    ->where('status', 'available')
+                    ->lockForUpdate()
+                    ->first();
+
+                $updateData = [
                     'status' => 'issued',
                     'issued_date' => now(),
                     'issued_by' => auth()->id(),
-                ]);
+                ];
+
+                if ($unit) {
+                    $unit->markBorrowed($borrowing->user_id, $borrowing->id);
+                    $updateData['item_unit_id'] = $unit->id;
+                }
+
+                $borrowing->update($updateData);
             });
 
             return back()->with('success', 'Item issued successfully!');
@@ -460,6 +626,14 @@ class StaffController extends Controller
                     'return_condition' => $request->return_condition,
                     'return_notes' => $request->return_notes,
                 ]);
+
+                // Release the assigned unit
+                if ($borrowing->item_unit_id) {
+                    $unit = ItemUnit::find($borrowing->item_unit_id);
+                    if ($unit) {
+                        $unit->markReturned();
+                    }
+                }
 
                 // Notify the student about the return
                 $conditionLabel = ucfirst(str_replace('_', ' ', $request->return_condition));
@@ -521,7 +695,7 @@ class StaffController extends Controller
             'title' => 'Extension Approved',
             'message' => 'Your extension request for "' . $borrowing->item->name . '" has been approved. New return date: ' . $borrowing->extension_date,
             'action_url' => route('student.borrowings.index'),
-            'priority' => 'normal',
+            'priority' => 'medium',
         ]);
 
         return back()->with('success', 'Extension approved. New return date: ' . $borrowing->extension_date);
@@ -546,7 +720,7 @@ class StaffController extends Controller
             'title' => 'Extension Rejected',
             'message' => 'Your extension request for "' . $borrowing->item->name . '" has been rejected. Please return the item by the original date.',
             'action_url' => route('student.borrowings.index'),
-            'priority' => 'normal',
+            'priority' => 'medium',
         ]);
 
         return back()->with('success', 'Extension request rejected.');
@@ -643,5 +817,27 @@ class StaffController extends Controller
             'pendingRequests', 'itemsDueSoon', 'popularItems', 'recentActivity',
             'itemsDue', 'monthlyStats'
         ));
+    }
+
+    /**
+     * Create individual trackable units for an item.
+     * Each unit gets a unique code and QR code.
+     */
+    private function createUnitsForItem(Item $item): void
+    {
+        $itemPad = str_pad($item->id, 6, '0', STR_PAD_LEFT);
+
+        for ($i = 1; $i <= $item->total_stock; $i++) {
+            $unitCode = "SEIMS-{$itemPad}-U" . str_pad($i, 3, '0', STR_PAD_LEFT);
+            $qrCode = $unitCode . '-' . strtoupper(\Illuminate\Support\Str::random(6));
+
+            \App\Models\ItemUnit::create([
+                'item_id' => $item->id,
+                'unit_code' => $unitCode,
+                'qr_code' => $qrCode,
+                'status' => 'available',
+                'condition' => 'good',
+            ]);
+        }
     }
 }

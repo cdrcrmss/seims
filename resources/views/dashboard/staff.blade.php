@@ -13,16 +13,16 @@
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-        <x-stat-card label="Total Items" :value="$totalItems" color="green"
+        <x-stat-card label="Total Items" :value="$totalItems" color="green" :href="route('staff.items.index')"
             icon="<svg class='w-6 h-6 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'></path></svg>" />
 
-        <x-stat-card label="Low Stock" :value="$lowStockItems" color="orange"
+        <x-stat-card label="Low Stock" :value="$lowStockItems" color="orange" :href="route('staff.items.index', ['status' => 'out_of_stock'])"
             icon="<svg class='w-6 h-6 text-orange-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'></path></svg>" />
 
-        <x-stat-card label="Pending" :value="$pendingRequests" color="blue"
+        <x-stat-card label="Pending" :value="$pendingRequests" color="blue" :href="route('staff.borrowings.index', ['status' => 'pending'])"
             icon="<svg class='w-6 h-6 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'></path></svg>" />
 
-        <x-stat-card label="Overdue" :value="$overdueItems" color="red"
+        <x-stat-card label="Overdue" :value="$overdueItems" color="red" :href="route('staff.borrowings.index', ['status' => 'issued'])"
             icon="<svg class='w-6 h-6 text-red-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'></path></svg>" />
     </div>
 

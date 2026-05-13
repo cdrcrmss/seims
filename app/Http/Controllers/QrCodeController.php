@@ -28,20 +28,16 @@ class QrCodeController extends Controller
             abort(403, 'Unauthorized: only staff or admin can generate QR codes.');
         }
 
-        // Generate QR code data string
-        $qrData = route('qr.lookup', $item->id);
-
-        // Assign QR code value to item if not set (use deterministic code based on item ID)
+        // Assign QR code value to item if not set (use unique ID with random component)
         if (!$item->qr_code) {
-            $item->update(['qr_code' => 'SEIMS-' . str_pad($item->id, 6, '0', STR_PAD_LEFT) . '-' . strtoupper(substr(md5($item->name . $item->id), 0, 6))]);
+            $item->update(['qr_code' => 'SEIMS-' . str_pad($item->id, 6, '0', STR_PAD_LEFT) . '-' . strtoupper(Str::random(8))]);
+            $item->refresh();
         }
 
-        // Generate QR code URL using a reliable fallback approach
-        // Primary: Google Charts API (no data leakage - only contains our public URL)
-        $qrImageUrl = 'https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=' . urlencode($qrData)
-            . '&choe=UTF-8';
+        // QR encodes the unique code string so scanners can look it up
+        $qrData = $item->qr_code;
 
-        return view('qr.display', compact('item', 'qrImageUrl', 'qrData'));
+        return view('qr.display', compact('item', 'qrData'));
     }
 
     /**
@@ -62,6 +58,18 @@ class QrCodeController extends Controller
             'status' => $item->status ?? 'available',
             'location' => $item->location ?? 'N/A',
         ];
+
+        // Current holders - who currently has this item (visible to all)
+        $currentHolders = $item->borrowings()
+            ->where('status', 'issued')
+            ->with('user:id,name')
+            ->get()
+            ->map(fn($b) => [
+                'user_name' => $b->user->name,
+                'quantity' => $b->quantity,
+                'expected_return_date' => $b->expected_return_date?->format('M d, Y') ?? 'N/A',
+            ]);
+        $payload['current_holders'] = $currentHolders;
 
         // Extended fields only for staff/admin
         if ($user && in_array($user->role, ['staff', 'admin'])) {
@@ -112,16 +120,40 @@ class QrCodeController extends Controller
 
         // Lookup by QR code string
         $code = $request->input('code');
+
+        // First try item-level QR code
         $foundItem = Item::where('qr_code', $code)->first();
 
-        if (!$foundItem) {
-            return response()->json(['success' => false, 'message' => 'Item not found.'], 404);
+        if ($foundItem) {
+            return response()->json([
+                'success' => true,
+                'item' => $this->buildItemPayload($foundItem),
+            ]);
         }
 
-        return response()->json([
-            'success' => true,
-            'item' => $this->buildItemPayload($foundItem),
-        ]);
+        // Then try unit-level QR code
+        $unit = \App\Models\ItemUnit::where('qr_code', $code)
+            ->orWhere('unit_code', $code)
+            ->with(['item', 'currentBorrower:id,name'])
+            ->first();
+
+        if ($unit) {
+            $payload = $this->buildItemPayload($unit->item);
+            $payload['unit'] = [
+                'unit_code' => $unit->unit_code,
+                'qr_code' => $unit->qr_code,
+                'status' => $unit->status,
+                'condition' => $unit->condition,
+                'current_borrower' => $unit->currentBorrower?->name ?? null,
+                'notes' => $unit->notes,
+            ];
+            return response()->json([
+                'success' => true,
+                'item' => $payload,
+            ]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Item not found.'], 404);
     }
 
     /**
@@ -140,7 +172,7 @@ class QrCodeController extends Controller
 
         foreach ($items as $item) {
             $item->update([
-                'qr_code' => 'SEIMS-' . str_pad($item->id, 6, '0', STR_PAD_LEFT) . '-' . strtoupper(substr(md5($item->name . $item->id), 0, 6))
+                'qr_code' => 'SEIMS-' . str_pad($item->id, 6, '0', STR_PAD_LEFT) . '-' . strtoupper(Str::random(8))
             ]);
             $count++;
         }

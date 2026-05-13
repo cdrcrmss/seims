@@ -138,23 +138,39 @@
                     </div>
                 </div>
 
+                <!-- Additional Notes -->
+                <div>
+                    <label for="notes" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                        Additional Notes <span class="font-normal normal-case text-gray-400">(optional)</span>
+                    </label>
+                    <textarea name="notes" id="notes" rows="2"
+                              placeholder="e.g. Need projector setup, expecting 20 students, special equipment required..."
+                              class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all resize-none">{{ old('notes') }}</textarea>
+                    @error('notes') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
                 <!-- Submit -->
-                <div class="flex gap-3 pt-2">
-                    <button type="submit" :disabled="submitting || purpose.length < 10"
-                            :class="(submitting || purpose.length < 10) ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 shadow-sm hover:shadow-md'"
-                            class="flex-1 inline-flex items-center justify-center gap-2 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-200">
+                <div class="flex gap-3 pt-4 border-t border-gray-100">
+                    <button type="submit" :disabled="submitting"
+                            :class="submitting ? 'bg-green-400 cursor-not-allowed' : (purpose.length < 10 ? 'bg-green-500 hover:bg-green-600' : 'bg-green-600 hover:bg-green-700 shadow-lg hover:shadow-xl')"
+                            class="flex-1 inline-flex items-center justify-center gap-2 text-white px-6 py-4 rounded-xl text-base font-bold transition-all duration-200">
                         <template x-if="!submitting">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
                         </template>
                         <template x-if="submitting">
-                            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                         </template>
-                        <span x-text="submitting ? 'Submitting...' : 'Reserve Room'"></span>
+                        <span x-text="submitting ? 'Submitting Request...' : 'Submit Reservation Request'"></span>
                     </button>
-                    <a href="{{ route('reservations.index') }}" class="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all duration-200">
+                    <a href="{{ route('reservations.index') }}" class="inline-flex items-center justify-center px-6 py-4 text-sm font-semibold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all duration-200">
                         Cancel
                     </a>
                 </div>
+
+                <!-- Submission Note -->
+                <p class="text-xs text-gray-400 text-center -mt-2">
+                    Your reservation will be reviewed and approved by staff. You'll receive a notification once it's processed.
+                </p>
             </form>
         </div>
 
@@ -205,7 +221,11 @@
                     </div>
                     <div class="flex items-start gap-3">
                         <span class="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">3</span>
-                        <span class="text-sm text-gray-700">Submit and wait for staff approval</span>
+                        @if(in_array(auth()->user()->role, ['staff', 'admin']))
+                            <span class="text-sm text-gray-700">Submit and your reservation is confirmed instantly</span>
+                        @else
+                            <span class="text-sm text-gray-700">Submit and wait for staff approval</span>
+                        @endif
                     </div>
                     <div class="flex items-start gap-3">
                         <span class="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">4</span>
@@ -244,7 +264,7 @@ function reservationForm() {
         selectedRoomId: '{{ old("room_id", "") }}',
         startDatetime: '{{ old("start_datetime", "") }}',
         endDatetime: '{{ old("end_datetime", "") }}',
-        purpose: '{{ old("purpose", "") }}',
+        purpose: {!! json_encode(old('purpose', '')) !!},
         available: false,
         availabilityChecked: false,
         submitting: false,
@@ -269,7 +289,7 @@ function reservationForm() {
         },
 
         handleSubmit(e) {
-            if (this.submitting || this.purpose.length < 10) {
+            if (this.submitting) {
                 e.preventDefault();
                 return;
             }

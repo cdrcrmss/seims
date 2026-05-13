@@ -10,6 +10,7 @@ use App\Models\MaintenanceRecord;
 use App\Models\ProcurementRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AnalyticsController extends Controller
 {
@@ -206,12 +207,11 @@ class AnalyticsController extends Controller
     }
 
     /**
-     * Generate reports export (CSV or JSON)
+     * Generate reports export as PDF
      */
     public function exportReport(Request $request)
     {
         $type = $request->input('type', 'comprehensive');
-        $format = $request->input('format', 'csv');
         
         // Generate report data based on type
         $data = [];
@@ -233,15 +233,35 @@ class AnalyticsController extends Controller
                 $data = $this->generateComprehensiveReport();
         }
 
-        $filename = 'seims_' . $type . '_report_' . now()->format('Y-m-d');
+        $filename = 'seims_' . $type . '_report_' . now()->format('Y-m-d') . '.pdf';
 
-        if ($format === 'csv') {
-            return $this->exportAsCsv($data, $filename, $type);
-        }
+        $reportTitles = [
+            'comprehensive' => 'Comprehensive Analytics Report',
+            'demand_forecast' => 'Demand Forecast Report',
+            'utilization' => 'Equipment Utilization Report',
+            'maintenance' => 'Maintenance Predictions Report',
+            'procurement' => 'Procurement Analytics Report',
+        ];
 
-        // Fall back to JSON
-        return response()->json($data)
-            ->header('Content-Disposition', 'attachment; filename="' . $filename . '.json"');
+        $reportDescriptions = [
+            'comprehensive' => 'Complete overview of inventory, borrowings, and maintenance metrics.',
+            'demand_forecast' => 'Predicted demand for equipment over the next 30 days.',
+            'utilization' => 'Equipment usage rates and efficiency analysis.',
+            'maintenance' => 'Maintenance schedules, costs, and critical items requiring attention.',
+            'procurement' => 'Procurement requests, spending, and low stock alerts.',
+        ];
+
+        $pdf = Pdf::loadView('analytics.report-pdf', [
+            'data' => $data,
+            'type' => $type,
+            'generated_at' => now()->format('F d, Y h:i A'),
+            'report_title' => $reportTitles[$type] ?? 'Analytics Report',
+            'report_description' => $reportDescriptions[$type] ?? '',
+        ]);
+
+        $pdf->setPaper('a4', 'portrait');
+
+        return $pdf->download($filename);
     }
 
     /**

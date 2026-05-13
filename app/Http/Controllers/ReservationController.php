@@ -34,6 +34,21 @@ class ReservationController extends Controller
     }
 
     /**
+     * Display calendar view for all users (students can view but not manage)
+     */
+    public function calendar()
+    {
+        $user = Auth::user();
+        
+        $reservations = Reservation::with(['user', 'room'])
+            ->whereIn('status', ['approved', 'checked_in'])
+            ->orderBy('start_datetime', 'asc')
+            ->get();
+
+        return view('reservations.calendar', compact('reservations'));
+    }
+
+    /**
      * Show the form for creating a new reservation
      */
     public function create()
@@ -61,7 +76,7 @@ class ReservationController extends Controller
             'room_id' => $request->input('room_id'),
         ]);
         $reservation->user_id = Auth::id();
-        $reservation->status = 'pending';
+        $reservation->status = in_array(Auth::user()->role, ['staff', 'admin']) ? 'approved' : 'pending';
 
         // Conflict Detective: Check for scheduling conflicts
         if ($reservation->hasConflict()) {
@@ -73,8 +88,12 @@ class ReservationController extends Controller
 
         $reservation->save();
 
+        $message = in_array(Auth::user()->role, ['staff', 'admin'])
+            ? 'Reservation confirmed successfully!'
+            : 'Reservation request submitted successfully! Please wait for staff approval.';
+
         return redirect()->route('reservations.index')
-            ->with('success', 'Reservation request submitted successfully!');
+            ->with('success', $message);
     }
 
     /**

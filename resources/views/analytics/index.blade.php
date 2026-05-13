@@ -22,34 +22,34 @@
     <!-- Quick Nav -->
     <div class="flex flex-wrap gap-3 animate-fade-in-up stagger-1">
         <a href="{{ route('analytics.demand-forecast') }}" class="px-4 py-2 bg-white ring-1 ring-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-green-50 hover:text-green-700 hover:ring-green-200 transition-all">
-            📈 Demand Forecast
+            Demand Forecast
         </a>
         <a href="{{ route('analytics.utilization') }}" class="px-4 py-2 bg-white ring-1 ring-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-green-50 hover:text-green-700 hover:ring-green-200 transition-all">
-            📊 Utilization
+            Utilization
         </a>
         <a href="{{ route('analytics.maintenance-predictions') }}" class="px-4 py-2 bg-white ring-1 ring-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-green-50 hover:text-green-700 hover:ring-green-200 transition-all">
-            🔧 Maintenance
+            Maintenance
         </a>
     </div>
 
     <!-- Key Metrics -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 animate-fade-in-up stagger-2">
-        <div class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-green-500">
+        <a href="{{ route('staff.items.index') }}" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-green-500 hover:ring-green-300 transition-all cursor-pointer block">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Total Items</p>
             <p class="text-3xl font-bold text-green-600 mt-1 font-poppins">{{ $dashboardData['total_items'] }}</p>
-        </div>
-        <div class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-red-500">
+        </a>
+        <a href="{{ route('staff.items.index', ['status' => 'out_of_stock']) }}" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-red-500 hover:ring-red-300 transition-all cursor-pointer block">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Low Stock</p>
             <p class="text-3xl font-bold text-red-600 mt-1 font-poppins">{{ $dashboardData['low_stock_items'] }}</p>
-        </div>
-        <div class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-orange-500">
+        </a>
+        <a href="{{ route('maintenance.dashboard') }}" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-orange-500 hover:ring-orange-300 transition-all cursor-pointer block">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Maintenance Due</p>
             <p class="text-3xl font-bold text-orange-600 mt-1 font-poppins">{{ $dashboardData['maintenance_due_items'] }}</p>
-        </div>
-        <div class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-blue-500">
+        </a>
+        <a href="{{ route('reservations.index') }}" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-blue-500 hover:ring-blue-300 transition-all cursor-pointer block">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Active Reservations</p>
             <p class="text-3xl font-bold text-blue-600 mt-1 font-poppins">{{ $dashboardData['active_reservations'] }}</p>
-        </div>
+        </a>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">

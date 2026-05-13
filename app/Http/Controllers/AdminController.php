@@ -305,8 +305,10 @@ class AdminController extends Controller
     {
         $status = $request->get('status');
         $search = $request->get('search');
+        $archived = $request->get('archived', '0');
 
-        $borrowings = Borrowing::with(['user', 'item'])
+        $borrowings = Borrowing::with(['user', 'item', 'approver', 'issuer', 'rejector', 'returnedToUser'])
+            ->where('is_archived', $archived === '1')
             ->when($status, function($query, $status) {
                 return $query->where('status', $status);
             })
@@ -322,6 +324,18 @@ class AdminController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
-        return view('admin.borrowings.index', compact('borrowings', 'status', 'search'));
+        return view('admin.borrowings.index', compact('borrowings', 'status', 'search', 'archived'));
+    }
+
+    public function archiveBorrowing(Borrowing $borrowing)
+    {
+        $borrowing->update(['is_archived' => true]);
+        return back()->with('success', 'Borrowing record archived successfully.');
+    }
+
+    public function unarchiveBorrowing(Borrowing $borrowing)
+    {
+        $borrowing->update(['is_archived' => false]);
+        return back()->with('success', 'Borrowing record restored from archive.');
     }
 }

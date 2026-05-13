@@ -77,27 +77,51 @@
         <!-- Left: Item Browsing (3 cols) -->
         <div class="lg:col-span-3 space-y-4 animate-fade-in-up stagger-1">
             <!-- Search & Filter -->
-            <form method="GET" action="{{ route('student.borrow.form') }}" class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-4">
+            <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-4">
                 <div class="flex flex-col sm:flex-row gap-3">
-                    <div class="flex-1 relative">
-                        <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        <input type="text" name="search" value="{{ $search ?? '' }}"
+                    <div class="flex-1 relative" x-data="{ searchOpen: false }">
+                        <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <input type="text" x-model="searchQuery" @input="debouncedSearch()" @focus="searchOpen = true" @click.away="searchOpen = false"
                                placeholder="Search by name, description, or code..."
                                class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white">
+                        
+                        <!-- Search Results Dropdown -->
+                        <div x-show="searchOpen && searchResults.length > 0" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg ring-1 ring-gray-200 z-50 max-h-64 overflow-y-auto">
+                            <template x-for="item in searchResults" :key="item.id">
+                                <div @click="selectItem(item.id, item.name, item.category, item.available_stock); searchOpen = false; searchQuery = ''"
+                                     class="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-semibold text-gray-900 truncate" x-text="item.name"></p>
+                                            <p class="text-xs text-gray-500" x-text="item.category"></p>
+                                        </div>
+                                        <div class="text-xs text-gray-400">
+                                            <span x-text="item.available_stock"></span> available
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
                     </div>
-                    <select name="category" onchange="this.form.submit()"
+                    <select name="category" x-model="selectedCategory" @change="filterByCategory()"
                             class="px-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-700 focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white sm:w-44">
                         <option value="">All Categories</option>
                         @foreach($categories as $cat)
                             <option value="{{ $cat }}" {{ ($category ?? '') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-xl transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        Search
-                    </button>
                 </div>
-            </form>
+            </div>
 
             <!-- Result Count -->
             <div class="flex items-center justify-between px-1">
@@ -301,8 +325,8 @@
                     <!-- Submit -->
                     <div class="flex gap-3 pt-1">
                         <button type="submit"
-                                :disabled="!canSubmit || isSubmitting"
-                                :class="canSubmit && !isSubmitting ? 'bg-green-600 hover:bg-green-700 shadow-sm hover:shadow-md' : 'bg-gray-300 cursor-not-allowed'"
+                                :disabled="isSubmitting"
+                                :class="isSubmitting ? 'bg-gray-300 cursor-not-allowed' : (!canSubmit ? 'bg-green-500 hover:bg-green-600' : 'bg-green-600 hover:bg-green-700 shadow-sm hover:shadow-md')"
                                 class="flex-1 py-3 text-white font-semibold rounded-xl text-sm transition-all duration-200 flex items-center justify-center gap-2">
                             <template x-if="isSubmitting">
                                 <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
@@ -336,6 +360,9 @@ function borrowForm() {
         quantity: {{ old('quantity', 1) }},
         purpose: {!! json_encode(old('purpose', '')) !!},
         isSubmitting: false,
+        searchQuery: '',
+        searchResults: [],
+        searchTimeout: null,
 
         get canSubmit() {
             return this.selectedItemId &&
@@ -343,6 +370,29 @@ function borrowForm() {
                    this.purpose.length >= 10 &&
                    !{{ $hasOverdue ? 'true' : 'false' }} &&
                    {{ $activeBorrowCount }} < {{ $maxItems }};
+        },
+
+        debouncedSearch() {
+            clearTimeout(this.searchTimeout);
+            this.searchTimeout = setTimeout(() => {
+                this.performSearch();
+            }, 150);
+        },
+
+        async performSearch() {
+            if (this.searchQuery.length < 1) {
+                this.searchResults = [];
+                return;
+            }
+
+            try {
+                const response = await fetch('{{ route('student.api.search-items') }}?q=' + encodeURIComponent(this.searchQuery));
+                const data = await response.json();
+                this.searchResults = data;
+            } catch (error) {
+                console.error('Search failed:', error);
+                this.searchResults = [];
+            }
         },
 
         selectItem(id, name, category, stock) {
@@ -367,7 +417,7 @@ function borrowForm() {
         },
 
         handleSubmit(event) {
-            if (!this.canSubmit || this.isSubmitting) {
+            if (this.isSubmitting) {
                 event.preventDefault();
                 return;
             }

@@ -13,7 +13,7 @@
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden">
+        <a href="<?php echo e(route('admin.users.index')); ?>" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden cursor-pointer hover:ring-green-200 transition-all block">
             <div class="absolute top-0 left-0 w-1 h-full bg-green-500 rounded-r-full"></div>
             <div class="flex items-center justify-between">
                 <div>
@@ -25,9 +25,9 @@
                     <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path></svg>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden">
+        <a href="<?php echo e(route('staff.items.index')); ?>" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden cursor-pointer hover:ring-blue-200 transition-all block">
             <div class="absolute top-0 left-0 w-1 h-full bg-blue-500 rounded-r-full"></div>
             <div class="flex items-center justify-between">
                 <div>
@@ -43,9 +43,9 @@
                     <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden">
+        <a href="<?php echo e(route('admin.borrowings', ['status' => 'issued'])); ?>" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden cursor-pointer hover:ring-purple-200 transition-all block">
             <div class="absolute top-0 left-0 w-1 h-full bg-purple-500 rounded-r-full"></div>
             <div class="flex items-center justify-between">
                 <div>
@@ -57,25 +57,24 @@
                     <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden">
+        <a href="<?php echo e(route('staff.borrowings.index', ['status' => 'pending'])); ?>" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden cursor-pointer hover:ring-orange-200 transition-all block">
             <div class="absolute top-0 left-0 w-1 h-full bg-orange-500 rounded-r-full"></div>
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Pending</p>
-                    <p class="text-3xl font-bold text-orange-600 font-poppins"><?php echo e($pendingRequests + $pendingReservations + $pendingProcurement); ?></p>
+                    <p class="text-3xl font-bold text-orange-600 font-poppins"><?php echo e($pendingRequests + $pendingReservations); ?></p>
                     <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                         <?php if($pendingRequests > 0): ?><span class="text-xs text-orange-600 font-medium"><?php echo e($pendingRequests); ?> borrow</span><?php endif; ?>
                         <?php if($pendingReservations > 0): ?><span class="text-xs text-blue-600 font-medium"><?php echo e($pendingReservations); ?> reserv</span><?php endif; ?>
-                        <?php if($pendingProcurement > 0): ?><span class="text-xs text-purple-600 font-medium"><?php echo e($pendingProcurement); ?> procure</span><?php endif; ?>
                     </div>
                 </div>
                 <div class="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center">
                     <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Alerts -->

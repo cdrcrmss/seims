@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Item;
 use App\Models\Borrowing;
 use App\Http\Controllers\AdminController;
-use App\Http\Requests\BorrowItemRequest;
 use App\Services\BorrowingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -154,16 +153,21 @@ class StudentController extends Controller
         }
     }
 
-    public function borrowings()
+    public function borrowings(Request $request)
     {
         $this->ensureStudent();
         
+        $status = $request->get('status');
+
         $borrowings = Borrowing::where('user_id', Auth::id())
-            ->with('item')
+            ->with(['item', 'approver', 'issuer', 'rejector', 'returnedToUser'])
+            ->when($status, function($query, $status) {
+                return $query->where('status', $status);
+            })
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('student.borrowings.index', compact('borrowings'));
+        return view('student.borrowings.index', compact('borrowings', 'status'));
     }
 
     public function cancelRequest($id)
@@ -210,5 +214,25 @@ class StudentController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
+    }
+
+    /**
+     * API endpoint for live item search
+     */
+    public function searchItems(Request $request)
+    {
+        $search = $request->get('q', '');
+
+        $items = Item::where('available_stock', '>', 0)
+            ->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('asset_code', 'like', "%{$search}%");
+            })
+            ->orderBy('name')
+            ->limit(10)
+            ->get(['id', 'name', 'category', 'available_stock', 'asset_code', 'image_path']);
+
+        return response()->json($items);
     }
 }

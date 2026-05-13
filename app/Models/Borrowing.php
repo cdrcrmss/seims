@@ -18,6 +18,7 @@ class Borrowing extends Model
     protected $fillable = [
         'user_id',
         'item_id',
+        'item_unit_id',
         'status',
         'quantity',
         'requested_date',
@@ -41,6 +42,7 @@ class Borrowing extends Model
         'extension_date',
         'extension_reason',
         'extension_status',
+        'is_archived',
     ];
 
     /**
@@ -61,6 +63,7 @@ class Borrowing extends Model
             'faculty_approved_date' => 'datetime',
             'extension_requested' => 'boolean',
             'extension_date' => 'date',
+            'is_archived' => 'boolean',
         ];
     }
 
@@ -82,6 +85,11 @@ class Borrowing extends Model
             'name' => 'Deleted Item',
             'image_path' => null,
         ]);
+    }
+
+    public function itemUnit()
+    {
+        return $this->belongsTo(ItemUnit::class);
     }
 
     public function approver()
