@@ -80,7 +80,6 @@ class ReservationController extends Controller
 
         // Conflict Detective: Check for scheduling conflicts
         if ($reservation->hasConflict()) {
-            $reservation->conflict_detected = true;
             return back()->withErrors([
                 'conflict' => 'A scheduling conflict was detected. The selected resource is already reserved for this time period.'
             ])->withInput();
@@ -186,8 +185,8 @@ class ReservationController extends Controller
         if ($request->item_id) {
             $item = Item::find($request->item_id);
 
-            // Query overlapping approved reservations for this item and time window
-            $itemConflicts = Reservation::where('status', 'approved')
+            // Query overlapping active reservations (pending + approved) for this item and time window
+            $itemConflicts = Reservation::whereIn('status', ['pending', 'approved'])
                 ->where('item_id', $request->item_id)
                 ->where(function ($q) use ($request) {
                     $q->whereBetween('start_datetime', [$request->start_datetime, $request->end_datetime])
@@ -218,7 +217,7 @@ class ReservationController extends Controller
                 $available = false;
 
                 // Also fetch the specific room conflicts for the response
-                $roomConflicts = Reservation::where('status', 'approved')
+                $roomConflicts = Reservation::whereIn('status', ['pending', 'approved'])
                     ->where('room_id', $request->room_id)
                     ->where(function ($q) use ($request) {
                         $q->whereBetween('start_datetime', [$request->start_datetime, $request->end_datetime])

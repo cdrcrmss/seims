@@ -23,6 +23,7 @@ class Reservation extends Model
         'start_datetime',
         'end_datetime',
         'purpose',
+        'notes',
         'status',
         'approved_by',
         'approved_at',

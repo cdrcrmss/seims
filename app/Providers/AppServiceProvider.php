@@ -56,6 +56,10 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(20)->by($request->user()?->id ?: $request->ip());
         });
 
+        RateLimiter::for('availability-check', function (Request $request) {
+            return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
+        });
+
         // Register policies
         Gate::policy(\App\Models\Reservation::class, \App\Policies\ReservationPolicy::class);
         Gate::policy(\App\Models\Borrowing::class, \App\Policies\BorrowingPolicy::class);

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Jobs\CreateAuditLogJob;
 use App\Models\AuditLog;
 use Closure;
 use Illuminate\Http\Request;
@@ -81,7 +82,7 @@ class AuditLogMiddleware
         $severity = $this->determineSeverity($request, $response);
 
         try {
-            AuditLog::create([
+            dispatch(new CreateAuditLogJob([
                 'user_id' => $user?->id,
                 'action' => $action,
                 'auditable_type' => $this->getModelType($request),
@@ -93,10 +94,9 @@ class AuditLogMiddleware
                 'module' => $module,
                 'severity' => $severity,
                 'description' => $this->generateDescription($user, $action, $module),
-            ]);
+            ]));
         } catch (\Exception $e) {
-            // Silently fail to prevent disrupting the application
-            \Log::error('Failed to create audit log: ' . $e->getMessage());
+            \Log::warning('Failed to dispatch audit log job: ' . $e->getMessage());
         }
     }
 

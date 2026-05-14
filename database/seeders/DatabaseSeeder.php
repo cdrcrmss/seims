@@ -277,6 +277,7 @@ class DatabaseSeeder extends Seeder
         $this->command->info('✓ Items seeded (10 items with extended fields)');
 
         // ─── Rooms ─────────────────────────────────────────
+        Room::query()->forceDelete();
         $rooms = [];
         for ($i = 401; $i <= 418; $i++) {
             $rooms[] = Room::create([
@@ -295,6 +296,9 @@ class DatabaseSeeder extends Seeder
         $this->command->info('✓ Rooms seeded (18 rooms)');
 
         // ─── Suppliers ─────────────────────────────────────
+        DB::table('item_supplier')->delete();
+        Supplier::query()->forceDelete();
+
         $suppliers = [
             Supplier::create([
                 'name' => 'LabTech Philippines Inc.',

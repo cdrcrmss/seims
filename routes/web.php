@@ -9,6 +9,7 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\QrCodeController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -100,7 +101,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
     });
 
     // Student Routes
-    Route::middleware(['auth', 'approved'])->prefix('student')->name('student.')->group(function () {
+    Route::prefix('student')->name('student.')->group(function () {
         Route::get('/borrowings', [StudentController::class, 'borrowings'])->name('borrowings.index');
         Route::delete('/borrowings/{borrowing}/cancel', [StudentController::class, 'cancelRequest'])->name('borrowings.cancel');
         Route::post('/borrowings/{borrowing}/extend', [StudentController::class, 'requestExtension'])->name('borrowings.extend');
@@ -115,7 +116,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::get('/calendar', [ReservationController::class, 'calendar'])->name('calendar');
         Route::get('/create', [ReservationController::class, 'create'])->middleware('throttle:reservation-page')->name('create');
         Route::post('/', [ReservationController::class, 'store'])->middleware('throttle:reservation-submit')->name('store');
-        Route::post('/check-availability', [ReservationController::class, 'checkAvailability'])->name('check-availability');
+        Route::post('/check-availability', [ReservationController::class, 'checkAvailability'])->middleware('throttle:availability-check')->name('check-availability');
         
         // Staff/Admin actions
         Route::middleware(['staff_or_admin'])->group(function () {
@@ -152,13 +153,13 @@ Route::middleware(['auth', 'approved'])->group(function () {
     // QR Code Module (Digital Validation & Tracking)
     Route::prefix('qr')->name('qr.')->group(function () {
         // Scanner and lookup available to all authenticated users
-        Route::get('/scanner', [\App\Http\Controllers\QrCodeController::class, 'scanner'])->name('scanner');
-        Route::get('/lookup/{item?}', [\App\Http\Controllers\QrCodeController::class, 'lookup'])->name('lookup');
+        Route::get('/scanner', [QrCodeController::class, 'scanner'])->name('scanner');
+        Route::get('/lookup/{item?}', [QrCodeController::class, 'lookup'])->name('lookup');
 
         // Generate and batch-generate restricted to staff/admin
         Route::middleware(['staff_or_admin'])->group(function () {
-            Route::get('/generate/{item}', [\App\Http\Controllers\QrCodeController::class, 'generate'])->name('generate');
-            Route::post('/batch-generate', [\App\Http\Controllers\QrCodeController::class, 'batchGenerate'])->name('batch-generate');
+            Route::get('/generate/{item}', [QrCodeController::class, 'generate'])->name('generate');
+            Route::post('/batch-generate', [QrCodeController::class, 'batchGenerate'])->name('batch-generate');
         });
     });
 });
