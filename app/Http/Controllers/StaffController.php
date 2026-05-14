@@ -757,7 +757,7 @@ class StaffController extends Controller
                     'title' => 'Item Returned',
                     'message' => 'Your borrowed item "' . $item->name . '" has been marked as returned. Condition: ' . $conditionLabel . $overdueNote,
                     'action_url' => route('student.borrowings.index'),
-                    'priority' => $isOverdue || in_array($request->return_condition, ['needs_repair', 'damaged']) ? 'high' : 'normal',
+                    'priority' => $isOverdue || in_array($request->return_condition, ['needs_repair', 'damaged']) ? 'high' : 'low',
                 ]);
 
                 // If item needs repair, notify staff/admin
