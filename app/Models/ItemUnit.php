@@ -74,4 +74,28 @@ class ItemUnit extends Model
             'borrowing_id' => null,
         ]);
     }
+
+    /**
+     * Mark unit as damaged
+     */
+    public function markDamaged(): void
+    {
+        $this->update([
+            'status' => 'damaged',
+            'current_borrower_id' => null,
+            'borrowing_id' => null,
+        ]);
+    }
+
+    /**
+     * Mark unit as needs repair
+     */
+    public function markNeedsRepair(): void
+    {
+        $this->update([
+            'status' => 'needs_repair',
+            'current_borrower_id' => null,
+            'borrowing_id' => null,
+        ]);
+    }
 }

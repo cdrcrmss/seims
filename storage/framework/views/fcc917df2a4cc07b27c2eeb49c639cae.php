@@ -160,6 +160,18 @@
                                 <?php echo e($isOverdue ? 'Overdue' : ucfirst($borrowing->status)); ?>
 
                             </span>
+                            <?php if($borrowing->approver && in_array($borrowing->status, ['approved', 'issued', 'returned'])): ?>
+                                <p class="text-[10px] text-gray-400 mt-1">Approved by <?php echo e($borrowing->approver->name); ?></p>
+                            <?php endif; ?>
+                            <?php if($borrowing->issuer && in_array($borrowing->status, ['issued', 'returned'])): ?>
+                                <p class="text-[10px] text-gray-400">Issued by <?php echo e($borrowing->issuer->name); ?></p>
+                            <?php endif; ?>
+                            <?php if($borrowing->rejector && $borrowing->status === 'rejected'): ?>
+                                <p class="text-[10px] text-gray-400 mt-1">Rejected by <?php echo e($borrowing->rejector->name); ?></p>
+                            <?php endif; ?>
+                            <?php if($borrowing->returnedToUser && $borrowing->status === 'returned'): ?>
+                                <p class="text-[10px] text-gray-400">Returned to <?php echo e($borrowing->returnedToUser->name); ?></p>
+                            <?php endif; ?>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600"><?php echo e($borrowing->requested_date ? \Carbon\Carbon::parse($borrowing->requested_date)->format('M d, Y') : 'N/A'); ?></td>
                         <td class="px-6 py-4 text-sm text-gray-600">

@@ -24,18 +24,18 @@
 
     <!-- Stats -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up stagger-1">
-        <div class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-yellow-500">
+        <a href="<?php echo e(route('maintenance.index', ['status' => 'upcoming'])); ?>" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-yellow-500 hover:ring-yellow-300 transition-all cursor-pointer block">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Upcoming</p>
             <p class="text-3xl font-bold text-yellow-600 mt-1 font-poppins"><?php echo e($upcomingMaintenance); ?></p>
-        </div>
-        <div class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-red-500">
+        </a>
+        <a href="<?php echo e(route('maintenance.index', ['status' => 'overdue'])); ?>" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-red-500 hover:ring-red-300 transition-all cursor-pointer block">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Overdue</p>
             <p class="text-3xl font-bold text-red-600 mt-1 font-poppins"><?php echo e($overdueMaintenance); ?></p>
-        </div>
-        <div class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-green-500">
+        </a>
+        <a href="<?php echo e(route('maintenance.index')); ?>" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-green-500 hover:ring-green-300 transition-all cursor-pointer block">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Total Records</p>
             <p class="text-3xl font-bold text-green-600 mt-1 font-poppins"><?php echo e($maintenanceRecords->total()); ?></p>
-        </div>
+        </a>
     </div>
 
     <!-- Generate Alerts -->
@@ -49,8 +49,20 @@
         </form>
     </div>
 
+    <?php if($status): ?>
+    <div class="flex items-center gap-2 animate-fade-in-up stagger-2">
+        <span class="text-sm text-gray-600">Filtering by:</span>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold <?php echo e($status === 'upcoming' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'); ?>"><?php echo e(ucfirst($status)); ?></span>
+        <a href="<?php echo e(route('maintenance.index')); ?>" class="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-red-600 transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            Clear filter
+        </a>
+    </div>
+    <?php endif; ?>
+
     <!-- Records Table -->
-    <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm overflow-hidden animate-fade-in-up stagger-3" x-data="{ completeModal: false, completeId: null }">
+    <div x-data="{ completeModal: false, completeId: null }">
+    <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm overflow-hidden animate-fade-in-up stagger-3">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
@@ -145,52 +157,49 @@
             <?php echo e($maintenanceRecords->links()); ?>
 
         </div>
+    </div>
 
-        <!-- Complete Modal -->
-        <div x-show="completeModal" x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-            <div @click.away="completeModal = false" class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-4">
-                <h3 class="text-lg font-bold text-gray-900 mb-4">Complete Maintenance</h3>
-                <form :action="'/maintenance/' + completeId + '/complete'" method="POST" class="space-y-4">
-                    <?php echo csrf_field(); ?> <?php echo method_field('PATCH'); ?>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Completed Date</label>
-                        <input type="date" name="completed_date" value="<?php echo e(now()->format('Y-m-d')); ?>" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Condition After</label>
-                        <select name="condition_after" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
-                            <option value="excellent">Excellent</option>
-                            <option value="good" selected>Good</option>
-                            <option value="fair">Fair</option>
-                            <option value="poor">Poor</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Wear Level (0-100)</label>
-                        <input type="number" name="wear_level" min="0" max="100" value="20" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Actions Taken</label>
-                        <textarea name="actions_taken" rows="2" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" required></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Issues Found (optional)</label>
-                        <textarea name="issues_found" rows="2" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Cost (optional)</label>
-                        <input type="number" name="cost" step="0.01" min="0" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                    </div>
-                    <div class="flex space-x-3 pt-2">
-                        <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            Mark Complete
-                        </button>
-                        <button type="button" @click="completeModal = false" class="flex-1 inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-200">Cancel</button>
-                    </div>
-                </form>
-            </div>
+    <!-- Complete Modal -->
+    <div x-show="completeModal" x-transition x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+        <div @click.away="completeModal = false" class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Complete Maintenance</h3>
+            <form :action="'/maintenance/' + completeId + '/complete'" method="POST" class="space-y-4">
+                <?php echo csrf_field(); ?> <?php echo method_field('PATCH'); ?>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Completed Date</label>
+                    <input type="date" name="completed_date" value="<?php echo e(now()->format('Y-m-d')); ?>" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Condition After</label>
+                    <select name="condition_after" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
+                        <option value="excellent">Excellent</option>
+                        <option value="good" selected>Good</option>
+                        <option value="fair">Fair</option>
+                        <option value="poor">Poor</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Wear Level (0-100)</label>
+                    <input type="number" name="wear_level" min="0" max="100" value="20" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Actions Taken</label>
+                    <textarea name="actions_taken" rows="2" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" required></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Issues Found (optional)</label>
+                    <textarea name="issues_found" rows="2" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"></textarea>
+                </div>
+                <div class="flex space-x-3 pt-2">
+                    <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        Mark Complete
+                    </button>
+                    <button type="button" @click="completeModal = false" class="flex-1 inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-200">Cancel</button>
+                </div>
+            </form>
         </div>
+    </div>
     </div>
 </div>
 <?php $__env->stopSection(); ?>

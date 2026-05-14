@@ -64,7 +64,7 @@
         <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Active Loans</p>
+                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Active Borrowings</p>
                     <p class="text-3xl font-bold text-orange-600 font-poppins"><?php echo e($activeBorrowings); ?></p>
                     <p class="text-xs text-gray-500 mt-1"><?php echo e($pendingRequests); ?> pending</p>
                 </div>
@@ -98,16 +98,35 @@
         <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-xl font-bold text-gray-900">Borrowing Trends</h3>
-                <span class="text-sm text-gray-500">Last 6 months</span>
+                <span class="text-sm text-gray-500">Last 30 days</span>
             </div>
-            <div class="h-64 flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl">
-                <div class="text-center">
-                    <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                    </svg>
-                    <p class="text-gray-600">Chart visualization would be implemented here</p>
-                    <p class="text-sm text-gray-500 mt-2">Using libraries like Chart.js or D3.js</p>
-                </div>
+            <div class="h-64">
+                <canvas id="borrowingTrendsChart"></canvas>
+            </div>
+
+            <!-- Most Borrowed Items -->
+            <div class="mt-6 pt-6 border-t border-gray-100">
+                <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wide mb-4">Most Borrowed Items</h4>
+                <?php if(count($mostBorrowedItems) > 0): ?>
+                    <div class="space-y-3">
+                        <?php $__currentLoopData = $mostBorrowedItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <div class="flex items-center gap-3">
+                                <span class="text-xs font-bold text-gray-400 w-5"><?php echo e($index + 1); ?></span>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <p class="text-sm font-semibold text-gray-900 truncate"><?php echo e($item['name']); ?></p>
+                                        <span class="text-xs font-bold text-indigo-600 ml-2"><?php echo e($item['count']); ?>x</span>
+                                    </div>
+                                    <div class="w-full bg-gray-100 rounded-full h-1.5">
+                                        <div class="h-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500" style="width: <?php echo e(($item['count'] / max($mostBorrowedItems[0]['count'], 1)) * 100); ?>%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </div>
+                <?php else: ?>
+                    <p class="text-sm text-gray-400 text-center py-4">No borrowings in the last 30 days</p>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -173,5 +192,73 @@
     </div>
 
 </div>
+
+<?php $__env->startPush('scripts'); ?>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('borrowingTrendsChart').getContext('2d');
+    const trendsData = <?php echo json_encode($borrowingTrends, 15, 512) ?>;
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: trendsData.map(d => d.label),
+            datasets: [{
+                label: 'Borrowings',
+                data: trendsData.map(d => d.count),
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#6366f1',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 3,
+                pointHoverRadius: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1f2937',
+                    titleFont: { size: 12 },
+                    bodyFont: { size: 13, weight: 'bold' },
+                    padding: 10,
+                    cornerRadius: 8,
+                    callbacks: {
+                        title: (items) => items[0].label,
+                        label: (item) => item.raw + ' borrowing' + (item.raw !== 1 ? 's' : '')
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { 
+                        maxTicksLimit: 7,
+                        font: { size: 11 },
+                        color: '#9ca3af'
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#f3f4f6' },
+                    ticks: { 
+                        stepSize: 1,
+                        font: { size: 11 },
+                        color: '#9ca3af'
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+<?php $__env->stopPush(); ?>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Cedric\SEIMS\resources\views/admin/reports.blade.php ENDPATH**/ ?>

@@ -54,25 +54,46 @@
                         @enderror
                     </div>
 
-                    <!-- Category -->
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">
-                            Category <span class="text-red-500">*</span>
-                        </label>
-                        <select name="category" required
-                                class="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-green-500/30 focus:border-green-500 transition-colors text-sm">
-                            <option value="">Select Equipment Category</option>
-                            <option value="electronics" {{ old('category') == 'electronics' ? 'selected' : '' }}>Electronics</option>
-                            <option value="mechanical" {{ old('category') == 'mechanical' ? 'selected' : '' }}>Mechanical</option>
-                            <option value="chemical" {{ old('category') == 'chemical' ? 'selected' : '' }}>Chemical</option>
-                            <option value="optical" {{ old('category') == 'optical' ? 'selected' : '' }}>Optical</option>
-                            <option value="measuring" {{ old('category') == 'measuring' ? 'selected' : '' }}>Measuring</option>
-                            <option value="computing" {{ old('category') == 'computing' ? 'selected' : '' }}>Computing</option>
-                            <option value="other" {{ old('category') == 'other' ? 'selected' : '' }}>Other</option>
-                        </select>
-                        @error('category')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
+                    <!-- Category & Laboratory -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Category -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                                Category <span class="text-red-500">*</span>
+                            </label>
+                            <select name="category" required
+                                    class="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-green-500/30 focus:border-green-500 transition-colors text-sm">
+                                <option value="">Select Category</option>
+                                <option value="electronics" {{ old('category') == 'electronics' ? 'selected' : '' }}>Electronics</option>
+                                <option value="mechanical" {{ old('category') == 'mechanical' ? 'selected' : '' }}>Mechanical</option>
+                                <option value="chemical" {{ old('category') == 'chemical' ? 'selected' : '' }}>Chemical</option>
+                                <option value="optical" {{ old('category') == 'optical' ? 'selected' : '' }}>Optical</option>
+                                <option value="measuring" {{ old('category') == 'measuring' ? 'selected' : '' }}>Measuring</option>
+                                <option value="computing" {{ old('category') == 'computing' ? 'selected' : '' }}>Computing</option>
+                                <option value="other" {{ old('category') == 'other' ? 'selected' : '' }}>Other</option>
+                            </select>
+                            @error('category')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Laboratory -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                                Laboratory <span class="text-red-500">*</span>
+                            </label>
+                            <select name="laboratory" required
+                                    class="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-green-500/30 focus:border-green-500 transition-colors text-sm">
+                                <option value="">Select Laboratory</option>
+                                <option value="Alfresco" {{ old('laboratory') == 'Alfresco' ? 'selected' : '' }}>Alfresco</option>
+                                <option value="Kitchen" {{ old('laboratory') == 'Kitchen' ? 'selected' : '' }}>Kitchen</option>
+                                <option value="Food Lab" {{ old('laboratory') == 'Food Lab' ? 'selected' : '' }}>Food Lab</option>
+                                <option value="Hotel" {{ old('laboratory') == 'Hotel' ? 'selected' : '' }}>Hotel</option>
+                            </select>
+                            @error('laboratory')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
                     <!-- Stock Information -->

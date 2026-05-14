@@ -158,10 +158,7 @@
                     <td>Low Stock Items</td>
                     <td>{{ $data['inventory_summary']['low_stock_items'] }}</td>
                 </tr>
-                <tr>
-                    <td>Total Inventory Value</td>
-                    <td>&#8369;{{ number_format($data['inventory_summary']['total_value'], 2) }}</td>
-                </tr>
+                <!-- Total inventory value hidden by client request -->
             </table>
         </div>
         @endif
@@ -209,10 +206,6 @@
                 <tr>
                     <td>Overdue Maintenance</td>
                     <td>{{ $data['maintenance_summary']['overdue'] }}</td>
-                </tr>
-                <tr>
-                    <td>Maintenance Costs (This Year)</td>
-                    <td>&#8369;{{ number_format($data['maintenance_summary']['total_costs'], 2) }}</td>
                 </tr>
             </table>
         </div>
@@ -284,7 +277,6 @@
                 <tr><td>Upcoming</td><td>{{ $data['upcoming'] ?? 0 }}</td></tr>
                 <tr><td>Overdue</td><td>{{ $data['overdue'] ?? 0 }}</td></tr>
                 <tr><td>Completed This Year</td><td>{{ $data['completed_this_year'] ?? 0 }}</td></tr>
-                <tr><td>Total Costs This Year</td><td>&#8369;{{ number_format($data['total_costs_this_year'] ?? 0, 2) }}</td></tr>
             </table>
         </div>
 
@@ -318,7 +310,7 @@
                 </tr>
                 <tr><td>Total Requests</td><td>{{ $data['total_requests'] ?? 0 }}</td></tr>
                 <tr><td>Pending</td><td>{{ $data['pending'] ?? 0 }}</td></tr>
-                <tr><td>Total Spending (This Year)</td><td>&#8369;{{ number_format($data['total_spending_this_year'] ?? 0, 2) }}</td></tr>
+                <!-- Total spending this year hidden by client request -->
                 <tr><td>Auto-Generated Count</td><td>{{ $data['auto_generated_count'] ?? 0 }}</td></tr>
             </table>
         </div>

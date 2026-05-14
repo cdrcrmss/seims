@@ -9,6 +9,10 @@
             <p class="text-gray-600">Manage laboratory equipment and inventory</p>
         </div>
         <div class="flex items-center gap-3">
+            <a href="<?php echo e(route('staff.items.trash')); ?>" class="inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                Trash
+            </a>
             <form method="POST" action="<?php echo e(route('qr.batch-generate')); ?>" class="inline">
                 <?php echo csrf_field(); ?>
                 <button type="submit" class="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200">
@@ -80,16 +84,16 @@
             </div>
         </a>
 
-        <a href="<?php echo e(route('staff.items.index')); ?>" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden cursor-pointer hover:ring-teal-200 transition-all">
-            <div class="absolute top-0 left-0 w-1 h-full bg-teal-500 rounded-r-full"></div>
+        <a href="<?php echo e(route('staff.items.index', ['status' => 'damaged'])); ?>" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden cursor-pointer hover:ring-orange-200 transition-all">
+            <div class="absolute top-0 left-0 w-1 h-full bg-orange-500 rounded-r-full"></div>
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Categories</p>
-                    <p class="text-3xl font-bold text-teal-600 font-poppins"><?php echo e($categoriesCount); ?></p>
+                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Damaged Units</p>
+                    <p class="text-3xl font-bold text-orange-600 font-poppins"><?php echo e($damagedCount); ?></p>
                 </div>
-                <div class="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                <div class="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                     </svg>
                 </div>
             </div>
@@ -155,6 +159,15 @@
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
 
+                    <!-- Laboratory Filter -->
+                    <select name="laboratory" onchange="this.form.submit()"
+                            class="px-4 py-2 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        <option value="">All Laboratories</option>
+                        <?php $__currentLoopData = $laboratories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $lab): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($lab); ?>" <?php echo e(request('laboratory') == $lab ? 'selected' : ''); ?>><?php echo e($lab); ?></option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </select>
+
                     <!-- Stock Filter -->
                     <select name="stock_filter" onchange="this.form.submit()"
                             class="px-4 py-2 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-green-500">
@@ -185,6 +198,7 @@
                     <tr>
                         <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
                         <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Laboratory</th>
                         <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
                         <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Added</th>
@@ -218,6 +232,25 @@
                                     <?php echo e($item->category); ?>
 
                                 </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <?php if($item->laboratory): ?>
+                                    <?php
+                                        $labColors = [
+                                            'Alfresco' => 'bg-emerald-100 text-emerald-800',
+                                            'Kitchen' => 'bg-amber-100 text-amber-800',
+                                            'Food Lab' => 'bg-purple-100 text-purple-800',
+                                            'Hotel' => 'bg-cyan-100 text-cyan-800',
+                                        ];
+                                        $labColor = $labColors[$item->laboratory] ?? 'bg-gray-100 text-gray-800';
+                                    ?>
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium <?php echo e($labColor); ?>">
+                                        <?php echo e($item->laboratory); ?>
+
+                                    </span>
+                                <?php else: ?>
+                                    <span class="text-xs text-gray-400">—</span>
+                                <?php endif; ?>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 <div class="flex items-center space-x-2">
@@ -274,6 +307,13 @@
                                     <?php elseif($item->available_stock <= ($item->low_stock_threshold ?? 5)): ?>
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-50 text-yellow-600">
                                             Low Stock
+                                        </span>
+                                    <?php endif; ?>
+                                    
+                                    <?php if($item->damaged_units_count > 0): ?>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-50 text-orange-700">
+                                            <?php echo e($item->damaged_units_count); ?> damaged unit<?php echo e($item->damaged_units_count > 1 ? 's' : ''); ?>
+
                                         </span>
                                     <?php endif; ?>
                                 </div>
@@ -530,10 +570,11 @@
                                               'bg-green-100 text-green-700': unit.status === 'available',
                                               'bg-amber-100 text-amber-700': unit.status === 'borrowed',
                                               'bg-blue-100 text-blue-700': unit.status === 'maintenance',
-                                              'bg-red-100 text-red-700': unit.status === 'lost',
+                                              'bg-red-100 text-red-700': unit.status === 'lost' || unit.status === 'damaged',
+                                              'bg-orange-100 text-orange-700': unit.status === 'needs_repair',
                                               'bg-gray-200 text-gray-600': unit.status === 'retired',
                                           }"
-                                          x-text="unit.status"></span>
+                                          x-text="unit.status === 'needs_repair' ? 'Needs Repair' : unit.status"></span>
                                     <span class="text-[10px] font-semibold capitalize"
                                           :class="{
                                               'text-green-600': unit.condition === 'good',

@@ -37,7 +37,8 @@
         </div>
         <div class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-green-500">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Total Spending (YTD)</p>
-            <p class="text-3xl font-bold text-green-600 mt-1 font-poppins">₱{{ number_format($totalSpending, 0) }}</p>
+            <p class="text-3xl font-bold text-green-600 mt-1 font-poppins">—</p>
+            <p class="text-xs text-gray-500 mt-1">Hidden by client request</p>
         </div>
     </div>
 
@@ -77,7 +78,7 @@
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl mb-2">
                 <div>
                     <p class="font-medium text-gray-900">{{ $request->item?->name ?? 'N/A' }}</p>
-                    <p class="text-xs text-gray-500">Qty: {{ $request->quantity }} · ₱{{ number_format($request->total_price, 2) }}</p>
+                    <p class="text-xs text-gray-500">Qty: {{ $request->quantity }}</p>
                 </div>
                 <div class="flex items-center space-x-2">
                     @if($request->auto_generated)

@@ -95,7 +95,7 @@ unset($__errorArgs, $__bag); ?>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label for="start_datetime" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Start Date & Time</label>
-                        <input type="datetime-local" name="start_datetime" id="start_datetime" x-model="startDatetime" value="<?php echo e(old('start_datetime')); ?>" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
+                        <input type="datetime-local" name="start_datetime" id="start_datetime" x-model="startDatetime" value="<?php echo e(old('start_datetime')); ?>" min="<?php echo e(now()->format('Y-m-d')); ?>" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
                         <?php $__errorArgs = ['start_datetime'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -107,7 +107,7 @@ unset($__errorArgs, $__bag); ?>
                     </div>
                     <div>
                         <label for="end_datetime" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">End Date & Time</label>
-                        <input type="datetime-local" name="end_datetime" id="end_datetime" x-model="endDatetime" value="<?php echo e(old('end_datetime')); ?>" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
+                        <input type="datetime-local" name="end_datetime" id="end_datetime" x-model="endDatetime" value="<?php echo e(old('end_datetime')); ?>" min="<?php echo e(now()->format('Y-m-d')); ?>" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
                         <?php $__errorArgs = ['end_datetime'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :

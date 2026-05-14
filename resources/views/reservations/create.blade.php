@@ -87,12 +87,12 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label for="start_datetime" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Start Date & Time</label>
-                        <input type="datetime-local" name="start_datetime" id="start_datetime" x-model="startDatetime" value="{{ old('start_datetime') }}" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
+                        <input type="datetime-local" name="start_datetime" id="start_datetime" x-model="startDatetime" value="{{ old('start_datetime') }}" min="{{ now()->format('Y-m-d') }}" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
                         @error('start_datetime') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
                         <label for="end_datetime" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">End Date & Time</label>
-                        <input type="datetime-local" name="end_datetime" id="end_datetime" x-model="endDatetime" value="{{ old('end_datetime') }}" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
+                        <input type="datetime-local" name="end_datetime" id="end_datetime" x-model="endDatetime" value="{{ old('end_datetime') }}" min="{{ now()->format('Y-m-d') }}" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
                         @error('end_datetime') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>

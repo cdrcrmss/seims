@@ -26,7 +26,7 @@
     </div>
 
     <!-- Summary Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 animate-fade-in-up stagger-1">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up stagger-1">
         <a href="<?php echo e(route('maintenance.index')); ?>" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-yellow-500 hover:ring-yellow-300 transition-all cursor-pointer block">
             <div class="flex items-center justify-between">
                 <div>
@@ -57,17 +57,6 @@
                 </div>
                 <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
                     <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                </div>
-            </div>
-        </a>
-        <a href="<?php echo e(route('maintenance.index')); ?>" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-green-500 hover:ring-green-300 transition-all cursor-pointer block">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Total Costs (YTD)</p>
-                    <p class="text-3xl font-bold text-green-600 mt-1 font-poppins">₱<?php echo e(number_format($maintenanceCosts, 0)); ?></p>
-                </div>
-                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
             </div>
         </a>
@@ -150,9 +139,7 @@
                     <p class="font-medium text-gray-900"><?php echo e($record->item?->name ?? 'Unknown'); ?></p>
                     <p class="text-xs text-gray-500"><?php echo e($record->completed_date ? $record->completed_date->format('M d, Y') : 'N/A'); ?> · <?php echo e(ucfirst($record->maintenance_type)); ?></p>
                 </div>
-                <?php if($record->cost): ?>
-                <span class="text-sm font-semibold text-gray-700">₱<?php echo e(number_format($record->cost, 0)); ?></span>
-                <?php endif; ?>
+                <span class="text-xs font-semibold px-2.5 py-1 bg-green-100 text-green-700 rounded-lg">Completed</span>
             </div>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
             <p class="text-gray-400 text-sm text-center py-4">No recently completed maintenance</p>

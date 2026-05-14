@@ -25,7 +25,7 @@
                 <select name="item_id" id="item_id" x-model="selectedItem" @change="updateItemInfo()" class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
                     <option value="">Select item...</option>
                     @foreach($items as $item)
-                        <option value="{{ $item->id }}" data-stock="{{ $item->available_stock }}" data-total="{{ $item->total_stock }}" data-price="{{ $item->unit_price ?? 0 }}">
+                        <option value="{{ $item->id }}" data-stock="{{ $item->available_stock }}" data-total="{{ $item->total_stock }}">
                             {{ $item->name }} (Stock: {{ $item->available_stock }}/{{ $item->total_stock }})
                         </option>
                     @endforeach
@@ -55,24 +55,11 @@
                 @error('supplier_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 
-            <!-- Quantity & Price -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label for="quantity" class="block text-sm font-semibold text-gray-700 mb-2">Quantity</label>
-                    <input type="number" name="quantity" id="quantity" x-model="quantity" min="1" value="{{ old('quantity', 10) }}" class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
-                    @error('quantity') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label for="unit_price" class="block text-sm font-semibold text-gray-700 mb-2">Unit Price (₱)</label>
-                    <input type="number" name="unit_price" id="unit_price" x-model="unitPrice" step="0.01" min="0" value="{{ old('unit_price', 0) }}" class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
-                    @error('unit_price') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-            </div>
-
-            <!-- Total Price Preview -->
-            <div class="bg-green-50 rounded-xl p-4 flex items-center justify-between">
-                <span class="text-sm font-semibold text-green-700">Estimated Total:</span>
-                <span class="text-lg font-bold text-green-700" x-text="'₱' + (quantity * unitPrice).toFixed(2)"></span>
+            <!-- Quantity -->
+            <div>
+                <label for="quantity" class="block text-sm font-semibold text-gray-700 mb-2">Quantity</label>
+                <input type="number" name="quantity" id="quantity" x-model="quantity" min="1" value="{{ old('quantity', 10) }}" class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
+                @error('quantity') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 
             <!-- Urgency -->
@@ -117,7 +104,6 @@ function procurementForm() {
     return {
         selectedItem: '{{ old("item_id", "") }}',
         quantity: {{ old('quantity', 10) }},
-        unitPrice: {{ old('unit_price', 0) }},
         itemInfo: '',
         
         updateItemInfo() {
@@ -125,9 +111,6 @@ function procurementForm() {
             const option = select.options[select.selectedIndex];
             if (option && option.value) {
                 this.itemInfo = option.dataset.stock + ' / ' + option.dataset.total;
-                if (parseFloat(option.dataset.price) > 0) {
-                    this.unitPrice = parseFloat(option.dataset.price);
-                }
             } else {
                 this.itemInfo = '';
             }

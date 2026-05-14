@@ -19,13 +19,13 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up stagger-1">
         <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-6 border-l-4 border-green-500">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Total Spending</p>
-            <p class="text-3xl font-bold text-gray-900 mt-1 font-poppins">₱{{ number_format($totalSpending, 2) }}</p>
-            <p class="text-xs text-gray-500 mt-1">All-time procurement</p>
+            <p class="text-3xl font-bold text-gray-900 mt-1 font-poppins">—</p>
+            <p class="text-xs text-gray-500 mt-1">Hidden by client request</p>
         </div>
         <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-6 border-l-4 border-orange-500">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Pending Value</p>
-            <p class="text-3xl font-bold text-orange-600 mt-1 font-poppins">₱{{ number_format($pendingValue, 2) }}</p>
-            <p class="text-xs text-gray-500 mt-1">Awaiting approval or delivery</p>
+            <p class="text-3xl font-bold text-orange-600 mt-1 font-poppins">—</p>
+            <p class="text-xs text-gray-500 mt-1">Hidden by client request</p>
         </div>
         <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-6 border-l-4 border-blue-500">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Items Analyzed</p>

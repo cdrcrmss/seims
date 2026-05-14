@@ -173,17 +173,8 @@ class AnalyticsController extends Controller
             ];
         }
 
-        $totalSpending = ProcurementRequest::where('status', 'received')
-            ->whereYear('received_at', now()->year)
-            ->sum('total_price');
-
-        $pendingValue = ProcurementRequest::whereIn('status', ['pending', 'approved', 'ordered'])
-            ->sum('total_price');
-
         return view('analytics.procurement', compact(
-            'procurementAnalytics',
-            'totalSpending',
-            'pendingValue'
+            'procurementAnalytics'
         ));
     }
 
@@ -322,7 +313,6 @@ class AnalyticsController extends Controller
             if (isset($data['inventory_summary'])) {
                 $rows[] = ['Total Items', $data['inventory_summary']['total_items']];
                 $rows[] = ['Low Stock Items', $data['inventory_summary']['low_stock_items']];
-                $rows[] = ['Total Inventory Value', $data['inventory_summary']['total_value']];
             }
             if (isset($data['borrowing_summary'])) {
                 $rows[] = ['Total Borrowings', $data['borrowing_summary']['total_borrowings']];
@@ -333,7 +323,6 @@ class AnalyticsController extends Controller
                 $rows[] = ['Total Maintenance Records', $data['maintenance_summary']['total_maintenance']];
                 $rows[] = ['Upcoming Maintenance', $data['maintenance_summary']['upcoming']];
                 $rows[] = ['Overdue Maintenance', $data['maintenance_summary']['overdue']];
-                $rows[] = ['Maintenance Costs (Year)', $data['maintenance_summary']['total_costs']];
             }
         } elseif ($type === 'maintenance') {
             $rows[] = ['Metric', 'Value'];
@@ -341,7 +330,7 @@ class AnalyticsController extends Controller
             $rows[] = ['Upcoming', $data['upcoming'] ?? 0];
             $rows[] = ['Overdue', $data['overdue'] ?? 0];
             $rows[] = ['Completed This Year', $data['completed_this_year'] ?? 0];
-            $rows[] = ['Total Costs This Year', $data['total_costs_this_year'] ?? 0];
+            // Total costs removed from export by client request
             if (isset($data['critical_items'])) {
                 $rows[] = [];
                 $rows[] = ['Critical Items', 'Wear Level', 'Category'];
@@ -353,7 +342,7 @@ class AnalyticsController extends Controller
             $rows[] = ['Metric', 'Value'];
             $rows[] = ['Total Requests', $data['total_requests'] ?? 0];
             $rows[] = ['Pending', $data['pending'] ?? 0];
-            $rows[] = ['Total Spending (Year)', $data['total_spending_this_year'] ?? 0];
+            // Total spending removed from export by client request
             $rows[] = ['Auto-Generated Count', $data['auto_generated_count'] ?? 0];
             if (isset($data['low_stock_items'])) {
                 $rows[] = [];
@@ -381,10 +370,9 @@ class AnalyticsController extends Controller
         return [
             'generated_at' => now()->toIso8601String(),
             'dashboard' => $this->analyticsService->getDashboardAnalytics(),
-            'inventory_summary' => [
+                'inventory_summary' => [
                 'total_items' => Item::count(),
                 'low_stock_items' => Item::lowStock()->count(),
-                'total_value' => Item::sum(DB::raw('total_stock * unit_price')),
             ],
             'borrowing_summary' => [
                 'total_borrowings' => Borrowing::count(),
@@ -393,13 +381,10 @@ class AnalyticsController extends Controller
                     ->where('expected_return_date', '<', now())
                     ->count(),
             ],
-            'maintenance_summary' => [
+                'maintenance_summary' => [
                 'total_maintenance' => MaintenanceRecord::count(),
                 'upcoming' => MaintenanceRecord::upcoming()->count(),
                 'overdue' => MaintenanceRecord::overdue()->count(),
-                'total_costs' => MaintenanceRecord::where('status', 'completed')
-                    ->whereYear('completed_date', now()->year)
-                    ->sum('cost'),
             ],
         ];
     }
@@ -454,8 +439,6 @@ class AnalyticsController extends Controller
             'overdue' => MaintenanceRecord::overdue()->count(),
             'completed_this_year' => MaintenanceRecord::where('status', 'completed')
                 ->whereYear('completed_date', now()->year)->count(),
-            'total_costs_this_year' => MaintenanceRecord::where('status', 'completed')
-                ->whereYear('completed_date', now()->year)->sum('cost'),
             'critical_items' => Item::where('wear_level', '>=', 70)
                 ->select('name', 'wear_level', 'category')->get()->toArray(),
         ];
@@ -468,8 +451,6 @@ class AnalyticsController extends Controller
             'type' => 'procurement',
             'total_requests' => ProcurementRequest::count(),
             'pending' => ProcurementRequest::pending()->count(),
-            'total_spending_this_year' => ProcurementRequest::where('status', 'received')
-                ->whereYear('received_at', now()->year)->sum('total_price'),
             'auto_generated_count' => ProcurementRequest::autoGenerated()->count(),
             'low_stock_items' => Item::lowStock()->select('name', 'available_stock', 'low_stock_threshold', 'category')->get()->toArray(),
         ];

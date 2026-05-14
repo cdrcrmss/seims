@@ -21,6 +21,12 @@
             </h2>
             
             <div id="qr-reader" class="rounded-xl overflow-hidden mb-4" style="min-height: 300px;"></div>
+            
+            <style>
+                #qr-reader video {
+                    transform: scaleX(-1); /* Mirror the camera */
+                }
+            </style>
 
             <div class="flex space-x-3">
                 <button @click="startScanner()" x-show="!cameraActive" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center space-x-2">
@@ -179,9 +185,27 @@
 
                     <!-- Staff/Admin Actions -->
                     @if(auth()->user()->role !== 'student')
-                    <div class="flex space-x-3 pt-2">
-                        <a :href="'/staff/items/' + scannedItem.id + '/edit'" class="flex-1 text-center bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl font-semibold transition-all duration-200">Edit Item</a>
-                        <a :href="'/qr/generate/' + scannedItem.id" class="flex-1 text-center bg-gray-900 hover:bg-gray-800 text-white px-4 py-2.5 rounded-xl font-semibold transition-all duration-200">View QR</a>
+                    <!-- Quick Actions -->
+                    <div class="pt-4 border-t border-gray-100">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3">Quick Actions</h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            <a :href="'/staff/items/' + scannedItem.id + '/edit'" class="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                Edit Item
+                            </a>
+                            <a :href="'/staff/borrow?item_id=' + scannedItem.id" x-show="scannedItem.available_stock > 0" class="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"></path></svg>
+                                Borrow
+                            </a>
+                            <a :href="'/maintenance/create?item_id=' + scannedItem.id" class="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 ring-1 ring-orange-300">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                Maintenance
+                            </a>
+                            <a :href="'/qr/generate/' + scannedItem.id" class="col-span-2 flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                                View QR Code
+                            </a>
+                        </div>
                     </div>
 
                     <!-- Pending Issuances -->
@@ -332,16 +356,35 @@ function qrScanner() {
 
         startScanner() {
             this.scanner = new Html5Qrcode("qr-reader");
-            this.scanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                (decodedText) => {
-                    this.handleScan(decodedText);
-                },
-                (errorMessage) => {}
-            ).then(() => {
-                this.cameraActive = true;
-            }).catch((err) => {
+            
+            // Get available cameras and select the back camera
+            Html5Qrcode.getCameras().then(cameras => {
+                if (cameras && cameras.length) {
+                    // Find the back camera (usually has 'environment' or 'back' in label/id)
+                    const backCamera = cameras.find(camera => 
+                        camera.label.toLowerCase().includes('back') || 
+                        camera.label.toLowerCase().includes('environment') ||
+                        camera.label.toLowerCase().includes('rear')
+                    ) || cameras[0];
+                    
+                    const config = backCamera.id 
+                        ? { deviceId: { exact: backCamera.id } }
+                        : { facingMode: "environment" };
+                    
+                    this.scanner.start(
+                        config,
+                        { fps: 10, qrbox: { width: 250, height: 250 } },
+                        (decodedText) => {
+                            this.handleScan(decodedText);
+                        },
+                        (errorMessage) => {}
+                    ).then(() => {
+                        this.cameraActive = true;
+                    }).catch((err) => {
+                        this.error = 'Camera access denied. Please allow camera permissions.';
+                    });
+                }
+            }).catch(err => {
                 this.error = 'Camera access denied. Please allow camera permissions.';
             });
         },

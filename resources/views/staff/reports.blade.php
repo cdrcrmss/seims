@@ -49,7 +49,7 @@
         <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Active Loans</p>
+                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Active Borrowings</p>
                     <p class="text-3xl font-bold text-green-600 font-poppins">{{ $activeBorrowings }}</p>
                     <p class="text-xs text-gray-500 mt-1">{{ $borrowingsToday }} today</p>
                 </div>

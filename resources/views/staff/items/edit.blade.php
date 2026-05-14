@@ -66,8 +66,8 @@
                         @enderror
                     </div>
 
-                    <!-- Category & Status Row -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Category, Laboratory & Status Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                         <!-- Category -->
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1.5">
@@ -84,6 +84,24 @@
                                 <option value="other" {{ old('category', $item->category) == 'other' ? 'selected' : '' }}>Other</option>
                             </select>
                             @error('category')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Laboratory -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                                Laboratory <span class="text-red-500">*</span>
+                            </label>
+                            <select name="laboratory" required
+                                    class="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-green-500/30 focus:border-green-500 transition-colors text-sm">
+                                <option value="">Select Laboratory</option>
+                                <option value="Alfresco" {{ old('laboratory', $item->laboratory) == 'Alfresco' ? 'selected' : '' }}>Alfresco</option>
+                                <option value="Kitchen" {{ old('laboratory', $item->laboratory) == 'Kitchen' ? 'selected' : '' }}>Kitchen</option>
+                                <option value="Food Lab" {{ old('laboratory', $item->laboratory) == 'Food Lab' ? 'selected' : '' }}>Food Lab</option>
+                                <option value="Hotel" {{ old('laboratory', $item->laboratory) == 'Hotel' ? 'selected' : '' }}>Hotel</option>
+                            </select>
+                            @error('laboratory')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>

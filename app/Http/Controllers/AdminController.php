@@ -233,10 +233,37 @@ class AdminController extends Controller
                            })
                            ->toArray();
 
+        // Borrowing trends for last 30 days
+        $borrowingTrends = collect(range(29, 0))->map(function($daysAgo) {
+            $date = now()->subDays($daysAgo)->toDateString();
+            return [
+                'date' => $date,
+                'label' => now()->subDays($daysAgo)->format('M d'),
+                'count' => Borrowing::whereDate('created_at', $date)->count(),
+            ];
+        })->values()->toArray();
+
+        // Most borrowed items (last 30 days)
+        $mostBorrowedItems = Borrowing::select('item_id', \DB::raw('COUNT(*) as borrow_count'))
+            ->where('created_at', '>=', now()->subDays(30))
+            ->groupBy('item_id')
+            ->orderByDesc('borrow_count')
+            ->limit(10)
+            ->with('item')
+            ->get()
+            ->filter(fn($b) => $b->item !== null)
+            ->map(fn($b) => [
+                'name' => $b->item->name,
+                'category' => $b->item->category,
+                'count' => $b->borrow_count,
+            ])
+            ->values()
+            ->toArray();
+
         return view('admin.reports', compact(
             'totalUsers', 'newUsersThisMonth', 'totalItems', 'availableItems',
             'activeBorrowings', 'pendingRequests', 'overdueItems',
-            'itemsByCategory', 'recentActivity', 'topBorrowers'
+            'itemsByCategory', 'recentActivity', 'topBorrowers', 'borrowingTrends', 'mostBorrowedItems'
         ));
     }
 

@@ -124,28 +124,6 @@
             </div>
         </div>
 
-        <!-- Monthly Maintenance Costs -->
-        <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-6 animate-fade-in-up stagger-4">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Monthly Maintenance Costs (<?php echo e(now()->year); ?>)</h2>
-            <div class="space-y-2">
-                <?php $__currentLoopData = $monthlyMaintenanceCosts; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $data): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <div class="flex items-center space-x-3">
-                    <span class="text-xs text-gray-500 w-8"><?php echo e($months[($data->month ?? 1) - 1] ?? 'N/A'); ?></span>
-                    <div class="flex-1 bg-gray-100 rounded-full h-4">
-                        <?php $maxCost = $monthlyMaintenanceCosts->max('total_cost') ?? 1; ?>
-                        <div class="h-4 bg-orange-500 rounded-full flex items-center justify-end pr-2" style="width: <?php echo e(min(($data->total_cost / max($maxCost, 1)) * 100, 100)); ?>%">
-                            <?php if($data->total_cost > 0): ?>
-                            <span class="text-[10px] text-white font-bold">₱<?php echo e(number_format($data->total_cost, 0)); ?></span>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                <?php if($monthlyMaintenanceCosts->isEmpty()): ?>
-                <p class="text-gray-400 text-sm text-center py-4">No maintenance cost data yet</p>
-                <?php endif; ?>
-            </div>
-        </div>
     </div>
 </div>
 <?php $__env->stopSection(); ?>

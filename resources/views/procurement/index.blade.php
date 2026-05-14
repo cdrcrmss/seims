@@ -58,7 +58,7 @@
                         <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Item</th>
                         <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Supplier</th>
                         <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Qty</th>
-                        <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Total</th>
+                        <!-- Total column removed by client request -->
                         <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Urgency</th>
                         <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Status</th>
                         <th class="text-left px-6 py-4 font-semibold text-gray-600 uppercase tracking-wide text-xs">Requester</th>
@@ -76,7 +76,6 @@
                         </td>
                         <td class="px-6 py-4 text-gray-700">{{ $request->supplier?->name ?? 'N/A' }}</td>
                         <td class="px-6 py-4 text-gray-900 font-semibold">{{ $request->quantity }}</td>
-                        <td class="px-6 py-4 text-gray-900 font-semibold">₱{{ number_format($request->total_price, 2) }}</td>
                         <td class="px-6 py-4">
                             @php
                                 $urgencyColors = [

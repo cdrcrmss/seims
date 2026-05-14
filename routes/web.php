@@ -69,11 +69,14 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::middleware(['staff_or_admin'])->prefix('staff')->name('staff.')->group(function () {
         // Item Management
         Route::get('/items', [StaffController::class, 'items'])->name('items.index');
+        Route::get('/items/trash', [StaffController::class, 'trashedItems'])->name('items.trash');
         Route::get('/items/create', [StaffController::class, 'createItem'])->name('items.create');
         Route::post('/items', [StaffController::class, 'storeItem'])->name('items.store');
         Route::get('/items/{item}/edit', [StaffController::class, 'editItem'])->name('items.edit');
         Route::put('/items/{item}', [StaffController::class, 'updateItem'])->name('items.update');
         Route::delete('/items/{item}', [StaffController::class, 'deleteItem'])->name('items.delete');
+        Route::post('/items/{item}/restore', [StaffController::class, 'restoreItem'])->name('items.restore');
+        Route::delete('/items/{item}/force-delete', [StaffController::class, 'forceDeleteItem'])->name('items.force-delete');
         Route::post('/items/bulk-import', [StaffController::class, 'bulkImportItems'])->name('items.bulk-import');
         Route::get('/items/{item}/units', [StaffController::class, 'getItemUnits'])->name('items.units');
 
@@ -81,6 +84,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::get('/borrow', [StaffController::class, 'borrowForm'])->name('borrow.form');
         Route::post('/borrow', [StaffController::class, 'borrowItem'])->name('borrow');
         Route::get('/api/search-items', [StaffController::class, 'searchItems'])->name('api.search-items');
+        Route::get('/api/trashed-items', [StaffController::class, 'searchTrashedItems'])->name('api.trashed-items');
 
         // Borrowing Management
         Route::get('/borrowings', [StaffController::class, 'borrowings'])->name('borrowings.index');

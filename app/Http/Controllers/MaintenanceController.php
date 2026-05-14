@@ -14,16 +14,26 @@ class MaintenanceController extends Controller
     /**
      * Display a listing of maintenance records
      */
-    public function index()
+    public function index(Request $request)
     {
-        $maintenanceRecords = MaintenanceRecord::with(['item', 'technician'])
-            ->orderBy('scheduled_date', 'desc')
-            ->paginate(15);
+        $status = $request->get('status');
+
+        $query = MaintenanceRecord::with(['item', 'technician']);
+
+        if ($status === 'upcoming') {
+            $query->upcoming();
+        } elseif ($status === 'overdue') {
+            $query->overdue();
+        }
+
+        $maintenanceRecords = $query->orderBy('scheduled_date', 'desc')
+            ->paginate(15)
+            ->appends($request->query());
 
         $upcomingMaintenance = MaintenanceRecord::upcoming()->count();
         $overdueMaintenance = MaintenanceRecord::overdue()->count();
 
-        return view('maintenance.index', compact('maintenanceRecords', 'upcomingMaintenance', 'overdueMaintenance'));
+        return view('maintenance.index', compact('maintenanceRecords', 'upcomingMaintenance', 'overdueMaintenance', 'status'));
     }
 
     /**

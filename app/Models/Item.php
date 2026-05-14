@@ -19,6 +19,7 @@ class Item extends Model
     protected $fillable = [
         'name',
         'category',
+        'laboratory',
         'asset_code',
         'qr_code',
         'asset_type',

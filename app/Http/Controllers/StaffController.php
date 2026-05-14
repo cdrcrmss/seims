@@ -31,6 +31,7 @@ class StaffController extends Controller
     {
         $search = $request->get('search');
         $category = $request->get('category');
+        $laboratory = $request->get('laboratory');
         $status = $request->get('status'); // Item status: available, in_use, maintenance, damaged, lost, retired
         $stockFilter = $request->get('stock_filter'); // Stock level: in_stock, low_stock, out_of_stock
         
@@ -39,8 +40,12 @@ class StaffController extends Controller
         $availableItemsCount = Item::where('available_stock', '>', 0)->count();
         $outOfStockCount = Item::where('available_stock', 0)->count();
         $categoriesCount = Item::distinct('category')->count('category');
+        $damagedCount = \App\Models\ItemUnit::where('status', 'damaged')->count();
 
         $items = Item::query()
+            ->withCount(['units as damaged_units_count' => function($query) {
+                $query->where('status', 'damaged');
+            }])
             ->when($search, function($query, $search) {
                 return $query->where(function($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
@@ -50,8 +55,16 @@ class StaffController extends Controller
             ->when($category, function($query, $category) {
                 return $query->where('category', $category);
             })
+            ->when($laboratory, function($query, $laboratory) {
+                return $query->where('laboratory', $laboratory);
+            })
             ->when($status, function($query, $status) {
-                // Filter by item status field
+                if ($status === 'damaged') {
+                    // Show items that have at least one damaged unit
+                    return $query->whereHas('units', function($q) {
+                        $q->where('status', 'damaged');
+                    });
+                }
                 return $query->where('status', $status);
             })
             ->when($stockFilter, function($query, $stockFilter) {
@@ -69,10 +82,11 @@ class StaffController extends Controller
             ->withQueryString();
 
         $categories = Item::distinct()->pluck('category')->filter();
+        $laboratories = ['Alfresco', 'Kitchen', 'Food Lab', 'Hotel'];
 
         return view('staff.items.index', compact(
-            'items', 'categories', 'search', 'category', 'status', 'stockFilter',
-            'totalItemsCount', 'availableItemsCount', 'outOfStockCount', 'categoriesCount'
+            'items', 'categories', 'laboratories', 'search', 'category', 'laboratory', 'status', 'stockFilter',
+            'totalItemsCount', 'availableItemsCount', 'outOfStockCount', 'categoriesCount', 'damagedCount'
         ));
     }
 
@@ -87,6 +101,7 @@ class StaffController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category' => 'required|string|max:100',
+            'laboratory' => 'required|string|in:Alfresco,Kitchen,Food Lab,Hotel',
             'total_stock' => 'required|integer|min:1',
             'available_stock' => 'nullable|integer|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -111,6 +126,7 @@ class StaffController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'category' => $request->category,
+            'laboratory' => $request->laboratory,
             'total_stock' => $request->total_stock,
             'available_stock' => $availableStock,
             'image_path' => $imagePath,
@@ -152,6 +168,7 @@ class StaffController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category' => 'required|string|max:100',
+            'laboratory' => 'required|string|in:Alfresco,Kitchen,Food Lab,Hotel',
             'total_stock' => 'required|integer|min:1',
             'available_stock' => 'required|integer|min:0',
             'status' => 'nullable|string|in:available,in_use,maintenance,retired,damaged,lost',
@@ -178,6 +195,7 @@ class StaffController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'category' => $request->category,
+            'laboratory' => $request->laboratory,
             'total_stock' => $request->total_stock,
             'available_stock' => $request->available_stock,
             'status' => $request->status ?? $item->status,
@@ -195,15 +213,105 @@ class StaffController extends Controller
             return back()->withErrors(['error' => 'Cannot delete item with active borrowings.']);
         }
 
-        // Delete image
+        // Soft delete the item (keeps it in database)
+        $item->delete();
+        
+        return redirect()->route('staff.items.index')
+                        ->with('success', 'Item moved to trash successfully!');
+    }
+
+    /**
+     * View trashed (soft deleted) items
+     */
+    public function trashedItems(Request $request)
+    {
+        $search = $request->query('search');
+        $category = $request->query('category');
+        
+        $trashedItems = Item::onlyTrashed()
+            ->when($search, function($query, $search) {
+                return $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('asset_code', 'like', "%{$search}%")
+                      ->orWhere('qr_code', 'like', "%{$search}%");
+                });
+            })
+            ->when($category, function($query, $category) {
+                return $query->where('category', $category);
+            })
+            ->orderBy('deleted_at', 'desc')
+            ->paginate(15);
+
+        $categories = Item::onlyTrashed()->distinct('category')->pluck('category');
+
+        return view('staff.items.trash', compact('trashedItems', 'search', 'category', 'categories'));
+    }
+
+    /**
+     * Restore a soft deleted item
+     */
+    public function restoreItem($id)
+    {
+        $item = Item::withTrashed()->find($id);
+        
+        if (!$item) {
+            return back()->withErrors(['error' => 'Item not found.']);
+        }
+
+        $item->restore();
+        
+        return redirect()->route('staff.items.trash')
+                        ->with('success', 'Item restored successfully!');
+    }
+
+    /**
+     * Permanently delete an item
+     */
+    public function forceDeleteItem($id)
+    {
+        $item = Item::withTrashed()->find($id);
+        
+        if (!$item) {
+            return back()->withErrors(['error' => 'Item not found.']);
+        }
+
+        // Check if item has any borrowings (even deleted ones)
+        if ($item->borrowings()->exists()) {
+            return back()->withErrors(['error' => 'Cannot permanently delete item with borrowing records.']);
+        }
+
+        // Delete image permanently
         if ($item->image_path) {
             Storage::disk('public')->delete($item->image_path);
         }
 
-        $item->delete();
+        $item->forceDelete();
         
-        return redirect()->route('staff.items.index')
-                        ->with('success', 'Item deleted successfully!');
+        return redirect()->route('staff.items.trash')
+                        ->with('success', 'Item permanently deleted!');
+    }
+
+    /**
+     * Search trashed items for live search dropdown
+     */
+    public function searchTrashedItems(Request $request)
+    {
+        $search = $request->query('search');
+        
+        if (!$search || strlen($search) < 1) {
+            return response()->json(['items' => []]);
+        }
+
+        $items = Item::onlyTrashed()
+            ->where(function($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                      ->orWhere('asset_code', 'like', "%{$search}%")
+                      ->orWhere('qr_code', 'like', "%{$search}%");
+            })
+            ->limit(10)
+            ->get(['id', 'name', 'asset_code', 'qr_code']);
+
+        return response()->json(['items' => $items]);
     }
 
     /**
@@ -609,10 +717,8 @@ class StaffController extends Controller
                     $wearIncrease = $request->return_condition === 'damaged' ? 30 : 15;
                     $item->wear_level = min(100, $item->wear_level + $wearIncrease);
                     
-                    // If damaged, update item status
-                    if ($request->return_condition === 'damaged') {
-                        $item->status = 'damaged';
-                    }
+                    // Damaged/needs_repair units are not available, so decrement available stock
+                    $item->decrement('available_stock', $borrowing->quantity);
                     $item->save();
                 } elseif ($request->return_condition === 'fair') {
                     $item->wear_level = min(100, $item->wear_level + 5);
@@ -627,11 +733,17 @@ class StaffController extends Controller
                     'return_notes' => $request->return_notes,
                 ]);
 
-                // Release the assigned unit
+                // Release or mark the assigned unit based on condition
                 if ($borrowing->item_unit_id) {
                     $unit = ItemUnit::find($borrowing->item_unit_id);
                     if ($unit) {
-                        $unit->markReturned();
+                        if ($request->return_condition === 'damaged') {
+                            $unit->markDamaged();
+                        } elseif ($request->return_condition === 'needs_repair') {
+                            $unit->markNeedsRepair();
+                        } else {
+                            $unit->markReturned();
+                        }
                     }
                 }
 
