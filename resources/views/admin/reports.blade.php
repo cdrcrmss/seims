@@ -136,19 +136,6 @@
                 <h3 class="text-xl font-bold text-gray-900">Item Categories</h3>
                 <span class="text-sm text-gray-500">Distribution</span>
             </div>
-            <div class="space-y-4">
-                @foreach($itemsByCategory as $category => $count)
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm font-medium text-gray-900">{{ $category }}</span>
-                        <div class="flex items-center space-x-3">
-                            <div class="w-24 bg-gray-200 rounded-full h-2">
-                                <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full" style="width: {{ ($count / $totalItems) * 100 }}%"></div>
-                            </div>
-                            <span class="text-sm text-gray-500 w-12 text-right">{{ $count }}</span>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
         </div>
     </div>
 

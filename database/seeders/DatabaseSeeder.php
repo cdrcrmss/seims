@@ -277,65 +277,22 @@ class DatabaseSeeder extends Seeder
         $this->command->info('✓ Items seeded (10 items with extended fields)');
 
         // ─── Rooms ─────────────────────────────────────────
-        $rooms = [
-            Room::create([
-                'name' => 'Biology Laboratory',
-                'code' => 'RM-201',
-                'type' => 'laboratory',
-                'capacity' => 30,
-                'floor' => '2nd Floor',
-                'building' => 'Science Building',
-                'description' => 'Fully-equipped biology lab with microscopy stations.',
-                'facilities' => ['microscopes', 'sinks', 'fume_hoods', 'projector'],
+        $rooms = [];
+        for ($i = 401; $i <= 418; $i++) {
+            $rooms[] = Room::create([
+                'name' => 'Room ' . $i,
+                'code' => 'RM-' . $i,
+                'type' => 'classroom',
+                'capacity' => 40,
+                'floor' => '4th Floor',
+                'building' => 'Main Building',
+                'description' => '',
+                'facilities' => [],
                 'status' => 'available',
-            ]),
-            Room::create([
-                'name' => 'Chemistry Laboratory',
-                'code' => 'RM-105',
-                'type' => 'laboratory',
-                'capacity' => 25,
-                'floor' => '1st Floor',
-                'building' => 'Science Building',
-                'description' => 'Chemistry lab with fume hoods and chemical storage.',
-                'facilities' => ['fume_hoods', 'gas_lines', 'sinks', 'chemical_storage'],
-                'status' => 'available',
-            ]),
-            Room::create([
-                'name' => 'Physics Laboratory',
-                'code' => 'RM-302',
-                'type' => 'laboratory',
-                'capacity' => 28,
-                'floor' => '3rd Floor',
-                'building' => 'Science Building',
-                'description' => 'Physics lab with optics and electronics equipment.',
-                'facilities' => ['oscilloscopes', 'power_supplies', 'optics_bench'],
-                'status' => 'available',
-            ]),
-            Room::create([
-                'name' => 'Conference Room A',
-                'code' => 'RM-110',
-                'type' => 'conference',
-                'capacity' => 15,
-                'floor' => '1st Floor',
-                'building' => 'Admin Building',
-                'description' => 'Meeting room with projector and whiteboard.',
-                'facilities' => ['projector', 'whiteboard', 'video_conferencing'],
-                'status' => 'available',
-            ]),
-            Room::create([
-                'name' => 'Equipment Storage',
-                'code' => 'RM-101',
-                'type' => 'storage',
-                'capacity' => null,
-                'floor' => '1st Floor',
-                'building' => 'Science Building',
-                'description' => 'Secure storage for laboratory equipment and supplies.',
-                'facilities' => ['shelving', 'climate_control', 'security_lock'],
-                'status' => 'available',
-            ]),
-        ];
+            ]);
+        }
 
-        $this->command->info('✓ Rooms seeded (5 rooms)');
+        $this->command->info('✓ Rooms seeded (18 rooms)');
 
         // ─── Suppliers ─────────────────────────────────────
         $suppliers = [

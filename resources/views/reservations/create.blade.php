@@ -17,27 +17,27 @@
 
     <!-- Errors -->
     @if($errors->has('rate_limit'))
-        <div class="max-w-4xl bg-red-50 ring-1 ring-red-200 text-red-700 rounded-xl p-4 text-sm flex items-center gap-3 animate-fade-in-up">
+        <div class="max-w-6xl bg-red-50 ring-1 ring-red-200 text-red-700 rounded-xl p-4 text-sm flex items-center gap-3 animate-fade-in-up">
             <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             {{ $errors->first('rate_limit') }}
         </div>
     @endif
 
     @if($errors->has('conflict'))
-        <div class="max-w-4xl bg-orange-50 ring-1 ring-orange-200 text-orange-700 rounded-xl p-4 text-sm flex items-center gap-3 animate-fade-in-up">
+        <div class="max-w-6xl bg-orange-50 ring-1 ring-orange-200 text-orange-700 rounded-xl p-4 text-sm flex items-center gap-3 animate-fade-in-up">
             <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             {{ $errors->first('conflict') }}
         </div>
     @endif
 
     @if($errors->has('limit'))
-        <div class="max-w-4xl bg-yellow-50 ring-1 ring-yellow-200 text-yellow-700 rounded-xl p-4 text-sm flex items-center gap-3 animate-fade-in-up">
+        <div class="max-w-6xl bg-yellow-50 ring-1 ring-yellow-200 text-yellow-700 rounded-xl p-4 text-sm flex items-center gap-3 animate-fade-in-up">
             <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             {{ $errors->first('limit') }}
         </div>
     @endif
 
-    <div class="max-w-4xl grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Main Form -->
         <div class="lg:col-span-2">
             <form method="POST" action="{{ route('reservations.store') }}" @submit="handleSubmit($event)" class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-8 space-y-6 animate-fade-in-up stagger-1">
@@ -52,29 +52,15 @@
                             No rooms are currently available. Please contact the lab staff.
                         </div>
                     @else
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         @foreach($rooms as $room)
                         <label class="cursor-pointer">
                             <input type="radio" name="room_id" value="{{ $room->id }}" x-model="selectedRoomId" class="peer hidden" required {{ old('room_id') == $room->id ? 'checked' : '' }}>
-                            <div class="peer-checked:ring-2 peer-checked:ring-green-500 peer-checked:bg-green-50 bg-gray-50 rounded-xl p-4 transition-all hover:bg-gray-100">
-                                <div class="flex items-start gap-3">
-                                    <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
-                                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <p class="text-sm font-bold text-gray-900">{{ $room->name }}</p>
-                                        <p class="text-xs text-gray-500">{{ $room->building }}@if($room->floor), {{ $room->floor }}@endif</p>
-                                        <div class="flex items-center gap-2 mt-1.5">
-                                            <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                                {{ $room->capacity }} seats
-                                            </span>
-                                            @if($room->type)
-                                            <span class="text-[10px] font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">{{ ucfirst($room->type) }}</span>
-                                            @endif
-                                        </div>
-                                    </div>
+                            <div class="peer-checked:ring-2 peer-checked:ring-green-500 peer-checked:bg-green-50 bg-gray-50 rounded-xl p-5 transition-all hover:bg-gray-100 h-full flex flex-col items-center justify-center text-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                                 </div>
+                                <p class="text-sm font-bold text-gray-900 leading-tight">{{ $room->name }}</p>
                             </div>
                         </label>
                         @endforeach
@@ -87,12 +73,12 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label for="start_datetime" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Start Date & Time</label>
-                        <input type="datetime-local" name="start_datetime" id="start_datetime" x-model="startDatetime" value="{{ old('start_datetime') }}" min="{{ now()->format('Y-m-d') }}" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
+                        <input type="datetime-local" name="start_datetime" id="start_datetime" x-model="startDatetime" value="{{ old('start_datetime') }}" min="{{ now()->format('Y-m-d\TH:i') }}" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
                         @error('start_datetime') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
                         <label for="end_datetime" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">End Date & Time</label>
-                        <input type="datetime-local" name="end_datetime" id="end_datetime" x-model="endDatetime" value="{{ old('end_datetime') }}" min="{{ now()->format('Y-m-d') }}" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
+                        <input type="datetime-local" name="end_datetime" id="end_datetime" x-model="endDatetime" value="{{ old('end_datetime') }}" :min="startDatetime || '{{ now()->format('Y-m-d\TH:i') }}'" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
                         @error('end_datetime') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
@@ -100,7 +86,6 @@
                 <!-- Duration indicator -->
                 <div x-show="startDatetime && endDatetime" x-transition class="text-xs text-gray-500 -mt-2">
                     Duration: <span x-text="computeDuration()" class="font-medium text-gray-700"></span>
-                    <span x-show="durationHours > 8" class="text-red-500 font-medium ml-1">(max 8 hours per session)</span>
                 </div>
 
                 <!-- Availability Check Result -->
@@ -130,7 +115,7 @@
                         Purpose <span class="font-normal normal-case text-gray-400">(min 10 characters)</span>
                     </label>
                     <textarea name="purpose" id="purpose" rows="3" x-model="purpose"
-                              placeholder="e.g. Physics Lab experiment for BSIT 2A, Chemistry practical session..."
+                              placeholder="Briefly describe the purpose of your reservation..."
                               class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all resize-none" required>{{ old('purpose') }}</textarea>
                     <div class="flex justify-between mt-1">
                         @error('purpose') <p class="text-red-500 text-xs">{{ $message }}</p> @enderror
@@ -144,7 +129,7 @@
                         Additional Notes <span class="font-normal normal-case text-gray-400">(optional)</span>
                     </label>
                     <textarea name="notes" id="notes" rows="2"
-                              placeholder="e.g. Need projector setup, expecting 20 students, special equipment required..."
+                              placeholder="Any additional notes or special requests..."
                               class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all resize-none">{{ old('notes') }}</textarea>
                     @error('notes') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
@@ -233,7 +218,6 @@
                     </div>
                     <div class="pt-3 border-t border-gray-100 space-y-2">
                         <p class="text-xs font-semibold text-gray-500 uppercase">Rules</p>
-                        <p class="text-xs text-gray-500">- Max 8 hours per session</p>
                         <p class="text-xs text-gray-500">- Book up to 30 days in advance</p>
                         <p class="text-xs text-gray-500">- Up to 5 active reservations</p>
                     </div>

@@ -25,7 +25,7 @@ class StoreReservationRequest extends FormRequest
     {
         return [
             'reservation_type' => 'required|in:room',
-            'start_datetime'   => 'required|date|after_or_equal:today',
+            'start_datetime'   => 'required|date|after_or_equal:now',
             'end_datetime'     => 'required|date|after:start_datetime',
             'purpose'          => 'required|string|min:10|max:500',
             'room_id'          => 'required|exists:rooms,id',
@@ -59,21 +59,15 @@ class StoreReservationRequest extends FormRequest
 
             $user = Auth::user();
 
-            // 1. Maximum duration check — reservations cannot exceed 8 hours
+            // 1. No reservations more than 30 days in advance
             $start = \Carbon\Carbon::parse($this->start_datetime);
             $end   = \Carbon\Carbon::parse($this->end_datetime);
-            if ($end->diffInHours($start) > 8) {
-                $validator->errors()->add('end_datetime', 'A single reservation cannot exceed 8 hours.');
-                return;
-            }
-
-            // 2. No reservations more than 30 days in advance
             if ($start->diffInDays(now()) > 30) {
                 $validator->errors()->add('start_datetime', 'Reservations cannot be made more than 30 days in advance.');
                 return;
             }
 
-            // 3. Maximum active (pending/approved) reservations per user: 5
+            // 2. Maximum active (pending/approved) reservations per user: 5
             $activeCount = Reservation::where('user_id', $user->id)
                 ->whereIn('status', ['pending', 'approved'])
                 ->count();
@@ -86,7 +80,7 @@ class StoreReservationRequest extends FormRequest
                 return;
             }
 
-            // 4. Duplicate reservation check — same room in overlapping time for this user
+            // 3. Duplicate reservation check — same room in overlapping time for this user
             $duplicateExists = Reservation::where('user_id', $user->id)
                 ->whereIn('status', ['pending', 'approved'])
                 ->where('room_id', $this->room_id)
@@ -104,7 +98,7 @@ class StoreReservationRequest extends FormRequest
                 return;
             }
 
-            // 5. Conflict detection — anyone's active reservation for this room
+            // 4. Conflict detection — anyone's active reservation for this room
             $roomConflict = Reservation::whereIn('status', ['pending', 'approved'])
                 ->where('user_id', '!=', $user->id)
                 ->where('room_id', $this->room_id)

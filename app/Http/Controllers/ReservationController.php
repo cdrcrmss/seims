@@ -176,7 +176,7 @@ class ReservationController extends Controller
         $request->validate([
             'item_id' => 'nullable|exists:items,id',
             'room_id' => 'nullable|exists:rooms,id',
-            'start_datetime' => 'required|date',
+            'start_datetime' => 'required|date|after_or_equal:now',
             'end_datetime' => 'required|date|after:start_datetime',
         ]);
 
