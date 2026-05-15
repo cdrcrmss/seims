@@ -15,6 +15,92 @@
         </div>
     </div>
 
+    <!-- Maintenance Report Export -->
+    <div class="bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm overflow-hidden animate-fade-in-up stagger-1">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between cursor-pointer select-none"
+             onclick="this.nextElementSibling.classList.toggle('hidden')">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-amber-500/10 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-gray-900">Export Maintenance Report</h3>
+                    <p class="text-xs text-gray-500">Filter by date, status, and type — download as PDF or CSV</p>
+                </div>
+            </div>
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+        </div>
+        <div class="px-6 py-5 hidden">
+            <form method="POST" action="{{ route('admin.reports.maintenance-export') }}">
+                @csrf
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">Date From</label>
+                        <input type="date" name="date_from"
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-gray-50"
+                               value="{{ now()->startOfMonth()->format('Y-m-d') }}">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">Date To</label>
+                        <input type="date" name="date_to"
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-gray-50"
+                               value="{{ now()->format('Y-m-d') }}">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">Status</label>
+                        <select name="status"
+                                class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-gray-50">
+                            <option value="all">All Statuses</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                            <option value="overdue">Overdue</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">Maintenance Type</label>
+                        <select name="maintenance_type"
+                                class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-gray-50">
+                            <option value="all">All Types</option>
+                            <option value="preventive">Preventive</option>
+                            <option value="corrective">Corrective</option>
+                            <option value="predictive">Predictive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2 bg-gray-100 rounded-xl p-1">
+                        <label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer has-[:checked]:bg-white has-[:checked]:shadow-sm transition-all">
+                            <input type="radio" name="format" value="csv" class="sr-only" checked>
+                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <span class="text-xs font-semibold text-gray-700">CSV</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer has-[:checked]:bg-white has-[:checked]:shadow-sm transition-all">
+                            <input type="radio" name="format" value="pdf" class="sr-only">
+                            <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                            </svg>
+                            <span class="text-xs font-semibold text-gray-700">PDF</span>
+                        </label>
+                    </div>
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Export Maintenance Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Urgency Summary -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up stagger-1">
         @php
