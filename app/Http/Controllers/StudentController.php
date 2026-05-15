@@ -37,7 +37,7 @@ class StudentController extends Controller
         $user = Auth::user();
         
         // Get available items with pagination
-        $availableItems = Item::where('available_stock', '>', 0)
+        $availableItems = Item::where('available_stock', '>', 0)->whereNotIn('status', ['disposed', 'retired'])
             ->orderBy('name')
             ->paginate(20);
         
@@ -80,7 +80,7 @@ class StudentController extends Controller
         $category = $request->get('category');
 
         // Build query with optional search & category filters
-        $query = Item::where('available_stock', '>', 0);
+        $query = Item::where('available_stock', '>', 0)->whereNotIn('status', ['disposed', 'retired']);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -97,7 +97,7 @@ class StudentController extends Controller
         $availableItems = $query->orderBy('name')->paginate(12)->withQueryString();
 
         // Get all categories for filter
-        $categories = Item::where('available_stock', '>', 0)
+        $categories = Item::where('available_stock', '>', 0)->whereNotIn('status', ['disposed', 'retired'])
             ->select('category')
             ->distinct()
             ->orderBy('category')
@@ -223,7 +223,7 @@ class StudentController extends Controller
     {
         $search = $request->get('q', '');
 
-        $items = Item::where('available_stock', '>', 0)
+        $items = Item::where('available_stock', '>', 0)->whereNotIn('status', ['disposed', 'retired'])
             ->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%")

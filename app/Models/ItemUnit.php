@@ -51,6 +51,11 @@ class ItemUnit extends Model
         return $this->status === 'available';
     }
 
+    public function isDisposed(): bool
+    {
+        return $this->status === 'disposed';
+    }
+
     /**
      * Mark unit as borrowed
      */

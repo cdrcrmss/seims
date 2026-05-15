@@ -82,6 +82,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::delete('/items/{item}/force-delete', [StaffController::class, 'forceDeleteItem'])->name('items.force-delete');
         Route::post('/items/bulk-import', [StaffController::class, 'bulkImportItems'])->name('items.bulk-import');
         Route::get('/items/{item}/units', [StaffController::class, 'getItemUnits'])->name('items.units');
+        Route::patch('/items/{item}/units/{unit}', [StaffController::class, 'updateUnitStatus'])->name('items.units.update');
 
         // Direct Borrowing (Staff/Admin can borrow items directly)
         Route::get('/borrow', [StaffController::class, 'borrowForm'])->name('borrow.form');

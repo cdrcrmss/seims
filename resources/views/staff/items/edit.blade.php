@@ -77,7 +77,6 @@
                                 'categories' => $categories,
                                 'value' => old('category', $item->category),
                             ])
-                            <p class="text-xs text-gray-500 mt-1">Options update from items you add or import.</p>
                             @error('category')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
@@ -113,7 +112,7 @@
                                 <option value="maintenance" {{ old('status', $item->status) == 'maintenance' ? 'selected' : '' }}>Under Maintenance</option>
                                 <option value="damaged" {{ old('status', $item->status) == 'damaged' ? 'selected' : '' }}>Damaged</option>
                                 <option value="lost" {{ old('status', $item->status) == 'lost' ? 'selected' : '' }}>Lost</option>
-                                <option value="retired" {{ old('status', $item->status) == 'retired' ? 'selected' : '' }}>Retired</option>
+                                <option value="disposed" {{ in_array(old('status', $item->status), ['disposed', 'retired']) ? 'selected' : '' }}>Disposed</option>
                             </select>
                             @error('status')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -129,7 +128,7 @@
                                 <label class="block text-xs font-medium text-gray-600 mb-1.5">
                                     Total Stock <span class="text-red-500">*</span>
                                 </label>
-                                <input type="number" name="total_stock" value="{{ old('total_stock', $item->total_stock) }}" min="1" required
+                                <input type="number" name="total_stock" id="total_stock" value="{{ old('total_stock', $item->total_stock) }}" min="0" required
                                        class="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-green-500/30 focus:border-green-500 transition-colors text-sm">
                                 @error('total_stock')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -139,7 +138,7 @@
                                 <label class="block text-xs font-medium text-gray-600 mb-1.5">
                                     Available Stock <span class="text-red-500">*</span>
                                 </label>
-                                <input type="number" name="available_stock" value="{{ old('available_stock', $item->available_stock) }}" min="0" required
+                                <input type="number" name="available_stock" id="available_stock" value="{{ old('available_stock', $item->available_stock) }}" min="0" required
                                        class="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-green-500/30 focus:border-green-500 transition-colors text-sm">
                                 @error('available_stock')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -186,10 +185,32 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const totalStockInput = document.querySelector('input[name="total_stock"]');
-    const availableStockInput = document.querySelector('input[name="available_stock"]');
+    const statusSelect = document.querySelector('select[name="status"]');
+    const totalStockInput = document.getElementById('total_stock');
+    const availableStockInput = document.getElementById('available_stock');
+
+    function applyDisposedStockUi() {
+        const isDisposed = statusSelect.value === 'disposed';
+        if (isDisposed) {
+            totalStockInput.value = 0;
+            availableStockInput.value = 0;
+            totalStockInput.readOnly = true;
+            availableStockInput.readOnly = true;
+        } else {
+            totalStockInput.readOnly = false;
+            availableStockInput.readOnly = false;
+            if (parseInt(totalStockInput.min, 10) < 1) {
+                totalStockInput.min = 1;
+            }
+        }
+    }
 
     function validateStock() {
+        if (statusSelect.value === 'disposed') {
+            availableStockInput.setCustomValidity('');
+            return;
+        }
+
         const total = parseInt(totalStockInput.value) || 0;
         const available = parseInt(availableStockInput.value) || 0;
 
@@ -204,8 +225,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    statusSelect.addEventListener('change', applyDisposedStockUi);
     totalStockInput.addEventListener('input', validateStock);
     availableStockInput.addEventListener('input', validateStock);
+    applyDisposedStockUi();
+    validateStock();
 });
 </script>
 @endsection

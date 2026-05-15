@@ -3,7 +3,7 @@
 @section('title', 'Item Management')
 
 @section('content')
-<div class="space-y-8" x-data="{ showAddItemModal: false, showImportModal: false, showQrModal: false, qrItem: null, showUnitsModal: false, unitsData: { item_name: '', units: [], total: 0 }, unitsLoading: false, async loadUnits(itemId) { this.unitsLoading = true; this.showUnitsModal = true; try { const res = await fetch('/staff/items/' + itemId + '/units'); this.unitsData = await res.json(); } catch(e) { this.unitsData = { item_name: 'Error', units: [], total: 0 }; } this.unitsLoading = false; this.$nextTick(() => { setTimeout(() => { this.unitsData.units.forEach(unit => { generateUnitQr(unit.id, unit.qr_code); }); }, 150); }); } }">
+<div class="space-y-8" x-data="{ showAddItemModal: false, showImportModal: false, showQrModal: false, qrItem: null, showUnitsModal: false, unitsData: { item_id: null, item_name: '', units: [], total: 0 }, unitsLoading: false, async loadUnits(itemId) { this.unitsLoading = true; this.showUnitsModal = true; try { const res = await fetch('/staff/items/' + itemId + '/units'); this.unitsData = await res.json(); } catch(e) { this.unitsData = { item_id: itemId, item_name: 'Error', units: [], total: 0 }; } this.unitsLoading = false; this.$nextTick(() => { setTimeout(() => { this.unitsData.units.forEach(unit => { generateUnitQr(unit.id, unit.qr_code); }); }, 150); }); }, async disposeUnit(unit) { if (!confirm('Mark this unit as disposed? It cannot be borrowed.')) return; try { const res = await fetch('/staff/items/' + this.unitsData.item_id + '/units/' + unit.id, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }, body: JSON.stringify({ status: 'disposed' }) }); const data = await res.json(); if (!res.ok) { alert(data.message || 'Could not dispose unit.'); return; } const idx = this.unitsData.units.findIndex(u => u.id === unit.id); if (idx !== -1) { this.unitsData.units[idx] = data.unit; } } catch (e) { alert('Could not dispose unit.'); } } }">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -188,7 +188,7 @@
                         <option value="maintenance" {{ request('status') == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
                         <option value="damaged" {{ request('status') == 'damaged' ? 'selected' : '' }}>Damaged</option>
                         <option value="lost" {{ request('status') == 'lost' ? 'selected' : '' }}>Lost</option>
-                        <option value="retired" {{ request('status') == 'retired' ? 'selected' : '' }}>Retired</option>
+                        <option value="disposed" {{ in_array(request('status'), ['disposed', 'retired']) ? 'selected' : '' }}>Disposed</option>
                     </select>
                 </form>
             </div>
@@ -294,9 +294,10 @@
                                                 Lost
                                             </span>
                                             @break
+                                        @case('disposed')
                                         @case('retired')
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-300 text-gray-700">
-                                                Retired
+                                                Disposed
                                             </span>
                                             @break
                                         @default
@@ -578,9 +579,9 @@
                                               'bg-blue-100 text-blue-700': unit.status === 'maintenance',
                                               'bg-red-100 text-red-700': unit.status === 'lost' || unit.status === 'damaged',
                                               'bg-orange-100 text-orange-700': unit.status === 'needs_repair',
-                                              'bg-gray-200 text-gray-600': unit.status === 'retired',
+                                              'bg-gray-200 text-gray-600': unit.status === 'disposed' || unit.status === 'retired',
                                           }"
-                                          x-text="unit.status === 'needs_repair' ? 'Needs Repair' : unit.status"></span>
+                                          x-text="unit.status === 'needs_repair' ? 'Needs Repair' : (unit.status === 'retired' ? 'disposed' : unit.status)"></span>
                                     <span class="text-[10px] font-semibold capitalize"
                                           :class="{
                                               'text-green-600': unit.condition === 'good',
@@ -594,6 +595,12 @@
                                 <p x-show="unit.current_borrower" class="text-[10px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full mt-1">
                                     <span x-text="'Held by: ' + unit.current_borrower"></span>
                                 </p>
+                                <button type="button"
+                                        x-show="unit.status !== 'disposed' && unit.status !== 'retired' && unit.status !== 'borrowed'"
+                                        @click="disposeUnit(unit)"
+                                        class="mt-2 text-[10px] font-semibold text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-lg transition-colors">
+                                    Mark disposed
+                                </button>
                             </div>
                         </template>
                     </div>

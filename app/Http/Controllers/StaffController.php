@@ -32,7 +32,7 @@ class StaffController extends Controller
         $search = $request->get('search');
         $category = $request->get('category');
         $laboratory = $request->get('laboratory');
-        $status = $request->get('status'); // Item status: available, in_use, maintenance, damaged, lost, retired
+        $status = $request->get('status'); // Item status: available, in_use, maintenance, damaged, lost, disposed
         $stockFilter = $request->get('stock_filter'); // Stock level: in_stock, low_stock, out_of_stock
         
         // Stats counts (unfiltered)
@@ -60,10 +60,12 @@ class StaffController extends Controller
             })
             ->when($status, function($query, $status) {
                 if ($status === 'damaged') {
-                    // Show items that have at least one damaged unit
                     return $query->whereHas('units', function($q) {
                         $q->where('status', 'damaged');
                     });
+                }
+                if ($status === 'disposed') {
+                    return $query->whereIn('status', ['disposed', 'retired']);
                 }
                 return $query->where('status', $status);
             })
@@ -156,7 +158,12 @@ class StaffController extends Controller
             'notes' => $u->notes,
         ]);
 
-        return response()->json(['units' => $units, 'item_name' => $item->name, 'total' => $units->count()]);
+        return response()->json([
+            'item_id' => $item->id,
+            'units' => $units,
+            'item_name' => $item->name,
+            'total' => $units->count(),
+        ]);
     }
 
     public function editItem(Item $item)
@@ -178,27 +185,42 @@ class StaffController extends Controller
 
     public function updateItem(Request $request, Item $item)
     {
-        $request->validate([
+        $status = $request->status ?? $item->status;
+        if ($status === 'retired') {
+            $status = 'disposed';
+        }
+
+        $rules = [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category' => 'required|string|max:100',
             'laboratory' => 'required|string|in:Alfresco,Kitchen,Food Lab,Hotel',
-            'total_stock' => 'required|integer|min:1',
+            'total_stock' => 'required|integer|min:0',
             'available_stock' => 'required|integer|min:0',
-            'status' => 'nullable|string|in:available,in_use,maintenance,retired,damaged,lost',
+            'status' => 'nullable|string|in:available,in_use,maintenance,disposed,damaged,lost,retired',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+        ];
 
-        // Validate that available stock doesn't exceed total stock
-        if ($request->available_stock > $request->total_stock) {
+        if ($status !== 'disposed') {
+            $rules['total_stock'] = 'required|integer|min:1';
+        }
+
+        $request->validate($rules);
+
+        if ($status === 'disposed') {
+            if ($item->borrowings()->whereIn('status', ['pending', 'approved', 'issued'])->exists()) {
+                return back()->withErrors([
+                    'status' => 'Cannot dispose this item while units are still on active borrowings.',
+                ])->withInput();
+            }
+        } elseif ($request->available_stock > $request->total_stock) {
             return back()->withErrors([
-                'available_stock' => 'Available stock cannot exceed total stock.'
+                'available_stock' => 'Available stock cannot exceed total stock.',
             ])->withInput();
         }
 
         $imagePath = $item->image_path;
         if ($request->hasFile('image')) {
-            // Delete old image
             if ($imagePath) {
                 Storage::disk('public')->delete($imagePath);
             }
@@ -210,14 +232,70 @@ class StaffController extends Controller
             'description' => $request->description,
             'category' => $request->category,
             'laboratory' => $request->laboratory,
-            'total_stock' => $request->total_stock,
-            'available_stock' => $request->available_stock,
-            'status' => $request->status ?? $item->status,
             'image_path' => $imagePath,
         ]);
 
+        if ($status === 'disposed') {
+            $item->applyDisposedState();
+        } else {
+            $item->update([
+                'status' => $status,
+                'total_stock' => $request->total_stock,
+                'available_stock' => $request->available_stock,
+            ]);
+
+            if ($item->units()->exists()) {
+                $item->syncStockFromUnits();
+            }
+        }
+
         return redirect()->route('staff.items.index')
                         ->with('success', 'Item updated successfully!');
+    }
+
+    public function updateUnitStatus(Request $request, Item $item, \App\Models\ItemUnit $unit)
+    {
+        if ($unit->item_id !== $item->id) {
+            abort(404);
+        }
+
+        $request->validate([
+            'status' => 'required|string|in:available,borrowed,maintenance,damaged,needs_repair,lost,disposed',
+        ]);
+
+        if ($request->status === 'disposed' && $unit->status === 'borrowed') {
+            return response()->json([
+                'message' => 'Return this unit before marking it as disposed.',
+            ], 422);
+        }
+
+        $updates = ['status' => $request->status];
+        if ($request->status === 'disposed') {
+            $updates['current_borrower_id'] = null;
+            $updates['borrowing_id'] = null;
+        }
+
+        $unit->update($updates);
+
+        if ($item->units()->where('status', '!=', 'disposed')->count() === 0) {
+            $item->applyDisposedState();
+        } else {
+            if ($item->status === 'disposed') {
+                $item->update(['status' => 'available']);
+            }
+            $item->syncStockFromUnits();
+        }
+
+        $item->refresh();
+
+        return response()->json([
+            'unit' => $unit->fresh(),
+            'item' => [
+                'total_stock' => $item->total_stock,
+                'available_stock' => $item->available_stock,
+                'status' => $item->status,
+            ],
+        ]);
     }
 
     public function deleteItem(Item $item)
@@ -390,7 +468,7 @@ class StaffController extends Controller
         $maxDays = $settings['max_borrow_days'] ?? 7;
 
         // Build query with optional search & category filters
-        $query = Item::where('available_stock', '>', 0);
+        $query = Item::where('available_stock', '>', 0)->whereNotIn('status', ['disposed', 'retired']);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -408,6 +486,7 @@ class StaffController extends Controller
 
         // Get all categories for filter
         $categories = Item::where('available_stock', '>', 0)
+            ->whereNotIn('status', ['disposed', 'retired'])
             ->select('category')
             ->distinct()
             ->orderBy('category')
@@ -460,6 +539,7 @@ class StaffController extends Controller
         $search = $request->get('q', '');
 
         $items = Item::where('available_stock', '>', 0)
+            ->whereNotIn('status', ['disposed', 'retired'])
             ->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%")

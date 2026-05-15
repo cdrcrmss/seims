@@ -123,7 +123,55 @@ class Item extends Model
      */
     public function isAvailable(int $quantity = 1): bool
     {
-        return $this->available_stock >= $quantity && $this->status === 'available';
+        return $this->available_stock >= $quantity
+            && $this->status !== 'disposed';
+    }
+
+    /**
+     * Recalculate stock from unit rows (disposed units are excluded).
+     */
+    public function syncStockFromUnits(): void
+    {
+        if ($this->status === 'disposed') {
+            $this->update(['total_stock' => 0, 'available_stock' => 0]);
+
+            return;
+        }
+
+        if (!$this->units()->exists()) {
+            return;
+        }
+
+        $nonDisposed = $this->units()->where('status', '!=', 'disposed');
+        $total = (clone $nonDisposed)->count();
+        $available = (clone $nonDisposed)->where('status', 'available')->count();
+
+        $this->update([
+            'total_stock' => $total,
+            'available_stock' => $available,
+        ]);
+
+        if ($total === 0 && $this->units()->where('status', 'disposed')->exists()) {
+            $this->update(['status' => 'disposed']);
+        }
+    }
+
+    /**
+     * Mark entire item and all units as disposed (not borrowable).
+     */
+    public function applyDisposedState(): void
+    {
+        $this->units()->update([
+            'status' => 'disposed',
+            'current_borrower_id' => null,
+            'borrowing_id' => null,
+        ]);
+
+        $this->update([
+            'status' => 'disposed',
+            'total_stock' => 0,
+            'available_stock' => 0,
+        ]);
     }
 
     /**
