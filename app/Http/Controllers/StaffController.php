@@ -81,7 +81,7 @@ class StaffController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        $categories = Item::distinct()->pluck('category')->filter();
+        $categories = $this->getItemCategories();
         $laboratories = ['Alfresco', 'Kitchen', 'Food Lab', 'Hotel'];
 
         return view('staff.items.index', compact(
@@ -92,7 +92,9 @@ class StaffController extends Controller
 
     public function createItem()
     {
-        return view('staff.items.create');
+        $categories = $this->getItemCategories();
+
+        return view('staff.items.create', compact('categories'));
     }
 
     public function storeItem(Request $request)
@@ -159,7 +161,19 @@ class StaffController extends Controller
 
     public function editItem(Item $item)
     {
-        return view('staff.items.edit', compact('item'));
+        $categories = $this->getItemCategories();
+
+        return view('staff.items.edit', compact('item', 'categories'));
+    }
+
+    private function getItemCategories()
+    {
+        return Item::query()
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category');
     }
 
     public function updateItem(Request $request, Item $item)

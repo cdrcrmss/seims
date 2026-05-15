@@ -61,17 +61,11 @@
                             <label class="block text-sm font-semibold text-gray-700 mb-1.5">
                                 Category <span class="text-red-500">*</span>
                             </label>
-                            <select name="category" required
-                                    class="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-green-500/30 focus:border-green-500 transition-colors text-sm">
-                                <option value="">Select Category</option>
-                                <option value="electronics" {{ old('category') == 'electronics' ? 'selected' : '' }}>Electronics</option>
-                                <option value="mechanical" {{ old('category') == 'mechanical' ? 'selected' : '' }}>Mechanical</option>
-                                <option value="chemical" {{ old('category') == 'chemical' ? 'selected' : '' }}>Chemical</option>
-                                <option value="optical" {{ old('category') == 'optical' ? 'selected' : '' }}>Optical</option>
-                                <option value="measuring" {{ old('category') == 'measuring' ? 'selected' : '' }}>Measuring</option>
-                                <option value="computing" {{ old('category') == 'computing' ? 'selected' : '' }}>Computing</option>
-                                <option value="other" {{ old('category') == 'other' ? 'selected' : '' }}>Other</option>
-                            </select>
+                            @include('staff.items.partials.category-input', [
+                                'categories' => $categories,
+                                'value' => old('category'),
+                            ])
+                            <p class="text-xs text-gray-500 mt-1">Suggestions update from items you add or import.</p>
                             @error('category')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
