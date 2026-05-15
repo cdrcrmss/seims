@@ -259,6 +259,18 @@ class Item extends Model
     }
 
     /**
+     * Items students/staff can borrow (in stock, not disposed/retired).
+     */
+    public function scopeBorrowable($query)
+    {
+        return $query->where('available_stock', '>', 0)
+            ->where(function ($q) {
+                $q->whereNotIn('status', ['disposed', 'retired', 'maintenance', 'lost', 'damaged'])
+                    ->orWhereNull('status');
+            });
+    }
+
+    /**
      * Scope for maintenance due
      */
     public function scopeMaintenanceDue($query)

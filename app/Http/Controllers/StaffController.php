@@ -471,7 +471,7 @@ class StaffController extends Controller
         $maxDays = $settings['max_borrow_days'] ?? 7;
 
         // Build query with optional search & category filters
-        $query = Item::where('available_stock', '>', 0)->whereNotIn('status', ['disposed', 'retired']);
+        $query = Item::borrowable();
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -488,8 +488,7 @@ class StaffController extends Controller
         $availableItems = $query->orderBy('name')->paginate(12)->withQueryString();
 
         // Get all categories for filter
-        $categories = Item::where('available_stock', '>', 0)
-            ->whereNotIn('status', ['disposed', 'retired'])
+        $categories = Item::borrowable()
             ->select('category')
             ->distinct()
             ->orderBy('category')
@@ -542,8 +541,7 @@ class StaffController extends Controller
     {
         $search = $request->get('q', '');
 
-        $items = Item::where('available_stock', '>', 0)
-            ->whereNotIn('status', ['disposed', 'retired'])
+        $items = Item::borrowable()
             ->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%")

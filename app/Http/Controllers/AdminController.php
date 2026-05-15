@@ -339,7 +339,11 @@ class AdminController extends Controller
                 true
             );
             if (is_array($stored)) {
-                return array_merge($defaults, $stored);
+                $settings = array_merge($defaults, $stored);
+                $settings['max_borrow_days'] = max(1, (int) ($settings['max_borrow_days'] ?? 7));
+                $settings['max_items_per_user'] = max(1, (int) ($settings['max_items_per_user'] ?? 5));
+
+                return $settings;
             }
         }
 

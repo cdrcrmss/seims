@@ -304,7 +304,7 @@
                             <span class="text-xs text-gray-500">Active Requests</span>
                             <div class="flex items-center gap-2">
                                 <div class="w-16 bg-gray-200 rounded-full h-1.5">
-                                    <div class="h-1.5 rounded-full {{ $activeBorrowCount >= $maxItems ? 'bg-red-500' : 'bg-green-500' }}" style="width: {{ min(($activeBorrowCount / $maxItems) * 100, 100) }}%"></div>
+                                    <div class="h-1.5 rounded-full {{ $activeBorrowCount >= $maxItems ? 'bg-red-500' : 'bg-green-500' }}" style="width: {{ min(($activeBorrowCount / max(1, $maxItems)) * 100, 100) }}%"></div>
                                 </div>
                                 <span class="text-xs font-bold {{ $activeBorrowCount >= $maxItems ? 'text-red-600' : 'text-gray-900' }}">{{ $activeBorrowCount }}/{{ $maxItems }}</span>
                             </div>
@@ -363,6 +363,18 @@ function borrowForm() {
         searchQuery: '',
         searchResults: [],
         searchTimeout: null,
+        selectedCategory: {!! json_encode($category ?? '') !!},
+
+        filterByCategory() {
+            const params = new URLSearchParams(window.location.search);
+            if (this.selectedCategory) {
+                params.set('category', this.selectedCategory);
+            } else {
+                params.delete('category');
+            }
+            params.delete('page');
+            window.location.href = '{{ route('student.borrow.form') }}' + (params.toString() ? '?' + params.toString() : '');
+        },
 
         get canSubmit() {
             return this.selectedItemId &&

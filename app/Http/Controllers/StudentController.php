@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BorrowItemRequest;
 use App\Models\Item;
 use App\Models\Borrowing;
 use App\Http\Controllers\AdminController;
@@ -37,7 +38,7 @@ class StudentController extends Controller
         $user = Auth::user();
         
         // Get available items with pagination
-        $availableItems = Item::where('available_stock', '>', 0)->whereNotIn('status', ['disposed', 'retired'])
+        $availableItems = Item::borrowable()
             ->orderBy('name')
             ->paginate(20);
         
@@ -73,14 +74,13 @@ class StudentController extends Controller
 
         $user = Auth::user();
         $settings = AdminController::loadSettings();
-        $maxDays = $settings['max_borrow_days'] ?? 7;
-        $maxItems = $settings['max_items_per_user'] ?? 5;
+        $maxDays = max(1, (int) ($settings['max_borrow_days'] ?? 7));
+        $maxItems = max(1, (int) ($settings['max_items_per_user'] ?? 5));
 
         $search = $request->get('search');
         $category = $request->get('category');
 
-        // Build query with optional search & category filters
-        $query = Item::where('available_stock', '>', 0)->whereNotIn('status', ['disposed', 'retired']);
+        $query = Item::borrowable();
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -97,7 +97,7 @@ class StudentController extends Controller
         $availableItems = $query->orderBy('name')->paginate(12)->withQueryString();
 
         // Get all categories for filter
-        $categories = Item::where('available_stock', '>', 0)->whereNotIn('status', ['disposed', 'retired'])
+        $categories = Item::borrowable()
             ->select('category')
             ->distinct()
             ->orderBy('category')
@@ -223,7 +223,7 @@ class StudentController extends Controller
     {
         $search = $request->get('q', '');
 
-        $items = Item::where('available_stock', '>', 0)->whereNotIn('status', ['disposed', 'retired'])
+        $items = Item::borrowable()
             ->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%")
