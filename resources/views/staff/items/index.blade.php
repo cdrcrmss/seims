@@ -657,14 +657,12 @@
                                 <span class="font-mono bg-blue-100 px-2 py-1 rounded">name</span>
                                 <span class="font-mono bg-blue-100 px-2 py-1 rounded">category</span>
                                 <span class="font-mono bg-blue-100 px-2 py-1 rounded">total_stock</span>
-                                <span class="text-blue-500 italic px-2 py-1">(required)</span>
+                                <span class="font-mono bg-blue-100 px-2 py-1 rounded">location</span>
                             </div>
                             <p class="text-sm font-medium text-blue-800 mt-3 mb-2">Optional columns:</p>
                             <div class="grid grid-cols-2 gap-1 text-xs text-blue-700">
                                 <span class="font-mono bg-blue-100 px-2 py-1 rounded">description</span>
                                 <span class="font-mono bg-blue-100 px-2 py-1 rounded">available_stock</span>
-                                <span class="font-mono bg-blue-100 px-2 py-1 rounded">location</span>
-                                <span class="text-blue-500 italic px-2 py-1">e.g. Cabinet 3, Room 401</span>
                             </div>
                         </div>
                     </div>

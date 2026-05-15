@@ -59,6 +59,7 @@ class ItemsImport implements ToCollection, WithHeadingRow, WithValidation, Skips
             '*.name' => 'required|string|max:255',
             '*.category' => 'required|string|max:255',
             '*.total_stock' => 'required|integer|min:1',
+            '*.location' => 'required|string|max:255',
         ];
     }
 
@@ -69,6 +70,7 @@ class ItemsImport implements ToCollection, WithHeadingRow, WithValidation, Skips
             '*.category.required' => 'Category is required.',
             '*.total_stock.required' => 'Total stock is required.',
             '*.total_stock.min' => 'Total stock must be at least 1.',
+            '*.location.required' => 'Location is required.',
         ];
     }
 

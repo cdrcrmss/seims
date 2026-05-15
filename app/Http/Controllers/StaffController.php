@@ -371,7 +371,7 @@ class StaffController extends Controller
         }, $header);
 
         // Validate required columns
-        $required = ['name', 'category', 'total_stock'];
+        $required = ['name', 'category', 'total_stock', 'location'];
         foreach ($required as $col) {
             if (!in_array($col, $header)) {
                 fclose($handle);
@@ -392,8 +392,8 @@ class StaffController extends Controller
             $rowData = array_combine($header, $data);
 
             // Basic validation
-            if (empty($rowData['name']) || empty($rowData['category']) || empty($rowData['total_stock'])) {
-                $errors[] = "Row {$row}: Missing required fields (name, category, total_stock).";
+            if (empty($rowData['name']) || empty($rowData['category']) || empty($rowData['total_stock']) || empty($rowData['location'])) {
+                $errors[] = "Row {$row}: Missing required fields (name, category, total_stock, location).";
                 continue;
             }
 
