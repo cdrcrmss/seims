@@ -370,7 +370,7 @@ class StaffController extends Controller
         }, $header);
 
         // Validate required columns
-        $required = ['name', 'category', 'total_stock', 'location'];
+        $required = ['name', 'category', 'total_stock', 'location', 'laboratory'];
         foreach ($required as $col) {
             if (!in_array($col, $header)) {
                 fclose($handle);
@@ -391,8 +391,8 @@ class StaffController extends Controller
             $rowData = array_combine($header, $data);
 
             // Basic validation
-            if (empty($rowData['name']) || empty($rowData['category']) || empty($rowData['total_stock']) || empty($rowData['location'])) {
-                $errors[] = "Row {$row}: Missing required fields (name, category, total_stock, location).";
+            if (empty($rowData['name']) || empty($rowData['category']) || empty($rowData['total_stock']) || empty($rowData['location']) || empty($rowData['laboratory'])) {
+                $errors[] = "Row {$row}: Missing required fields (name, category, total_stock, location, laboratory).";
                 continue;
             }
 
@@ -407,11 +407,12 @@ class StaffController extends Controller
             }
 
             $item = Item::create([
-                'name' => trim($rowData['name']),
-                'description' => trim($rowData['description'] ?? ''),
-                'category' => trim($rowData['category']),
-                'location' => trim($rowData['location'] ?? ''),
-                'total_stock' => $totalStock,
+                'name'            => trim($rowData['name']),
+                'description'     => trim($rowData['description'] ?? ''),
+                'category'        => trim($rowData['category']),
+                'location'        => trim($rowData['location']),
+                'laboratory'      => trim($rowData['laboratory']),
+                'total_stock'     => $totalStock,
                 'available_stock' => min($availableStock, $totalStock),
             ]);
 

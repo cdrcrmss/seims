@@ -226,6 +226,12 @@
                                         @if($item->description)
                                             <div class="text-sm text-gray-500">{{ Str::limit($item->description, 50) }}</div>
                                         @endif
+                                        @if($item->location)
+                                            <div class="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                                                <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                                {{ $item->location }}
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </td>
@@ -658,6 +664,8 @@
                                 <span class="font-mono bg-blue-100 px-2 py-1 rounded">category</span>
                                 <span class="font-mono bg-blue-100 px-2 py-1 rounded">total_stock</span>
                                 <span class="font-mono bg-blue-100 px-2 py-1 rounded">location</span>
+                                <span class="font-mono bg-blue-100 px-2 py-1 rounded">laboratory</span>
+                                <span class="text-blue-500 italic px-2 py-1">(required)</span>
                             </div>
                             <p class="text-sm font-medium text-blue-800 mt-3 mb-2">Optional columns:</p>
                             <div class="grid grid-cols-2 gap-1 text-xs text-blue-700">

@@ -26,6 +26,7 @@ class ItemsImport implements ToCollection, WithHeadingRow
             $name        = trim($row['name'] ?? '');
             $category    = trim($row['category'] ?? '');
             $location    = trim($row['location'] ?? '');
+            $laboratory  = trim($row['laboratory'] ?? '');
             $description = trim($row['description'] ?? '');
             $totalStock  = (int) ($row['total_stock'] ?? $row['total stock'] ?? 0);
             $availRaw    = $row['available_stock'] ?? $row['available stock'] ?? null;
@@ -38,6 +39,7 @@ class ItemsImport implements ToCollection, WithHeadingRow
             if ($name === '')       $rowErrors[] = 'name is required';
             if ($category === '')   $rowErrors[] = 'category is required';
             if ($location === '')   $rowErrors[] = 'location is required';
+            if ($laboratory === '') $rowErrors[] = 'laboratory is required';
             if ($totalStock < 1)    $rowErrors[] = 'total_stock must be at least 1';
 
             if (!empty($rowErrors)) {
@@ -50,6 +52,7 @@ class ItemsImport implements ToCollection, WithHeadingRow
                 'description'     => $description,
                 'category'        => $category,
                 'location'        => $location,
+                'laboratory'      => $laboratory,
                 'total_stock'     => $totalStock,
                 'available_stock' => min($availableStock, $totalStock),
             ]);
