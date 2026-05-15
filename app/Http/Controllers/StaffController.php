@@ -485,6 +485,31 @@ class StaffController extends Controller
     }
 
     /**
+     * API endpoint for item management search (all items, any stock level)
+     */
+    public function searchAllItems(Request $request)
+    {
+        $q = trim($request->get('q', ''));
+
+        if (strlen($q) < 1) {
+            return response()->json(['items' => []]);
+        }
+
+        $items = Item::where(function ($query) use ($q) {
+                $query->where('name', 'like', "%{$q}%")
+                      ->orWhere('description', 'like', "%{$q}%")
+                      ->orWhere('category', 'like', "%{$q}%")
+                      ->orWhere('location', 'like', "%{$q}%")
+                      ->orWhere('laboratory', 'like', "%{$q}%");
+            })
+            ->orderBy('name')
+            ->limit(8)
+            ->get(['id', 'name', 'category', 'available_stock']);
+
+        return response()->json(['items' => $items]);
+    }
+
+    /**
      * API endpoint for live item search
      */
     public function searchItems(Request $request)

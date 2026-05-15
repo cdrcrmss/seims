@@ -110,10 +110,10 @@
                 <form method="GET" action="{{ route('staff.items.index') }}" class="flex items-center space-x-4">
                     <!-- Search -->
                     <div class="relative" x-data="itemSearchComponent()" @click.away="showSuggestions = false">
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search items..." 
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search items..."
                                x-model="query"
-                               @input="filterRows(); updateSuggestions()"
-                               @focus="if(query.length > 0) showSuggestions = true"
+                               @input="onInput()"
+                               @focus="if(query.length > 1) fetchSuggestions()"
                                @keydown.escape="showSuggestions = false"
                                @keydown.arrow-down.prevent="highlightNext()"
                                @keydown.arrow-up.prevent="highlightPrev()"
@@ -123,7 +123,7 @@
                         <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
-                        <button x-show="query.length > 0" @click="query = ''; filterRows(); showSuggestions = false" type="button" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                        <button x-show="query.length > 0" @click="clearSearch()" type="button" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
 
@@ -852,47 +852,52 @@
             suggestions: [],
             showSuggestions: false,
             highlightedIndex: -1,
+            debounceTimer: null,
 
-            filterRows() {
-                const q = this.query.toLowerCase().trim();
-                document.querySelectorAll('.item-row').forEach(row => {
-                    const data = row.getAttribute('data-search') || '';
-                    row.style.display = (q === '' || data.includes(q)) ? '' : 'none';
-                });
+            onInput() {
+                clearTimeout(this.debounceTimer);
+                this.debounceTimer = setTimeout(() => {
+                    this.fetchSuggestions();
+                    this.submitSearch();
+                }, 400);
             },
 
-            updateSuggestions() {
-                const q = this.query.toLowerCase().trim();
-                if (q.length === 0) {
+            submitSearch() {
+                const form = this.$el.closest('form');
+                if (form) form.submit();
+            },
+
+            clearSearch() {
+                this.query = '';
+                this.suggestions = [];
+                this.showSuggestions = false;
+                this.submitSearch();
+            },
+
+            async fetchSuggestions() {
+                const q = this.query.trim();
+                if (q.length < 2) {
                     this.suggestions = [];
                     this.showSuggestions = false;
                     return;
                 }
-
-                const seen = new Set();
-                const results = [];
-                document.querySelectorAll('.item-row').forEach(row => {
-                    const data = row.getAttribute('data-search') || '';
-                    if (data.includes(q)) {
-                        const nameEl = row.querySelector('.text-sm.font-medium.text-gray-900');
-                        const catEl = row.querySelector('.bg-blue-100');
-                        const name = nameEl ? nameEl.textContent.trim() : '';
-                        const category = catEl ? catEl.textContent.trim() : '';
-                        if (!seen.has(name)) {
-                            seen.add(name);
-                            results.push({ name: name, detail: category });
-                        }
-                    }
-                });
-                this.suggestions = results.slice(0, 6);
-                this.showSuggestions = results.length > 0;
-                this.highlightedIndex = -1;
+                try {
+                    const res = await fetch(`/staff/items/search?q=${encodeURIComponent(q)}`, {
+                        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+                    });
+                    const data = await res.json();
+                    this.suggestions = (data.items || []).slice(0, 6).map(i => ({ name: i.name, detail: i.category }));
+                    this.showSuggestions = this.suggestions.length > 0;
+                    this.highlightedIndex = -1;
+                } catch (e) {
+                    this.suggestions = [];
+                }
             },
 
             selectSuggestion(suggestion) {
                 this.query = suggestion.name;
                 this.showSuggestions = false;
-                this.filterRows();
+                this.submitSearch();
             },
 
             highlightNext() {
@@ -908,6 +913,8 @@
             selectHighlighted() {
                 if (this.highlightedIndex >= 0 && this.highlightedIndex < this.suggestions.length) {
                     this.selectSuggestion(this.suggestions[this.highlightedIndex]);
+                } else {
+                    this.submitSearch();
                 }
             }
         };

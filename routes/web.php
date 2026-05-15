@@ -71,6 +71,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::middleware(['staff_or_admin'])->prefix('staff')->name('staff.')->group(function () {
         // Item Management
         Route::get('/items', [StaffController::class, 'items'])->name('items.index');
+        Route::get('/items/search', [StaffController::class, 'searchAllItems'])->name('items.search');
         Route::get('/items/trash', [StaffController::class, 'trashedItems'])->name('items.trash');
         Route::get('/items/create', [StaffController::class, 'createItem'])->name('items.create');
         Route::post('/items', [StaffController::class, 'storeItem'])->name('items.store');
