@@ -142,7 +142,7 @@
                                     <div class="ml-4">
                                         <div class="text-sm font-medium text-gray-900">{{ $user->name }}</div>
                                         @if($user->student_id)
-                                            <div class="text-sm text-gray-500">ID: {{ $user->student_id }}</div>
+                                            <div class="text-sm text-gray-500">{{ $user->role === 'staff' ? 'Staff ID' : 'Student ID' }}: {{ $user->student_id }}</div>
                                         @endif
                                     </div>
                                 </div>
@@ -277,9 +277,9 @@
                                 <option value="staff">Staff</option>
                             </select>
                         </div>
-                        <div id="student-id-field">
-                            <label for="student_id" class="block mb-2 text-sm font-medium text-gray-900">Student ID</label>
-                            <input type="text" id="student_id" name="student_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-green-500 focus:border-green-500 block w-full p-2.5">
+                        <div id="role-id-field" style="display: none;">
+                            <label id="role-id-label" for="student_id" class="block mb-2 text-sm font-medium text-gray-900">ID</label>
+                            <input type="text" id="student_id" name="student_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-green-500 focus:border-green-500 block w-full p-2.5" placeholder="">
                         </div>
                         <div class="md:col-span-2">
                             <label for="password" class="block mb-2 text-sm font-medium text-gray-900">Password</label>
@@ -304,16 +304,25 @@
 </style>
 
 <script>
-    // Show/hide student ID field based on role selection
-    document.getElementById('role').addEventListener('change', function() {
-        const studentIdField = document.getElementById('student-id-field');
-        if (this.value === 'student') {
-            studentIdField.style.display = 'block';
-            document.getElementById('student_id').required = true;
+    function updateRoleIdField() {
+        const role = document.getElementById('role').value;
+        const field = document.getElementById('role-id-field');
+        const label = document.getElementById('role-id-label');
+        const input = document.getElementById('student_id');
+
+        if (role === 'student' || role === 'staff') {
+            field.style.display = 'block';
+            label.textContent = role === 'student' ? 'Student ID' : 'Staff / Employee ID';
+            input.placeholder = role === 'student' ? 'e.g. 2024-12345' : 'e.g. EMP-001';
+            input.required = true;
         } else {
-            studentIdField.style.display = 'none';
-            document.getElementById('student_id').required = false;
+            field.style.display = 'none';
+            input.required = false;
+            input.value = '';
         }
-    });
+    }
+
+    document.getElementById('role').addEventListener('change', updateRoleIdField);
+    updateRoleIdField();
 </script>
 @endsection

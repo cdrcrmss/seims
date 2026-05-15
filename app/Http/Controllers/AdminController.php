@@ -69,22 +69,25 @@ class AdminController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'role' => 'required|in:staff,student',
-            'student_id' => 'nullable|string|max:50',
+            'student_id' => ['nullable', 'string', 'max:50', Rule::unique('users', 'student_id')],
         ]);
 
         if ($request->input('role') === 'admin') {
             return back()->withErrors(['role' => 'Cannot create administrator accounts. Only one system admin is allowed.'])->withInput();
         }
 
-        if ($request->role === 'student' && empty($request->student_id)) {
-            return back()->withErrors(['student_id' => 'Student ID is required for student accounts.'])->withInput();
+        if (in_array($request->role, ['student', 'staff'], true) && empty(trim($request->student_id ?? ''))) {
+            $message = $request->role === 'staff'
+                ? 'Staff / Employee ID is required for staff accounts.'
+                : 'Student ID is required for student accounts.';
+            return back()->withErrors(['student_id' => $message])->withInput();
         }
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => $request->password,
-            'student_id' => $request->role === 'student' ? $request->student_id : null,
+            'student_id' => trim($request->student_id ?? '') ?: null,
             'is_approved' => $request->role === 'student' ? false : true,
         ]);
         // Set role explicitly (not mass-assignable for security)
@@ -138,12 +141,21 @@ class AdminController extends Controller
                 Rule::unique('users')->ignore($user->id),
             ],
             'role' => 'required|in:staff,student',
+            'student_id' => ['nullable', 'string', 'max:50', Rule::unique('users', 'student_id')->ignore($user->id)],
             'password' => 'nullable|string|min:8|confirmed',
         ]);
+
+        if (in_array($request->role, ['student', 'staff'], true) && empty(trim($request->student_id ?? ''))) {
+            $message = $request->role === 'staff'
+                ? 'Staff / Employee ID is required for staff accounts.'
+                : 'Student ID is required for student accounts.';
+            return back()->withErrors(['student_id' => $message])->withInput();
+        }
 
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
+            'student_id' => trim($request->student_id ?? '') ?: null,
         ]);
 
         $user->role = $request->role;
