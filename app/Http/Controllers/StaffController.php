@@ -46,11 +46,14 @@ class StaffController extends Controller
             ->withCount(['units as damaged_units_count' => function($query) {
                 $query->where('status', 'damaged');
             }])
-            ->when($search, function($query, $search) {
-                return $query->where(function($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('description', 'like', "%{$search}%");
-                });
+            ->when($search, function ($query, $search) {
+                $term = '%' . $search . '%';
+                $startsWith = $search . '%';
+
+                return $query->where(function ($q) use ($term) {
+                    $q->where('name', 'like', $term)
+                      ->orWhere('asset_code', 'like', $term);
+                })->orderByRaw('CASE WHEN name LIKE ? THEN 0 ELSE 1 END', [$startsWith]);
             })
             ->when($category, function($query, $category) {
                 return $query->where('category', $category);
@@ -79,7 +82,7 @@ class StaffController extends Controller
                     return $query->where('available_stock', 0);
                 }
             })
-            ->orderBy('created_at', 'desc')
+            ->orderBy('name')
             ->paginate(20)
             ->withQueryString();
 
@@ -517,13 +520,14 @@ class StaffController extends Controller
             return response()->json(['items' => []]);
         }
 
-        $items = Item::where(function ($query) use ($q) {
-                $query->where('name', 'like', "%{$q}%")
-                      ->orWhere('description', 'like', "%{$q}%")
-                      ->orWhere('category', 'like', "%{$q}%")
-                      ->orWhere('location', 'like', "%{$q}%")
-                      ->orWhere('laboratory', 'like', "%{$q}%");
+        $term = '%' . $q . '%';
+        $startsWith = $q . '%';
+
+        $items = Item::where(function ($query) use ($term) {
+                $query->where('name', 'like', $term)
+                      ->orWhere('asset_code', 'like', $term);
             })
+            ->orderByRaw('CASE WHEN name LIKE ? THEN 0 ELSE 1 END', [$startsWith])
             ->orderBy('name')
             ->limit(8)
             ->get(['id', 'name', 'category', 'available_stock']);
