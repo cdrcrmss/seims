@@ -68,14 +68,24 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
-            'role' => 'required|in:admin,staff,faculty,student',
+            'role' => 'required|in:staff,faculty,student',
+            'student_id' => 'nullable|string|max:50',
         ]);
+
+        if ($request->input('role') === 'admin') {
+            return back()->withErrors(['role' => 'Cannot create administrator accounts. Only one system admin is allowed.'])->withInput();
+        }
+
+        if ($request->role === 'student' && empty($request->student_id)) {
+            return back()->withErrors(['student_id' => 'Student ID is required for student accounts.'])->withInput();
+        }
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => $request->password,
-            'is_approved' => true,
+            'student_id' => $request->role === 'student' ? $request->student_id : null,
+            'is_approved' => $request->role === 'student' ? false : true,
         ]);
         // Set role explicitly (not mass-assignable for security)
         $user->role = $request->role;
@@ -92,40 +102,55 @@ class AdminController extends Controller
 
     public function updateUser(Request $request, User $user)
     {
+        if ($user->isAdmin()) {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => [
+                    'required',
+                    'string',
+                    'email',
+                    'max:255',
+                    Rule::unique('users')->ignore($user->id),
+                ],
+                'password' => 'nullable|string|min:8|confirmed',
+            ]);
+
+            $user->update([
+                'name' => $request->name,
+                'email' => $request->email,
+            ]);
+
+            if ($request->filled('password')) {
+                $user->update(['password' => $request->password]);
+            }
+
+            return redirect()->route('admin.users.index')
+                ->with('success', 'Administrator account updated successfully!');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => [
                 'required',
-                'string', 
+                'string',
                 'email',
                 'max:255',
                 Rule::unique('users')->ignore($user->id),
             ],
-            'role' => 'required|in:admin,staff,faculty,student',
+            'role' => 'required|in:staff,faculty,student',
             'password' => 'nullable|string|min:8|confirmed',
         ]);
-
-        // Prevent the last admin from downgrading their own role
-        if ($user->id === auth()->id() && $user->role === 'admin' && $request->role !== 'admin') {
-            $adminCount = User::where('role', 'admin')->count();
-            if ($adminCount <= 1) {
-                return back()->withErrors(['role' => 'Cannot change your role. You are the last admin.'])->withInput();
-            }
-        }
 
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
         ]);
 
-        // Set role explicitly (not mass-assignable for security)
         $user->role = $request->role;
         $user->save();
 
         if ($request->filled('password')) {
-            $user->update([
-                'password' => $request->password,
-            ]);
+            $user->update(['password' => $request->password]);
         }
 
         return redirect()->route('admin.users.index')
@@ -136,6 +161,13 @@ class AdminController extends Controller
     {
         if ($user->id === auth()->id()) {
             return back()->withErrors(['error' => 'You cannot delete your own account.']);
+        }
+
+        if ($user->isAdmin()) {
+            $adminCount = User::where('role', 'admin')->count();
+            if ($adminCount <= 1) {
+                return back()->withErrors(['error' => 'Cannot delete the only administrator account.']);
+            }
         }
 
         $user->delete();

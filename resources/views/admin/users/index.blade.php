@@ -191,7 +191,7 @@
                                     <a href="{{ route('admin.users.edit', $user) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200" title="Edit user">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                     </a>
-                                    @if($user->id !== auth()->id())
+                                    @if($user->id !== auth()->id() && !$user->isAdmin())
                                         <form action="{{ route('admin.users.delete', $user) }}" method="POST" class="inline" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Delete User', message: 'Are you sure you want to delete this user? This action cannot be undone.', type: 'danger' })">
                                             @csrf
                                             @method('DELETE')
@@ -275,7 +275,7 @@
                             <select id="role" name="role" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-green-500 focus:border-green-500 block w-full p-2.5" required>
                                 <option value="student">Student</option>
                                 <option value="staff">Staff</option>
-                                <option value="admin">Admin</option>
+                                <option value="faculty">Faculty</option>
                             </select>
                         </div>
                         <div id="student-id-field">

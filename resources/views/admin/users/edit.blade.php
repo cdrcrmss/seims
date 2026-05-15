@@ -81,13 +81,18 @@
                         <label class="block text-sm font-semibold text-gray-700 mb-1.5">
                             User Role <span class="text-red-500">*</span>
                         </label>
+                        @if($user->isAdmin())
+                            <p class="w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-sm text-gray-700 font-medium">
+                                Administrator <span class="text-gray-400 font-normal">(only one system admin)</span>
+                            </p>
+                        @else
                         <select name="role" required
                                 class="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-green-500/30 focus:border-green-500 transition-colors text-sm">
                             <option value="student" {{ old('role', $user->role) == 'student' ? 'selected' : '' }}>Student</option>
                             <option value="faculty" {{ old('role', $user->role) == 'faculty' ? 'selected' : '' }}>Faculty</option>
                             <option value="staff" {{ old('role', $user->role) == 'staff' ? 'selected' : '' }}>Staff Member</option>
-                            <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Administrator</option>
                         </select>
+                        @endif
                         @error('role')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror

@@ -59,20 +59,25 @@ class QrCodeController extends Controller
             'location' => $item->location ?? 'N/A',
         ];
 
-        // Current holders - who currently has this item (visible to all)
-        $currentHolders = $item->borrowings()
-            ->where('status', 'issued')
-            ->with('user:id,name')
-            ->get()
-            ->map(fn($b) => [
-                'user_name' => $b->user->name,
-                'quantity' => $b->quantity,
-                'expected_return_date' => $b->expected_return_date?->format('M d, Y') ?? 'N/A',
-            ]);
-        $payload['current_holders'] = $currentHolders;
+        $isStaffOrAdmin = $user && in_array($user->role, ['staff', 'admin'], true);
+
+        // Holder details only for staff/admin
+        if ($isStaffOrAdmin) {
+            $payload['current_holders'] = $item->borrowings()
+                ->where('status', 'issued')
+                ->with('user:id,name')
+                ->get()
+                ->map(fn($b) => [
+                    'user_name' => $b->user->name,
+                    'quantity' => $b->quantity,
+                    'expected_return_date' => $b->expected_return_date?->format('M d, Y') ?? 'N/A',
+                ]);
+        } else {
+            $payload['current_holders'] = [];
+        }
 
         // Extended fields only for staff/admin
-        if ($user && in_array($user->role, ['staff', 'admin'])) {
+        if ($isStaffOrAdmin) {
             $payload['total_stock'] = $item->total_stock;
             $payload['wear_level'] = $item->wear_level;
             $payload['qr_code'] = $item->qr_code;
@@ -138,6 +143,16 @@ class QrCodeController extends Controller
             ->first();
 
         if ($unit) {
+            $user = Auth::user();
+            $isStaffOrAdmin = $user && in_array($user->role, ['staff', 'admin'], true);
+
+            if (!$isStaffOrAdmin) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unit-level QR codes can only be scanned by staff.',
+                ], 403);
+            }
+
             $payload = $this->buildItemPayload($unit->item);
             $payload['unit'] = [
                 'unit_code' => $unit->unit_code,
@@ -147,6 +162,7 @@ class QrCodeController extends Controller
                 'current_borrower' => $unit->currentBorrower?->name ?? null,
                 'notes' => $unit->notes,
             ];
+
             return response()->json([
                 'success' => true,
                 'item' => $payload,

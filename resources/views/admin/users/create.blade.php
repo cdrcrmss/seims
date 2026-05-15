@@ -84,7 +84,6 @@
                             <option value="student" {{ old('role') == 'student' ? 'selected' : '' }}>Student</option>
                             <option value="faculty" {{ old('role') == 'faculty' ? 'selected' : '' }}>Faculty</option>
                             <option value="staff" {{ old('role') == 'staff' ? 'selected' : '' }}>Staff</option>
-                            <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                         </select>
                         @error('role')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
