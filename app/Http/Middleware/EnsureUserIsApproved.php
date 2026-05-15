@@ -9,14 +9,14 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsureUserIsApproved
 {
     /**
-     * Block all unapproved accounts (students and staff).
-     * Admins are always allowed through.
+     * Block unapproved students (self-registration requires admin approval).
+     * Staff accounts are created by admin with is_approved=true and are not gated here.
      */
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
 
-        if ($user && !$user->is_approved && !$user->isAdmin()) {
+        if ($user && !$user->is_approved && $user->isStudent()) {
             if ($request->routeIs('logout') || $request->routeIs('account.pending')) {
                 return $next($request);
             }

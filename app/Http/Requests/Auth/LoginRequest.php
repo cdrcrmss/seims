@@ -49,20 +49,15 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        // Block unapproved accounts (admins are always allowed)
+        // Only students self-register and need approval; staff are provisioned by admin as approved
         $user = Auth::user();
-        if ($user && !$user->is_approved && !$user->isAdmin()) {
+        if ($user && !$user->is_approved && $user->isStudent()) {
             Auth::logout();
             $this->session()->invalidate();
             $this->session()->regenerateToken();
 
-            $message = match ($user->role) {
-                'staff' => 'Your staff account is pending admin approval. Please contact the administrator.',
-                default => 'Your account is pending admin approval. You will be notified once approved.',
-            };
-
             throw ValidationException::withMessages([
-                'email' => $message,
+                'email' => 'Your account is pending admin approval. You will be notified once approved.',
             ]);
         }
 
