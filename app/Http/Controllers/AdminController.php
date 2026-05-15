@@ -88,21 +88,14 @@ class AdminController extends Controller
             'email' => $request->email,
             'password' => $request->password,
             'student_id' => trim($request->student_id ?? '') ?: null,
-            // Students added here stay pending; staff are approved immediately (handed credentials by admin)
-            'is_approved' => $request->role !== 'student',
+            'is_approved' => true,
         ]);
         // Set role explicitly (not mass-assignable for security)
         $user->role = $request->role;
         $user->save();
 
-        $successMessage = $request->role === 'staff'
-            ? 'Staff account created. They can sign in immediately with the credentials you provided.'
-            : ($request->role === 'student'
-                ? 'Student account created. They must be approved before they can sign in.'
-                : 'User created successfully!');
-
         return redirect()->route('admin.users.index')
-                        ->with('success', $successMessage);
+                        ->with('success', ucfirst($request->role) . ' account created. They can sign in immediately with the credentials you provided.');
     }
 
     public function editUser(User $user)
