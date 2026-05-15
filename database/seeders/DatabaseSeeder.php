@@ -76,14 +76,13 @@ class DatabaseSeeder extends Seeder
         // ─── Rooms 401 – 418 ──────────────────────────────────────────────
         for ($i = 401; $i <= 418; $i++) {
             Room::create([
-                'name'        => "Room $i",
-                'code'        => "RM-$i",
-                'building'    => 'Main Building',
-                'floor'       => '4',
-                'capacity'    => 40,
-                'type'        => 'classroom',
-                'description' => '',
-                'is_available' => true,
+                'name'     => "Room $i",
+                'code'     => "RM-$i",
+                'building' => 'Main Building',
+                'floor'    => '4',
+                'capacity' => 40,
+                'type'     => 'classroom',
+                'status'   => 'available',
             ]);
         }
 
