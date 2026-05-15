@@ -47,6 +47,40 @@ class ItemsImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
+            // Check for existing item by name + category to avoid duplicates
+            $existing = Item::where('name', $name)->where('category', $category)->first();
+
+            if ($existing) {
+                // Add stock to existing item
+                $existingUnitCount = $existing->units()->count();
+                $existing->increment('total_stock', $totalStock);
+                $existing->increment('available_stock', min($availableStock, $totalStock));
+
+                // Update location/laboratory/description if provided and currently empty
+                $existing->fill(array_filter([
+                    'location'    => $existing->location    ?: $location,
+                    'laboratory'  => $existing->laboratory  ?: $laboratory,
+                    'description' => $existing->description ?: $description,
+                ]))->save();
+
+                // Create new units continuing from the existing unit count
+                $pad = str_pad($existing->id, 6, '0', STR_PAD_LEFT);
+                for ($i = 1; $i <= $totalStock; $i++) {
+                    $seq = $existingUnitCount + $i;
+                    $unitCode = "SEIMS-{$pad}-U" . str_pad($seq, 3, '0', STR_PAD_LEFT);
+                    ItemUnit::create([
+                        'item_id'   => $existing->id,
+                        'unit_code' => $unitCode,
+                        'qr_code'   => $unitCode . '-' . strtoupper(Str::random(6)),
+                        'status'    => 'available',
+                        'condition' => 'good',
+                    ]);
+                }
+
+                $this->importedCount++;
+                continue;
+            }
+
             $item = Item::create([
                 'name'            => $name,
                 'description'     => $description,

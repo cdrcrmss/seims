@@ -406,12 +406,47 @@ class StaffController extends Controller
                 continue;
             }
 
+            $name        = trim($rowData['name']);
+            $category    = trim($rowData['category']);
+            $location    = trim($rowData['location']);
+            $laboratory  = trim($rowData['laboratory']);
+            $description = trim($rowData['description'] ?? '');
+
+            // Check for existing item by name + category
+            $existing = Item::where('name', $name)->where('category', $category)->first();
+
+            if ($existing) {
+                $existingUnitCount = $existing->units()->count();
+                $existing->increment('total_stock', $totalStock);
+                $existing->increment('available_stock', min($availableStock, $totalStock));
+                $existing->fill(array_filter([
+                    'location'    => $existing->location    ?: $location,
+                    'laboratory'  => $existing->laboratory  ?: $laboratory,
+                    'description' => $existing->description ?: $description,
+                ]))->save();
+
+                $pad = str_pad($existing->id, 6, '0', STR_PAD_LEFT);
+                for ($u = 1; $u <= $totalStock; $u++) {
+                    $seq      = $existingUnitCount + $u;
+                    $unitCode = "SEIMS-{$pad}-U" . str_pad($seq, 3, '0', STR_PAD_LEFT);
+                    \App\Models\ItemUnit::create([
+                        'item_id'   => $existing->id,
+                        'unit_code' => $unitCode,
+                        'qr_code'   => $unitCode . '-' . strtoupper(\Illuminate\Support\Str::random(6)),
+                        'status'    => 'available',
+                        'condition' => 'good',
+                    ]);
+                }
+                $imported++;
+                continue;
+            }
+
             $item = Item::create([
-                'name'            => trim($rowData['name']),
-                'description'     => trim($rowData['description'] ?? ''),
-                'category'        => trim($rowData['category']),
-                'location'        => trim($rowData['location']),
-                'laboratory'      => trim($rowData['laboratory']),
+                'name'            => $name,
+                'description'     => $description,
+                'category'        => $category,
+                'location'        => $location,
+                'laboratory'      => $laboratory,
                 'total_stock'     => $totalStock,
                 'available_stock' => min($availableStock, $totalStock),
             ]);
