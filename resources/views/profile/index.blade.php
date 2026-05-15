@@ -96,7 +96,6 @@
                                 $roleStyle = match($user->role) {
                                     'admin' => 'bg-red-100 text-red-800',
                                     'staff' => 'bg-blue-100 text-blue-800',
-                                    'faculty' => 'bg-purple-100 text-purple-800',
                                     default => 'bg-green-100 text-green-800',
                                 };
                             @endphp

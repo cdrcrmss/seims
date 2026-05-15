@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsureUserIsApproved
 {
     /**
-     * Block all unapproved accounts (students, staff, faculty).
+     * Block all unapproved accounts (students and staff).
      * Admins are always allowed through.
      */
     public function handle(Request $request, Closure $next): Response

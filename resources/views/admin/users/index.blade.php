@@ -275,7 +275,6 @@
                             <select id="role" name="role" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-green-500 focus:border-green-500 block w-full p-2.5" required>
                                 <option value="student">Student</option>
                                 <option value="staff">Staff</option>
-                                <option value="faculty">Faculty</option>
                             </select>
                         </div>
                         <div id="student-id-field">

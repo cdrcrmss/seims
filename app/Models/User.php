@@ -76,25 +76,12 @@ class User extends Authenticatable
         return $this->role === 'student';
     }
 
-    public function isFaculty(): bool
-    {
-        return $this->role === 'faculty';
-    }
-
     /**
-     * Check if user can approve faculty-level requests
+     * Check if user can approve borrowing requests (staff or admin).
      */
-    public function canApproveFacultyLevel(): bool
+    public function canApproveBorrowingRequests(): bool
     {
-        return in_array($this->role, ['faculty', 'staff', 'admin']);
-    }
-
-    /**
-     * Check if user can approve staff-level requests (final approval)
-     */
-    public function canApproveStaffLevel(): bool
-    {
-        return in_array($this->role, ['staff', 'admin']);
+        return in_array($this->role, ['staff', 'admin'], true);
     }
 
     /**

@@ -89,7 +89,6 @@
                         <select name="role" required
                                 class="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-green-500/30 focus:border-green-500 transition-colors text-sm">
                             <option value="student" {{ old('role', $user->role) == 'student' ? 'selected' : '' }}>Student</option>
-                            <option value="faculty" {{ old('role', $user->role) == 'faculty' ? 'selected' : '' }}>Faculty</option>
                             <option value="staff" {{ old('role', $user->role) == 'staff' ? 'selected' : '' }}>Staff Member</option>
                         </select>
                         @endif

@@ -57,7 +57,7 @@ class LoginRequest extends FormRequest
             $this->session()->regenerateToken();
 
             $message = match ($user->role) {
-                'staff', 'faculty' => 'Your staff account is pending admin approval. Please contact the administrator.',
+                'staff' => 'Your staff account is pending admin approval. Please contact the administrator.',
                 default => 'Your account is pending admin approval. You will be notified once approved.',
             };
 

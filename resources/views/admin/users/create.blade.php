@@ -82,7 +82,6 @@
                                 class="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors">
                             <option value="">Select Role</option>
                             <option value="student" {{ old('role') == 'student' ? 'selected' : '' }}>Student</option>
-                            <option value="faculty" {{ old('role') == 'faculty' ? 'selected' : '' }}>Faculty</option>
                             <option value="staff" {{ old('role') == 'staff' ? 'selected' : '' }}>Staff</option>
                         </select>
                         @error('role')

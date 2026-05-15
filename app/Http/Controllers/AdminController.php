@@ -68,7 +68,7 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
-            'role' => 'required|in:staff,faculty,student',
+            'role' => 'required|in:staff,student',
             'student_id' => 'nullable|string|max:50',
         ]);
 
@@ -137,7 +137,7 @@ class AdminController extends Controller
                 'max:255',
                 Rule::unique('users')->ignore($user->id),
             ],
-            'role' => 'required|in:staff,faculty,student',
+            'role' => 'required|in:staff,student',
             'password' => 'nullable|string|min:8|confirmed',
         ]);
 
