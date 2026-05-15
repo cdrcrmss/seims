@@ -28,6 +28,7 @@ class ItemsImport implements ToCollection, WithHeadingRow, WithValidation, Skips
                 'name' => trim($row['name'] ?? ''),
                 'description' => trim($row['description'] ?? ''),
                 'category' => trim($row['category'] ?? ''),
+                'location' => trim($row['location'] ?? ''),
                 'total_stock' => $totalStock,
                 'available_stock' => min($availableStock, $totalStock),
             ]);

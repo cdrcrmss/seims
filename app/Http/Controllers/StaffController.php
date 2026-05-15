@@ -411,6 +411,7 @@ class StaffController extends Controller
                 'name' => trim($rowData['name']),
                 'description' => trim($rowData['description'] ?? ''),
                 'category' => trim($rowData['category']),
+                'location' => trim($rowData['location'] ?? ''),
                 'total_stock' => $totalStock,
                 'available_stock' => min($availableStock, $totalStock),
             ]);
