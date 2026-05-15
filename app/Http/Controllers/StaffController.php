@@ -334,15 +334,14 @@ class StaffController extends Controller
                 $import->import($file);
 
                 $importedCount = $import->getImportedCount();
-                $errors = [];
-
-                foreach ($import->errors() as $error) {
-                    $errors[] = "Row {$error->row()}: " . implode(', ', $error->errors());
-                }
+                $errors = $import->getErrors();
 
                 $message = "Successfully imported {$importedCount} item(s).";
                 if (count($errors) > 0) {
-                    $message .= ' Errors: ' . implode(' | ', array_slice($errors, 0, 5));
+                    $message .= ' Skipped rows — ' . implode(' | ', array_slice($errors, 0, 5));
+                    if (count($errors) > 5) {
+                        $message .= ' (and ' . (count($errors) - 5) . ' more)';
+                    }
                 }
 
                 return back()->with('success', $message);
