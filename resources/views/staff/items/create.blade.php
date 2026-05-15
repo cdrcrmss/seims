@@ -65,7 +65,7 @@
                                 'categories' => $categories,
                                 'value' => old('category'),
                             ])
-                            <p class="text-xs text-gray-500 mt-1">Suggestions update from items you add or import.</p>
+                            <p class="text-xs text-gray-500 mt-1">Options update from items you add or import.</p>
                             @error('category')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
