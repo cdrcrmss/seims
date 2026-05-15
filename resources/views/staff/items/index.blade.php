@@ -109,11 +109,11 @@
                 <h2 class="text-xl font-bold text-gray-900">All Items</h2>
                 <form method="GET" action="{{ route('staff.items.index') }}" class="flex items-center space-x-4">
                     <!-- Search -->
-                    <div class="relative" x-data="itemSearchComponent()" @click.away="showSuggestions = false">
+                    <div class="relative z-30" x-data="itemSearchComponent()" @click.outside="showSuggestions = false">
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search items..."
                                x-model="query"
                                @input="onInput()"
-                               @focus="if(query.length > 1) fetchSuggestions()"
+                               @focus="onFocus()"
                                @keydown.escape="showSuggestions = false"
                                @keydown.arrow-down.prevent="highlightNext()"
                                @keydown.arrow-up.prevent="highlightPrev()"
@@ -128,18 +128,21 @@
                         </button>
 
                         <!-- Suggestions Dropdown -->
-                        <div x-show="showSuggestions && suggestions.length > 0" 
+                        <div x-show="showSuggestions && suggestions.length > 0"
+                             x-cloak
+                             @mousedown.prevent
                              x-transition:enter="transition ease-out duration-100"
                              x-transition:enter-start="opacity-0 scale-95"
                              x-transition:enter-end="opacity-100 scale-100"
                              x-transition:leave="transition ease-in duration-75"
                              x-transition:leave-start="opacity-100 scale-100"
                              x-transition:leave-end="opacity-0 scale-95"
-                             class="absolute left-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-gray-200 z-50 max-h-60 overflow-y-auto">
-                            <template x-for="(suggestion, index) in suggestions" :key="index">
-                                <button type="button" @click="selectSuggestion(suggestion)" 
+                             class="absolute left-0 top-full mt-2 w-72 bg-white rounded-xl shadow-lg border border-gray-200 z-[100] max-h-60 overflow-y-auto">
+                            <template x-for="(suggestion, index) in suggestions" :key="suggestion.id">
+                                <button type="button"
+                                        @mousedown.prevent="selectSuggestion(suggestion)"
                                         :class="{ 'bg-green-50': highlightedIndex === index }"
-                                        class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors flex items-center gap-3 border-b border-gray-50 last:border-0">
+                                        class="w-full text-left px-4 py-2.5 text-sm hover:bg-green-50 cursor-pointer transition-colors flex items-center gap-3 border-b border-gray-50 last:border-0">
                                     <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
                                         <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                                     </div>
@@ -867,10 +870,13 @@
 
             onInput() {
                 clearTimeout(this.debounceTimer);
-                this.debounceTimer = setTimeout(() => {
+                this.debounceTimer = setTimeout(() => this.fetchSuggestions(), 250);
+            },
+
+            onFocus() {
+                if (this.query.trim().length >= 2) {
                     this.fetchSuggestions();
-                    this.submitSearch();
-                }, 400);
+                }
             },
 
             submitSearch() {
@@ -897,7 +903,11 @@
                         headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
                     });
                     const data = await res.json();
-                    this.suggestions = (data.items || []).slice(0, 6).map(i => ({ name: i.name, detail: i.category }));
+                    this.suggestions = (data.items || []).slice(0, 8).map(i => ({
+                        id: i.id,
+                        name: i.name,
+                        detail: i.category,
+                    }));
                     this.showSuggestions = this.suggestions.length > 0;
                     this.highlightedIndex = -1;
                 } catch (e) {
@@ -908,6 +918,7 @@
             selectSuggestion(suggestion) {
                 this.query = suggestion.name;
                 this.showSuggestions = false;
+                this.highlightedIndex = -1;
                 this.submitSearch();
             },
 
