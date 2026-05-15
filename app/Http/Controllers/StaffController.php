@@ -699,13 +699,19 @@ class StaffController extends Controller
         $request->validate([
             'return_condition' => 'required|in:good,fair,needs_repair,damaged',
             'return_notes' => 'nullable|string|max:500',
+            'return_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
+
+        $returnImagePath = null;
+        if ($request->hasFile('return_image')) {
+            $returnImagePath = $request->file('return_image')->store('return-images', 'public');
+        }
 
         try {
             $isOverdue = $borrowing->expected_return_date && $borrowing->expected_return_date < now();
             $overdueDays = $isOverdue ? (int) now()->diffInDays($borrowing->expected_return_date) : 0;
 
-            \DB::transaction(function () use ($borrowing, $request, $isOverdue, $overdueDays) {
+            \DB::transaction(function () use ($borrowing, $request, $isOverdue, $overdueDays, $returnImagePath) {
                 // Lock the item for update to prevent race conditions
                 $item = Item::lockForUpdate()->findOrFail($borrowing->item_id);
 
@@ -731,6 +737,7 @@ class StaffController extends Controller
                     'returned_to' => auth()->id(),
                     'return_condition' => $request->return_condition,
                     'return_notes' => $request->return_notes,
+                    'return_image_path' => $returnImagePath,
                 ]);
 
                 // Release or mark the assigned unit based on condition

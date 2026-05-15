@@ -616,13 +616,37 @@
         }
         
         document.getElementById('returnModal').classList.remove('hidden');
-        // Reset radio buttons
         document.querySelectorAll('#returnForm input[name="return_condition"]').forEach(r => r.checked = false);
         document.getElementById('return_notes').value = '';
+        clearReturnImage();
     }
 
     function closeReturnModal() {
         document.getElementById('returnModal').classList.add('hidden');
+        clearReturnImage();
+        document.getElementById('return_notes').value = '';
+        document.querySelectorAll('#returnForm input[name="return_condition"]').forEach(r => r.checked = false);
+    }
+
+    function previewReturnImage(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            document.getElementById('previewImg').src = e.target.result;
+            document.getElementById('imageFileName').textContent = file.name;
+            document.getElementById('imagePreview').classList.remove('hidden');
+            document.getElementById('imagePlaceholder').classList.add('hidden');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function clearReturnImage() {
+        document.getElementById('return_image').value = '';
+        document.getElementById('previewImg').src = '';
+        document.getElementById('imageFileName').textContent = '';
+        document.getElementById('imagePreview').classList.add('hidden');
+        document.getElementById('imagePlaceholder').classList.remove('hidden');
     }
 </script>
 
@@ -632,7 +656,7 @@
         <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" onclick="closeReturnModal()"></div>
         
         <div class="relative z-10 w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden">
-            <form id="returnForm" method="POST" action="">
+            <form id="returnForm" method="POST" action="" enctype="multipart/form-data">
                 @csrf
                 @method('PATCH')
                 <input type="hidden" id="returnBorrowingId" name="borrowing_id" value="">
@@ -694,6 +718,33 @@
                         <textarea id="return_notes" name="return_notes" rows="2" 
                                   class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
                                   placeholder="Any observations about the item..."></textarea>
+                    </div>
+
+                    <!-- Return Image -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                            Return Photo <span class="font-normal normal-case text-gray-400">(optional)</span>
+                        </label>
+                        <div id="imageUploadArea"
+                             class="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-green-400 transition-colors"
+                             onclick="document.getElementById('return_image').click()">
+                            <div id="imagePreview" class="hidden">
+                                <img id="previewImg" src="" alt="Return photo" class="max-h-28 mx-auto rounded-lg object-cover">
+                                <p id="imageFileName" class="text-xs text-gray-500 mt-2 truncate"></p>
+                                <button type="button" onclick="event.stopPropagation(); clearReturnImage()"
+                                        class="mt-1 text-xs text-red-500 hover:underline">Remove</button>
+                            </div>
+                            <div id="imagePlaceholder">
+                                <svg class="w-8 h-8 mx-auto text-gray-300 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <p class="text-xs text-gray-500">Click to upload a photo</p>
+                                <p class="text-xs text-gray-400">JPG, PNG, WebP – max 5 MB</p>
+                            </div>
+                        </div>
+                        <input type="file" id="return_image" name="return_image" accept="image/*" class="hidden"
+                               onchange="previewReturnImage(this)">
                     </div>
                 </div>
                 

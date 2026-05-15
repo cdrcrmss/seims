@@ -59,6 +59,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
         
         // System Management
         Route::get('/reports', [AdminController::class, 'reports'])->name('reports');
+        Route::post('/reports/maintenance-export', [AdminController::class, 'exportMaintenance'])->name('reports.maintenance-export');
         Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
         Route::put('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
         Route::get('/borrowings', [AdminController::class, 'borrowings'])->name('borrowings');

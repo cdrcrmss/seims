@@ -33,6 +33,7 @@ class Borrowing extends Model
         'returned_to',
         'return_condition',
         'return_notes',
+        'return_image_path',
         'notes',
         'rejection_reason',
         'rejected_by',
