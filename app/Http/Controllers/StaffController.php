@@ -316,7 +316,7 @@ class StaffController extends Controller
 
     /**
      * Bulk import items from Excel/CSV.
-     * Expected columns: name, description, category, total_stock, available_stock
+     * Required columns: name, category, total_stock, location, laboratory
      */
     public function bulkImportItems(Request $request)
     {
@@ -324,147 +324,41 @@ class StaffController extends Controller
             'import_file' => 'required|file|mimes:xlsx,xls,csv,txt|max:5120',
         ]);
 
-        $file = $request->file('import_file');
-        $extension = strtolower($file->getClientOriginalExtension());
+        try {
+            $import = new \App\Imports\ItemsImport();
+            $import->importFromUpload($request->file('import_file'));
 
-        // Use maatwebsite/excel for xlsx/xls files
-        if (in_array($extension, ['xlsx', 'xls'])) {
-            try {
-                $import = new \App\Imports\ItemsImport();
-                $import->import($file);
-
-                $importedCount = $import->getImportedCount();
-                $errors = $import->getErrors();
-
-                $message = "Successfully imported {$importedCount} item(s).";
-                if (count($errors) > 0) {
-                    $message .= ' Skipped rows — ' . implode(' | ', array_slice($errors, 0, 5));
-                    if (count($errors) > 5) {
-                        $message .= ' (and ' . (count($errors) - 5) . ' more)';
-                    }
-                }
-
-                return back()->with('success', $message);
-            } catch (\Exception $e) {
-                return back()->with('error', 'Failed to import file: ' . $e->getMessage());
-            }
+            return $this->bulkImportFlashResponse(
+                $import->getImportedCount(),
+                $import->getErrors()
+            );
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to import file: ' . $e->getMessage());
         }
+    }
 
-        // Fallback: CSV import
-        $handle = fopen($file->getRealPath(), 'r');
-
-        if (!$handle) {
-            return back()->with('error', 'Could not read the file.');
-        }
-
-        // Read header row
-        $header = fgetcsv($handle);
-        if (!$header) {
-            fclose($handle);
-            return back()->with('error', 'File is empty or invalid.');
-        }
-
-        // Normalize headers (trim whitespace, lowercase)
-        $header = array_map(function ($h) {
-            return strtolower(trim($h));
-        }, $header);
-
-        // Validate required columns
-        $required = ['name', 'category', 'total_stock', 'location', 'laboratory'];
-        foreach ($required as $col) {
-            if (!in_array($col, $header)) {
-                fclose($handle);
-                return back()->with('error', 'File is missing required column: ' . $col);
-            }
-        }
-
-        $imported = 0;
-        $errors = [];
-        $row = 1;
-
-        while (($data = fgetcsv($handle)) !== false) {
-            $row++;
-            if (count($data) !== count($header)) {
-                $errors[] = "Row {$row}: Column count mismatch.";
-                continue;
-            }
-            $rowData = array_combine($header, $data);
-
-            // Basic validation
-            if (empty($rowData['name']) || empty($rowData['category']) || empty($rowData['total_stock']) || empty($rowData['location']) || empty($rowData['laboratory'])) {
-                $errors[] = "Row {$row}: Missing required fields (name, category, total_stock, location, laboratory).";
-                continue;
-            }
-
-            $totalStock = (int) $rowData['total_stock'];
-            $availableStock = isset($rowData['available_stock']) && $rowData['available_stock'] !== ''
-                ? (int) $rowData['available_stock']
-                : $totalStock;
-
-            if ($totalStock < 1) {
-                $errors[] = "Row {$row}: total_stock must be at least 1.";
-                continue;
-            }
-
-            $name        = trim($rowData['name']);
-            $category    = trim($rowData['category']);
-            $location    = trim($rowData['location']);
-            $laboratory  = trim($rowData['laboratory']);
-            $description = trim($rowData['description'] ?? '');
-
-            // Check for existing item by name + category
-            $existing = Item::where('name', $name)->where('category', $category)->first();
-
-            if ($existing) {
-                $existingUnitCount = $existing->units()->count();
-                $existing->increment('total_stock', $totalStock);
-                $existing->increment('available_stock', min($availableStock, $totalStock));
-                $existing->fill(array_filter([
-                    'location'    => $existing->location    ?: $location,
-                    'laboratory'  => $existing->laboratory  ?: $laboratory,
-                    'description' => $existing->description ?: $description,
-                ]))->save();
-
-                $pad = str_pad($existing->id, 6, '0', STR_PAD_LEFT);
-                for ($u = 1; $u <= $totalStock; $u++) {
-                    $seq      = $existingUnitCount + $u;
-                    $unitCode = "SEIMS-{$pad}-U" . str_pad($seq, 3, '0', STR_PAD_LEFT);
-                    \App\Models\ItemUnit::create([
-                        'item_id'   => $existing->id,
-                        'unit_code' => $unitCode,
-                        'qr_code'   => $unitCode . '-' . strtoupper(\Illuminate\Support\Str::random(6)),
-                        'status'    => 'available',
-                        'condition' => 'good',
-                    ]);
-                }
-                $imported++;
-                continue;
-            }
-
-            $item = Item::create([
-                'name'            => $name,
-                'description'     => $description,
-                'category'        => $category,
-                'location'        => $location,
-                'laboratory'      => $laboratory,
-                'total_stock'     => $totalStock,
-                'available_stock' => min($availableStock, $totalStock),
-            ]);
-
-            // Auto-assign QR code
-            $item->update(['qr_code' => 'SEIMS-' . str_pad($item->id, 6, '0', STR_PAD_LEFT) . '-' . strtoupper(\Illuminate\Support\Str::random(8))]);
-
-            // Create individual units
-            $this->createUnitsForItem($item);
-
-            $imported++;
-        }
-
-        fclose($handle);
-
-        $message = "Successfully imported {$imported} item(s).";
+    private function bulkImportFlashResponse(int $importedCount, array $errors)
+    {
+        $errorSummary = '';
         if (count($errors) > 0) {
-            $message .= ' Errors: ' . implode(' | ', array_slice($errors, 0, 5));
+            $errorSummary = ' ' . implode(' | ', array_slice($errors, 0, 5));
+            if (count($errors) > 5) {
+                $errorSummary .= ' (and ' . (count($errors) - 5) . ' more)';
+            }
+        }
+
+        if ($importedCount === 0) {
+            $message = 'No items were imported.';
+            if ($errorSummary !== '') {
+                $message .= $errorSummary;
+            }
+
+            return back()->with('error', $message);
+        }
+
+        $message = "Successfully imported {$importedCount} item(s).";
+        if ($errorSummary !== '') {
+            $message .= ' Some rows were skipped —' . $errorSummary;
         }
 
         return back()->with('success', $message);

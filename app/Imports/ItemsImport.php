@@ -4,104 +4,194 @@ namespace App\Imports;
 
 use App\Models\Item;
 use App\Models\ItemUnit;
-use Illuminate\Support\Collection;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
-use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Facades\Excel;
 
-class ItemsImport implements ToCollection, WithHeadingRow
+class ItemsImport
 {
-    use Importable;
-
     private int $importedCount = 0;
+
     private array $errors = [];
 
-    public function collection(Collection $rows)
+    private const REQUIRED_COLUMNS = ['name', 'category', 'total_stock', 'location', 'laboratory'];
+
+    public function importFromUpload(UploadedFile $file): void
     {
-        foreach ($rows as $index => $row) {
-            $rowNum = $index + 2; // +2 because row 1 is the header
+        $extension = strtolower($file->getClientOriginalExtension());
 
-            // Normalise keys: support both "total_stock" and "total stock"
-            $name        = trim($row['name'] ?? '');
-            $category    = trim($row['category'] ?? '');
-            $location    = trim($row['location'] ?? '');
-            $laboratory  = trim($row['laboratory'] ?? '');
-            $description = trim($row['description'] ?? '');
-            $totalStock  = (int) ($row['total_stock'] ?? $row['total stock'] ?? 0);
-            $availRaw    = $row['available_stock'] ?? $row['available stock'] ?? null;
-            $availableStock = ($availRaw !== null && $availRaw !== '')
-                ? (int) $availRaw
-                : $totalStock;
+        if (in_array($extension, ['csv', 'txt'])) {
+            $this->importCsv($file);
+        } else {
+            $this->importSpreadsheet($file);
+        }
+    }
 
-            // Manual validation
-            $rowErrors = [];
-            if ($name === '')       $rowErrors[] = 'name is required';
-            if ($category === '')   $rowErrors[] = 'category is required';
-            if ($location === '')   $rowErrors[] = 'location is required';
-            if ($laboratory === '') $rowErrors[] = 'laboratory is required';
-            if ($totalStock < 1)    $rowErrors[] = 'total_stock must be at least 1';
+    private function importSpreadsheet(UploadedFile $file): void
+    {
+        $sheet = Excel::toArray(null, $file)[0] ?? [];
 
-            if (!empty($rowErrors)) {
-                $this->errors[] = "Row {$rowNum}: " . implode(', ', $rowErrors) . '.';
+        if (empty($sheet)) {
+            $this->errors[] = 'File is empty or invalid.';
+
+            return;
+        }
+
+        $headerRow = array_shift($sheet);
+        $this->processDataRows($headerRow, $sheet);
+    }
+
+    private function importCsv(UploadedFile $file): void
+    {
+        $handle = fopen($file->getRealPath(), 'r');
+
+        if (!$handle) {
+            $this->errors[] = 'Could not read the file.';
+
+            return;
+        }
+
+        $header = fgetcsv($handle);
+
+        if (!$header) {
+            fclose($handle);
+            $this->errors[] = 'File is empty or invalid.';
+
+            return;
+        }
+
+        $rows = [];
+        while (($data = fgetcsv($handle)) !== false) {
+            $rows[] = $data;
+        }
+
+        fclose($handle);
+
+        $this->processDataRows($header, $rows);
+    }
+
+    private function processDataRows(array $headerRow, array $dataRows): void
+    {
+        $headers = $this->normalizeHeaders($headerRow);
+
+        foreach (self::REQUIRED_COLUMNS as $col) {
+            if (!in_array($col, $headers, true)) {
+                $this->errors[] = 'File is missing required column: ' . $col;
+
+                return;
+            }
+        }
+
+        foreach ($dataRows as $index => $row) {
+            $rowNum = $index + 2;
+
+            if ($this->isEmptyRow($row)) {
                 continue;
             }
 
-            // Check for existing item by name + category to avoid duplicates
-            $existing = Item::where('name', $name)->where('category', $category)->first();
+            $expectedColumns = count(array_filter($headers, fn ($h) => $h !== ''));
+            if (count($row) < $expectedColumns) {
+                $this->errors[] = "Row {$rowNum}: Column count mismatch.";
 
-            if ($existing) {
-                // Add stock to existing item
-                $existingUnitCount = $existing->units()->count();
-                $existing->increment('total_stock', $totalStock);
-                $existing->increment('available_stock', min($availableStock, $totalStock));
-
-                // Update location/laboratory/description if provided and currently empty
-                $existing->fill(array_filter([
-                    'location'    => $existing->location    ?: $location,
-                    'laboratory'  => $existing->laboratory  ?: $laboratory,
-                    'description' => $existing->description ?: $description,
-                ]))->save();
-
-                // Create new units continuing from the existing unit count
-                $pad = str_pad($existing->id, 6, '0', STR_PAD_LEFT);
-                for ($i = 1; $i <= $totalStock; $i++) {
-                    $seq = $existingUnitCount + $i;
-                    $unitCode = "SEIMS-{$pad}-U" . str_pad($seq, 3, '0', STR_PAD_LEFT);
-                    ItemUnit::create([
-                        'item_id'   => $existing->id,
-                        'unit_code' => $unitCode,
-                        'qr_code'   => $unitCode . '-' . strtoupper(Str::random(6)),
-                        'status'    => 'available',
-                        'condition' => 'good',
-                    ]);
-                }
-
-                $this->importedCount++;
                 continue;
             }
 
-            $item = Item::create([
-                'name'            => $name,
-                'description'     => $description,
-                'category'        => $category,
-                'location'        => $location,
-                'laboratory'      => $laboratory,
-                'total_stock'     => $totalStock,
-                'available_stock' => min($availableStock, $totalStock),
-            ]);
+            $rowData = $this->combineRow($headers, $row);
 
-            // Auto-assign QR code
-            $item->update([
-                'qr_code' => 'SEIMS-' . str_pad($item->id, 6, '0', STR_PAD_LEFT) . '-' . strtoupper(Str::random(8)),
-            ]);
+            $this->processRow($rowNum, $rowData);
+        }
+    }
 
-            // Create individual units
-            $pad = str_pad($item->id, 6, '0', STR_PAD_LEFT);
+    private function normalizeHeaders(array $headerRow): array
+    {
+        return array_map(function ($h) {
+            $key = strtolower(trim((string) $h));
+            $key = preg_replace('/^\x{FEFF}/u', '', $key);
+            $key = preg_replace('/[\s\-]+/', '_', $key);
+
+            return trim($key, '_');
+        }, $headerRow);
+    }
+
+    private function combineRow(array $headers, array $row): array
+    {
+        $data = [];
+        foreach ($headers as $i => $key) {
+            if ($key === '') {
+                continue;
+            }
+            $data[$key] = $row[$i] ?? null;
+        }
+
+        return $data;
+    }
+
+    private function isEmptyRow(array $row): bool
+    {
+        foreach ($row as $value) {
+            if (trim((string) $value) !== '') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function processRow(int $rowNum, array $row): void
+    {
+        $name        = trim((string) ($row['name'] ?? ''));
+        $category    = trim((string) ($row['category'] ?? ''));
+        $location    = trim((string) ($row['location'] ?? ''));
+        $laboratory  = trim((string) ($row['laboratory'] ?? ''));
+        $description = trim((string) ($row['description'] ?? ''));
+        $totalStock  = (int) ($row['total_stock'] ?? 0);
+        $availRaw    = $row['available_stock'] ?? null;
+        $availableStock = ($availRaw !== null && $availRaw !== '')
+            ? (int) $availRaw
+            : $totalStock;
+
+        $rowErrors = [];
+        if ($name === '') {
+            $rowErrors[] = 'name is required';
+        }
+        if ($category === '') {
+            $rowErrors[] = 'category is required';
+        }
+        if ($location === '') {
+            $rowErrors[] = 'location is required';
+        }
+        if ($laboratory === '') {
+            $rowErrors[] = 'laboratory is required';
+        }
+        if ($totalStock < 1) {
+            $rowErrors[] = 'total_stock must be at least 1';
+        }
+
+        if (!empty($rowErrors)) {
+            $this->errors[] = "Row {$rowNum}: " . implode(', ', $rowErrors) . '.';
+
+            return;
+        }
+
+        $existing = Item::where('name', $name)->where('category', $category)->first();
+
+        if ($existing) {
+            $existingUnitCount = $existing->units()->count();
+            $existing->increment('total_stock', $totalStock);
+            $existing->increment('available_stock', min($availableStock, $totalStock));
+
+            $existing->fill(array_filter([
+                'location'    => $existing->location ?: $location,
+                'laboratory'  => $existing->laboratory ?: $laboratory,
+                'description' => $existing->description ?: $description,
+            ]))->save();
+
+            $pad = str_pad($existing->id, 6, '0', STR_PAD_LEFT);
             for ($i = 1; $i <= $totalStock; $i++) {
-                $unitCode = "SEIMS-{$pad}-U" . str_pad($i, 3, '0', STR_PAD_LEFT);
+                $seq = $existingUnitCount + $i;
+                $unitCode = "SEIMS-{$pad}-U" . str_pad($seq, 3, '0', STR_PAD_LEFT);
                 ItemUnit::create([
-                    'item_id'   => $item->id,
+                    'item_id'   => $existing->id,
                     'unit_code' => $unitCode,
                     'qr_code'   => $unitCode . '-' . strtoupper(Str::random(6)),
                     'status'    => 'available',
@@ -110,7 +200,37 @@ class ItemsImport implements ToCollection, WithHeadingRow
             }
 
             $this->importedCount++;
+
+            return;
         }
+
+        $item = Item::create([
+            'name'            => $name,
+            'description'     => $description,
+            'category'        => $category,
+            'location'        => $location,
+            'laboratory'      => $laboratory,
+            'total_stock'     => $totalStock,
+            'available_stock' => min($availableStock, $totalStock),
+        ]);
+
+        $item->update([
+            'qr_code' => 'SEIMS-' . str_pad($item->id, 6, '0', STR_PAD_LEFT) . '-' . strtoupper(Str::random(8)),
+        ]);
+
+        $pad = str_pad($item->id, 6, '0', STR_PAD_LEFT);
+        for ($i = 1; $i <= $totalStock; $i++) {
+            $unitCode = "SEIMS-{$pad}-U" . str_pad($i, 3, '0', STR_PAD_LEFT);
+            ItemUnit::create([
+                'item_id'   => $item->id,
+                'unit_code' => $unitCode,
+                'qr_code'   => $unitCode . '-' . strtoupper(Str::random(6)),
+                'status'    => 'available',
+                'condition' => 'good',
+            ]);
+        }
+
+        $this->importedCount++;
     }
 
     public function getImportedCount(): int
