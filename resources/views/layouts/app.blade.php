@@ -406,13 +406,33 @@
             title: '',
             message: '',
             type: 'warning',
+            confirmLabel: '',
             pendingForm: null,
             show(detail) {
                 this.title = detail.title || 'Confirm Action';
                 this.message = detail.message || 'Are you sure you want to proceed?';
                 this.type = detail.type || 'warning';
+                this.confirmLabel = detail.confirmLabel || '';
                 this.pendingForm = detail.form || null;
                 this.open = true;
+            },
+            confirmButtonLabel() {
+                if (this.confirmLabel) {
+                    return this.confirmLabel;
+                }
+                const t = (this.title || '').toLowerCase();
+                if (this.type === 'success') {
+                    if (t.includes('approve')) return 'Approve';
+                    if (t.includes('restore')) return 'Restore';
+                    return 'Confirm';
+                }
+                if (this.type === 'danger') {
+                    if (t.includes('reject')) return 'Reject';
+                    if (t.includes('cancel')) return 'Cancel';
+                    if (t.includes('delete')) return 'Delete';
+                    return 'Confirm';
+                }
+                return 'Confirm';
             },
             proceed() {
                 if (this.pendingForm) {
@@ -484,7 +504,7 @@
                                 'bg-red-600 hover:bg-red-700 focus:ring-red-500': type === 'danger',
                                 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500': type === 'warning'
                             }">
-                        <span x-text="type === 'danger' ? 'Delete' : 'Confirm'"></span>
+                        <span x-text="confirmButtonLabel()"></span>
                     </button>
                 </div>
             </div>
