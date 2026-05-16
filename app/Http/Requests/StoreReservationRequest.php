@@ -27,7 +27,7 @@ class StoreReservationRequest extends FormRequest
             'reservation_type' => 'required|in:room',
             'start_datetime'   => 'required|date|after_or_equal:now',
             'end_datetime'     => 'required|date|after:start_datetime',
-            'purpose'          => 'required|string|min:10|max:500',
+            'purpose'          => 'required|string|min:10|max:100',
             'room_id'          => 'required|exists:rooms,id',
             'notes'            => 'nullable|string|max:1000',
         ];
@@ -40,6 +40,7 @@ class StoreReservationRequest extends FormRequest
     {
         return [
             'purpose.min'            => 'Please provide a detailed purpose (at least 10 characters).',
+            'purpose.max'            => 'Purpose cannot exceed 100 characters.',
             'purpose.required'       => 'A purpose is required for reservation requests.',
             'start_datetime.after'   => 'The reservation must start in the future.',
             'end_datetime.after'     => 'The end time must be after the start time.',

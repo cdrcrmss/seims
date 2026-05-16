@@ -112,14 +112,14 @@
                 <!-- Purpose -->
                 <div>
                     <label for="purpose" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                        Purpose <span class="font-normal normal-case text-gray-400">(min 10 characters)</span>
+                        Purpose <span class="font-normal normal-case text-gray-400">(min 10, max 100 characters)</span>
                     </label>
-                    <textarea name="purpose" id="purpose" rows="3" x-model="purpose"
+                    <textarea name="purpose" id="purpose" rows="3" x-model="purpose" maxlength="100"
                               placeholder="Briefly describe the purpose of your reservation..."
                               class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all resize-none" required>{{ old('purpose') }}</textarea>
                     <div class="flex justify-between mt-1">
                         @error('purpose') <p class="text-red-500 text-xs">{{ $message }}</p> @enderror
-                        <span class="text-xs ml-auto" :class="purpose.length >= 10 ? 'text-green-600' : 'text-gray-400'" x-text="purpose.length + '/500'"></span>
+                        <span class="text-xs ml-auto" :class="purpose.length >= 10 ? 'text-green-600' : 'text-gray-400'" x-text="purpose.length + '/100'"></span>
                     </div>
                 </div>
 

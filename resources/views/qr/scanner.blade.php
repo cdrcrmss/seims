@@ -317,7 +317,7 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Purpose <span class="text-red-500">*</span></label>
-                        <textarea name="purpose" rows="2" minlength="10" maxlength="500"
+                        <textarea name="purpose" rows="2" minlength="10" maxlength="100"
                                   class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                   placeholder="What will you use this equipment for? (min 10 characters)" required></textarea>
                     </div>

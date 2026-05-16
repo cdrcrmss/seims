@@ -52,7 +52,7 @@ class BorrowItemRequest extends FormRequest
                 'required',
                 'string',
                 'min:10',
-                'max:500',
+                'max:100',
             ],
             'notes' => [
                 'nullable',
@@ -81,7 +81,7 @@ class BorrowItemRequest extends FormRequest
             'expected_return_date.before_or_equal' => "Return date cannot exceed {$maxDays} days from today.",
             'purpose.required' => 'Please provide the purpose for borrowing this item.',
             'purpose.min' => 'Purpose must be at least 10 characters long.',
-            'purpose.max' => 'Purpose cannot exceed 500 characters.',
+            'purpose.max' => 'Purpose cannot exceed 100 characters.',
             'notes.max' => 'Notes cannot exceed 500 characters.',
         ];
     }

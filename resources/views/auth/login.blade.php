@@ -65,9 +65,10 @@
             }
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
+        /* Login logo: fixed (no float animation on the mark) */
+        .login-brand-logo-static {
+            transform: none !important;
+            animation: none !important;
         }
 
         .animate-fade-in-up {
@@ -80,6 +81,11 @@
 
         .animate-slide-in {
             animation: slideIn 0.6s ease-out forwards;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
 
         .animate-float {
@@ -325,7 +331,7 @@
             <div style="position: relative; z-index: 10; max-width: 480px;">
                 <!-- Logo -->
                 <div class="animate-slide-in" style="display: flex; align-items: center; gap: 16px; margin-bottom: 48px;">
-                    <div class="animate-float" style="width: 56px; height: 56px; background: linear-gradient(135deg, #16a34a, #22c55e); border-radius: 16px; display: flex; align-items: center; justify-content: center;">
+                    <div class="login-brand-logo-static" style="width: 56px; height: 56px; background: linear-gradient(135deg, #16a34a, #22c55e); border-radius: 16px; display: flex; align-items: center; justify-content: center;">
                         <img src="{{ asset('images/spup_logo.png') }}" alt="SPUP Logo" style="width: 48px; height: 48px; object-fit: contain;">
                     </div>
                     <div>

@@ -273,16 +273,16 @@
                     <!-- Purpose -->
                     <div>
                         <label for="purpose" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                            Purpose <span class="font-normal normal-case text-gray-400">(min 10 characters)</span>
+                            Purpose <span class="font-normal normal-case text-gray-400">(min 10, max 100 characters)</span>
                         </label>
                         <textarea id="purpose" name="purpose" rows="3"
-                                  x-model="purpose" maxlength="500"
+                                  x-model="purpose" maxlength="100"
                                   placeholder="Describe why you need to borrow this item..."
                                   class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
                                   :disabled="!selectedItemId">{{ old('purpose') }}</textarea>
                         <div class="flex justify-between mt-1">
                             @error('purpose') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
-                            <span class="text-xs ml-auto" :class="purpose.length >= 10 ? 'text-green-600' : 'text-gray-400'" x-text="purpose.length + '/500'"></span>
+                            <span class="text-xs ml-auto" :class="purpose.length >= 10 ? 'text-green-600' : 'text-gray-400'" x-text="purpose.length + '/100'"></span>
                         </div>
                     </div>
 

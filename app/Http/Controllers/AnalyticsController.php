@@ -59,27 +59,41 @@ class AnalyticsController extends Controller
      */
     public function demandForecast()
     {
-        // Only analyze items that have borrowings (prevents loading ALL items)
         $items = Item::with(['borrowings', 'maintenanceRecords', 'procurementRequests'])
             ->whereHas('borrowings', function ($q) {
-            $q->where('requested_date', '>=', now()->subDays(60));
-        })->get();
+                $q->where('requested_date', '>=', now()->subDays(60));
+            })
+            ->limit(120)
+            ->get();
+
+        if ($items->isEmpty()) {
+            $items = Item::with(['borrowings', 'maintenanceRecords', 'procurementRequests'])
+                ->whereHas('borrowings')
+                ->limit(120)
+                ->get();
+        }
+
+        if ($items->isEmpty()) {
+            $items = Item::with(['borrowings', 'maintenanceRecords', 'procurementRequests'])
+                ->orderBy('name')
+                ->limit(40)
+                ->get();
+        }
 
         $forecasts = [];
 
         foreach ($items as $item) {
             $forecast = $this->analyticsService->forecastDemand($item, 30);
-            if ($forecast['confidence'] !== 'low') {
-                $forecasts[] = [
-                    'item' => $item,
-                    'forecast' => $forecast,
-                ];
-            }
+            $forecasts[] = [
+                'item' => $item,
+                'forecast' => $forecast,
+            ];
         }
 
-        // Sort by predicted demand (highest first)
         usort($forecasts, function ($a, $b) {
-            return $b['forecast']['predicted_demand'] <=> $a['forecast']['predicted_demand'];
+            $diff = ($b['forecast']['predicted_demand'] ?? 0) <=> ($a['forecast']['predicted_demand'] ?? 0);
+
+            return $diff !== 0 ? $diff : strcmp($a['item']->name, $b['item']->name);
         });
 
         return view('analytics.demand-forecast', compact('forecasts'));
@@ -119,32 +133,40 @@ class AnalyticsController extends Controller
      */
     public function maintenancePredictions()
     {
-        // Only predict for items that have wear or maintenance history
         $items = Item::with(['maintenanceRecords', 'borrowings'])
             ->where(function ($q) {
                 $q->where('wear_level', '>', 0)
-                  ->orWhereHas('maintenanceRecords');
+                    ->orWhereHas('maintenanceRecords')
+                    ->orWhereHas('borrowings', function ($bq) {
+                        $bq->where('requested_date', '>=', now()->subDays(365));
+                    });
             })
+            ->limit(300)
             ->get();
 
-        $predictions = [];
-
-        foreach ($items as $item) {
-            $prediction = $this->analyticsService->predictMaintenanceNeeds($item);
-            if ($prediction['urgency'] !== 'low') {
-                $predictions[] = [
-                    'item' => $item,
-                    'prediction' => $prediction,
-                ];
-            }
+        if ($items->isEmpty()) {
+            $items = Item::with(['maintenanceRecords', 'borrowings'])
+                ->orderByDesc('wear_level')
+                ->orderBy('name')
+                ->limit(120)
+                ->get();
         }
 
-        // Sort by urgency (critical first)
+        $predictions = [];
+        foreach ($items as $item) {
+            $predictions[] = [
+                'item' => $item,
+                'prediction' => $this->analyticsService->predictMaintenanceNeeds($item),
+            ];
+        }
+
         $urgencyOrder = ['critical' => 4, 'high' => 3, 'moderate' => 2, 'low' => 1];
         usort($predictions, function ($a, $b) use ($urgencyOrder) {
-            $urgencyA = $urgencyOrder[$a['prediction']['urgency']] ?? 0;
-            $urgencyB = $urgencyOrder[$b['prediction']['urgency']] ?? 0;
-            return $urgencyB <=> $urgencyA;
+            $scoreA = $urgencyOrder[$a['prediction']['urgency']] ?? 0;
+            $scoreB = $urgencyOrder[$b['prediction']['urgency']] ?? 0;
+            $diff = $scoreB <=> $scoreA;
+
+            return $diff !== 0 ? $diff : strcmp($a['item']->name, $b['item']->name);
         });
 
         return view('analytics.maintenance-predictions', compact('predictions'));

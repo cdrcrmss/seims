@@ -125,6 +125,11 @@
         </div>
     </div>
 
+    @php $lowUrgencyCount = collect($predictions)->where('prediction.urgency', 'low')->count(); @endphp
+    @if($lowUrgencyCount > 0)
+        <p class="text-center text-sm text-gray-500">{{ $lowUrgencyCount }} additional item(s) shown as routine/low urgency (scroll the list below).</p>
+    @endif
+
     <!-- Predictions List -->
     <div class="space-y-4 animate-fade-in-up stagger-2">
         @forelse($predictions as $index => $data)

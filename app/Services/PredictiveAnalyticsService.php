@@ -100,11 +100,32 @@ class PredictiveAnalyticsService
             ->get();
 
         if ($recentMaintenance->isEmpty()) {
+            $currentWear = $item->wear_level ?? 0;
+            $urgency = 'low';
+            if ($currentWear >= 70) {
+                $urgency = 'critical';
+            } elseif ($currentWear >= 50) {
+                $urgency = 'high';
+            } elseif ($currentWear >= 30) {
+                $urgency = 'moderate';
+            }
+
+            // No baseline history: assume gradual wear accumulation for horizons only
+            $assumedWearPerDay = 0.5;
+            $criticalThreshold = 80;
+            $wearRemaining = max(0.1, $criticalThreshold - $currentWear);
+            $daysUntilCritical = max(14, round($wearRemaining / $assumedWearPerDay));
+
             return [
-                'next_maintenance_date' => now()->addMonths(3),
-                'urgency' => 'low',
+                'next_maintenance_date' => now()->addDays(min(90, (int) floor($daysUntilCritical * 0.8))),
+                'current_wear_level' => $currentWear,
+                'average_wear_rate' => 0,
+                'days_until_critical' => (int) $daysUntilCritical,
+                'urgency' => $urgency,
                 'confidence' => 'low',
-                'reasoning' => 'No maintenance history available. Using default 3-month interval.',
+                'reasoning' => $currentWear > 0
+                    ? "Wear level {$currentWear}% with limited maintenance history — schedule is an estimate."
+                    : 'No completed maintenance baseline on file. Showing a preventive schedule assuming typical accumulation.',
             ];
         }
 
