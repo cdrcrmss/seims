@@ -222,6 +222,25 @@
                 @endif
             </nav>
 
+            {{-- Mobile sidebar footer: profile & sign out --}}
+            <div class="flex-shrink-0 px-3 py-4 border-t border-white/10 lg:hidden">
+                <div class="px-3 py-2 mb-2">
+                    <p class="text-sm font-medium text-white truncate">{{ auth()->user()->name }}</p>
+                    <p class="text-xs text-white/50 truncate">{{ auth()->user()->email }}</p>
+                </div>
+                <a href="{{ route('profile') }}" class="flex items-center px-3 py-2.5 rounded-xl text-sm sidebar-link">
+                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    Profile Settings
+                </a>
+                <form method="POST" action="{{ route('logout') }}" class="mt-1">
+                    @csrf
+                    <button type="submit" class="flex items-center w-full px-3 py-2.5 rounded-xl text-sm text-red-200 hover:bg-white/10 transition-colors">
+                        <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        Sign out
+                    </button>
+                </form>
+            </div>
+
         </aside>
 
         {{-- ============================================================ --}}
@@ -234,13 +253,13 @@
             <header class="flex-shrink-0 z-30 bg-white/80 backdrop-blur-xl border-b border-gray-100 shadow-sm">
                 <div class="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
                     {{-- Left: mobile menu + page title --}}
-                    <div class="flex items-center space-x-3">
-                        <button @click="sidebarOpen = true" class="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors" aria-label="Open sidebar">
+                    <div class="flex items-center space-x-3 min-w-0 flex-1">
+                        <button @click="sidebarOpen = true" class="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors flex-shrink-0" aria-label="Open sidebar">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                             </svg>
                         </button>
-                        <h2 class="text-lg font-semibold text-gray-800 font-poppins">@yield('title', 'Dashboard')</h2>
+                        <h2 class="text-base sm:text-lg font-semibold text-gray-800 font-poppins truncate max-w-[9rem] sm:max-w-none">@yield('title', 'Dashboard')</h2>
                     </div>
 
                     {{-- Right: notification bell + mini avatar --}}
@@ -264,7 +283,7 @@
                                  x-transition:leave="transition ease-in duration-100"
                                  x-transition:leave-start="opacity-100 scale-100"
                                  x-transition:leave-end="opacity-0 scale-95"
-                                 class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+                                 class="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
                                 <div class="px-4 py-2 border-b border-gray-100 flex items-center justify-between">
                                     <p class="text-sm font-semibold text-gray-900">Notifications</p>
                                     @if($unreadNotifCount > 0)
@@ -322,13 +341,13 @@
                         </div>
 
                         {{-- User dropdown --}}
-                        <div x-data="{ userOpen: false }" class="relative hidden sm:block">
-                            <button @click="userOpen = !userOpen" class="flex items-center space-x-2 pl-2 border-l border-gray-200 cursor-pointer hover:bg-gray-50 rounded-lg pr-2 py-1 transition-colors">
-                                <div class="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-xs font-semibold">
+                        <div x-data="{ userOpen: false }" class="relative">
+                            <button @click="userOpen = !userOpen" type="button" aria-label="Account menu" :aria-expanded="userOpen" class="flex items-center space-x-2 pl-2 border-l border-gray-200 cursor-pointer hover:bg-gray-50 rounded-lg pr-2 py-1 transition-colors">
+                                <div class="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
                                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                                 </div>
-                                <span class="text-sm text-gray-700 font-medium hidden md:inline">{{ auth()->user()->name }}</span>
-                                <svg class="w-4 h-4 text-gray-400 hidden md:block transition-transform" :class="userOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <span class="text-sm text-gray-700 font-medium hidden md:inline max-w-[120px] truncate">{{ auth()->user()->name }}</span>
+                                <svg class="w-4 h-4 text-gray-400 hidden sm:block transition-transform flex-shrink-0" :class="userOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                 </svg>
                             </button>
@@ -341,7 +360,7 @@
                                  x-transition:leave="transition ease-in duration-100"
                                  x-transition:leave-start="opacity-100 scale-100"
                                  x-transition:leave-end="opacity-0 scale-95"
-                                 class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
+                                 class="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
                                 <div class="px-4 py-3 border-b border-gray-100">
                                     <p class="text-sm font-medium text-gray-900">{{ auth()->user()->name }}</p>
                                     <p class="text-xs text-gray-500">{{ auth()->user()->email }}</p>
