@@ -49,6 +49,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
         // User Management
         Route::get('/users', [AdminController::class, 'users'])->name('users.index');
+        Route::get('/users/search', [AdminController::class, 'searchUsers'])->name('users.search');
         Route::get('/users/create', [AdminController::class, 'createUser'])->name('users.create');
         Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
         Route::get('/users/{user}/edit', [AdminController::class, 'editUser'])->name('users.edit');
@@ -56,6 +57,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::delete('/users/{user}', [AdminController::class, 'deleteUser'])->name('users.delete');
         Route::patch('/users/{user}/approve', [AdminController::class, 'approveUser'])->name('users.approve');
         Route::patch('/users/{user}/reject', [AdminController::class, 'rejectUser'])->name('users.reject');
+        Route::patch('/users/{user}/reset-password', [AdminController::class, 'resetPassword'])->name('users.reset-password');
         
         // System Management
         Route::get('/reports', [AdminController::class, 'reports'])->name('reports');

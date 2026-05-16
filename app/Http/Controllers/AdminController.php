@@ -38,23 +38,82 @@ class AdminController extends Controller
         ];
 
         $users = User::query()
-            ->when($search, function($query, $search) {
-                return $query->where(function($q) use ($search) {
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%");
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('student_id', 'like', "%{$search}%");
                 });
             })
-            ->when($role, function($query, $role) {
+            ->when($role, function ($query, $role) {
                 return $query->where('role', $role);
             })
-            ->when($approval === 'pending', function($query) {
+            ->when($approval === 'pending', function ($query) {
                 return $query->where('is_approved', false);
             })
-            ->orderByRaw('is_approved ASC') // Show pending first
+            ->orderByRaw('is_approved ASC')
             ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
         return view('admin.users.index', compact('users', 'search', 'role', 'approval', 'roleCounts'));
+    }
+
+    /**
+     * JSON search suggestions for the user management autocomplete.
+     */
+    public function searchUsers(Request $request)
+    {
+        $search = trim($request->get('q', ''));
+        if (strlen($search) < 2) {
+            return response()->json(['users' => []]);
+        }
+
+        $role = $request->get('role');
+
+        $users = User::query()
+            ->when($role, fn ($q) => $q->where('role', $role))
+            ->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('student_id', 'like', "%{$search}%");
+            })
+            ->orderBy('name')
+            ->limit(8)
+            ->get(['id', 'name', 'email', 'role', 'student_id']);
+
+        return response()->json([
+            'users' => $users->map(fn ($u) => [
+                'id' => $u->id,
+                'name' => $u->name,
+                'email' => $u->email,
+                'role' => $u->role,
+                'detail' => collect([
+                    ucfirst($u->role),
+                    $u->student_id ? ($u->role === 'staff' ? 'Staff ID: ' : 'Student ID: ') . $u->student_id : null,
+                    $u->email,
+                ])->filter()->implode(' · '),
+            ]),
+        ]);
+    }
+
+    /**
+     * Admin resets a student or staff member's password.
+     */
+    public function resetPassword(Request $request, User $user)
+    {
+        if ($user->isAdmin()) {
+            return back()->withErrors(['error' => 'Administrator passwords cannot be reset from this screen.']);
+        }
+
+        $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user->update(['password' => $request->password]);
+
+        return redirect()->route('admin.users.index', $request->only(['search', 'role', 'approval']))
+            ->with('success', "Password updated for {$user->name}. Share the new password with them securely.");
     }
 
     public function createUser()
