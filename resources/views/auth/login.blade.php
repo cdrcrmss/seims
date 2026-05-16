@@ -579,22 +579,7 @@
                     </p>
                 </div>
 
-                <!-- Divider -->
-                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
-                    <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
-                    <span style="font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Need help?</span>
-                    <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
-                </div>
 
-                <!-- Support Link -->
-                <div style="text-align: center;">
-                    <a href="#" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border: 1px solid #e2e8f0; border-radius: 10px; text-decoration: none; color: #64748b; font-size: 14px; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.borderColor='#cbd5e1'; this.style.background='#f8fafc'" onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='transparent'">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        Contact Support
-                    </a>
-                </div>
             </div>
         </div>
     </div>
