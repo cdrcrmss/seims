@@ -95,16 +95,18 @@ class QrCodeController extends Controller
                     'status' => $b->status,
                 ]);
             
-            // Include issued borrowings (ready for return)
+            // Include issued borrowings (ready for return) — multiple rows are normal when
+            // the same catalog item has several units out on loan (each unit has its own QR).
             $payload['issued_borrowings'] = $item->borrowings()
                 ->where('status', 'issued')
-                ->with('user:id,name')
+                ->with(['user:id,name', 'itemUnit:id,unit_code'])
                 ->get()
-                ->map(fn($b) => [
+                ->map(fn ($b) => [
                     'id' => $b->id,
                     'user_name' => $b->user->name,
                     'quantity' => $b->quantity,
                     'expected_return_date' => $b->expected_return_date?->format('M d, Y') ?? 'N/A',
+                    'unit_code' => $b->itemUnit?->unit_code,
                 ]);
         }
 

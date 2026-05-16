@@ -241,7 +241,11 @@
                             <div class="bg-green-50 rounded-xl p-3 mb-2 flex items-center justify-between">
                                 <div>
                                     <p class="text-sm font-medium text-gray-900" x-text="borrowing.user_name"></p>
-                                    <p class="text-xs text-gray-500">Qty: <span x-text="borrowing.quantity"></span> | Due: <span x-text="borrowing.expected_return_date"></span></p>
+                                    <p class="text-xs text-gray-500">
+                                        Qty: <span x-text="borrowing.quantity"></span>
+                                        <template x-if="borrowing.unit_code"><span> · Unit <span class="font-mono" x-text="borrowing.unit_code"></span></span></template>
+                                        | Due: <span x-text="borrowing.expected_return_date"></span>
+                                    </p>
                                 </div>
                                 <button type="button" @click="openReturnModalFromScan(borrowing.id)" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-sm font-semibold transition-all">
                                     Return
