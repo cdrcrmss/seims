@@ -220,10 +220,17 @@ class AnalyticsController extends Controller
     }
 
     /**
-     * Generate reports export as PDF
+     * Export analytics report as PDF.
      */
     public function exportReport(Request $request)
     {
+        $request->validate([
+            'type'       => 'nullable|in:comprehensive,demand_forecast,utilization,maintenance,procurement',
+            'format'     => 'nullable|in:pdf',
+            'date_from'  => 'nullable|date',
+            'date_to'    => 'nullable|date|after_or_equal:date_from',
+        ]);
+
         $type = $request->input('type', 'comprehensive');
         
         // Generate report data based on type
@@ -268,6 +275,8 @@ class AnalyticsController extends Controller
             'data' => $data,
             'type' => $type,
             'generated_at' => now()->format('F d, Y h:i A'),
+            'date_from' => $request->date_from,
+            'date_to' => $request->date_to,
             'report_title' => $reportTitles[$type] ?? 'Analytics Report',
             'report_description' => $reportDescriptions[$type] ?? '',
         ]);
