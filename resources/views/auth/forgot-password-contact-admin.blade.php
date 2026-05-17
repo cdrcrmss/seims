@@ -44,12 +44,9 @@
             </ul>
         </div>
 
-        <a href="{{ route('login') }}" style="display: block; text-align: center; padding: 14px 24px; background: linear-gradient(135deg, #16a34a, #15803d); color: white; text-decoration: none; border-radius: 12px; font-size: 15px; font-weight: 600; margin-bottom: 12px;">
+        <a href="{{ route('login') }}" style="display: block; text-align: center; padding: 14px 24px; background: linear-gradient(135deg, #16a34a, #15803d); color: white; text-decoration: none; border-radius: 12px; font-size: 15px; font-weight: 600;">
             Back to Sign In
         </a>
-        <p style="text-align: center; margin: 0;">
-            <a href="{{ route('password.request') }}" style="font-size: 13px; color: #64748b; text-decoration: none;">Use a different email</a>
-        </p>
     </div>
 </body>
 </html>

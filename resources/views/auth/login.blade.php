@@ -532,7 +532,7 @@
                         </label>
                         
                         @if (Route::has('password.request'))
-                            <a :href="'{{ route('password.request') }}' + (email ? '?email=' + encodeURIComponent(email) : '')"
+                            <a href="{{ route('password.request') }}"
                                style="font-size: 14px; color: #16a34a; text-decoration: none; font-weight: 500; transition: color 0.2s;"
                                onmouseover="this.style.color='#15803d'" onmouseout="this.style.color='#16a34a'">
                                 Forgot password?
