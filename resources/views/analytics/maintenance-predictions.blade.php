@@ -35,7 +35,7 @@
             </svg>
         </div>
         <div class="px-6 py-5 hidden">
-            <form method="POST" action="{{ route('admin.reports.maintenance-export') }}">
+            <form method="POST" action="{{ route('admin.reports.maintenance-export') }}" data-file-download>
                 @csrf
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
                     <div>

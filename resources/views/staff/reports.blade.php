@@ -16,7 +16,7 @@
                 <option value="monthly">Monthly</option>
                 <option value="quarterly">Quarterly</option>
             </select>
-            <form method="POST" action="{{ route('analytics.export') }}" class="inline">
+            <form method="POST" action="{{ route('analytics.export') }}" class="inline" data-file-download>
                 @csrf
                 <input type="hidden" name="type" value="comprehensive">
                 <button type="submit" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200">

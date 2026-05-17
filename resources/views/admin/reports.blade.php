@@ -16,7 +16,7 @@
                 <option value="quarterly">Quarterly</option>
                 <option value="yearly">Yearly</option>
             </select>
-            <form method="POST" action="{{ route('analytics.export') }}" class="inline">
+            <form method="POST" action="{{ route('analytics.export') }}" class="inline" data-file-download>
                 @csrf
                 <input type="hidden" name="type" value="comprehensive">
                 <button type="submit" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200">
@@ -50,7 +50,7 @@
         </div>
 
         <div class="px-6 py-5">
-            <form method="POST" action="{{ route('admin.reports.maintenance-export') }}">
+            <form method="POST" action="{{ route('admin.reports.maintenance-export') }}" data-file-download>
                 @csrf
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
                     <!-- Date From -->
