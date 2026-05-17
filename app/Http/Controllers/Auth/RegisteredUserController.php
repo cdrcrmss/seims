@@ -60,6 +60,6 @@ class RegisteredUserController extends Controller
         }
 
         // Do NOT auto-login — redirect to a waiting page
-        return redirect()->route('login')->with('status', 'Your account has been created and is pending admin approval. You will be notified once approved.');
+        return redirect()->route('login')->with('status', 'Your account has been created and is pending admin approval.');
     }
 }

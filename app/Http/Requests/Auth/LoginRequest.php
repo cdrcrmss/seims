@@ -57,7 +57,7 @@ class LoginRequest extends FormRequest
             $this->session()->regenerateToken();
 
             throw ValidationException::withMessages([
-                'email' => 'Your account is pending admin approval. You will be notified once approved.',
+                'email' => 'Your account is pending admin approval.',
             ]);
         }
 
