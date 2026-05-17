@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\Uploads;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PublicFileController extends Controller
 {
     /**
-     * Serve files from the public storage disk (item photos, return images, etc.).
+     * Serve uploads locally; redirect to cloud URL when using object storage.
      */
     public function show(string $path)
     {
@@ -18,10 +19,20 @@ class PublicFileController extends Controller
             abort(404);
         }
 
-        if (! Storage::disk('public')->exists($path)) {
+        $disk = Uploads::disk();
+
+        if (Uploads::isCloud()) {
+            if (! Storage::disk($disk)->exists($path)) {
+                abort(404);
+            }
+
+            return redirect(Storage::disk($disk)->url($path));
+        }
+
+        if (! Storage::disk($disk)->exists($path)) {
             abort(404);
         }
 
-        return Storage::disk('public')->response($path);
+        return Storage::disk($disk)->response($path);
     }
 }

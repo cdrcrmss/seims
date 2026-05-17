@@ -137,7 +137,7 @@ class StaffController extends Controller
 
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('items', 'public');
+            $imagePath = \App\Support\Uploads::store($request->file('image'), 'items');
         }
 
         $item = Item::create([
@@ -235,10 +235,8 @@ class StaffController extends Controller
 
         $imagePath = $item->image_path;
         if ($request->hasFile('image')) {
-            if ($imagePath) {
-                Storage::disk('public')->delete($imagePath);
-            }
-            $imagePath = $request->file('image')->store('items', 'public');
+            \App\Support\Uploads::delete($imagePath);
+            $imagePath = \App\Support\Uploads::store($request->file('image'), 'items');
         }
 
         $item->update([
@@ -387,9 +385,7 @@ class StaffController extends Controller
         }
 
         // Delete image permanently
-        if ($item->image_path) {
-            Storage::disk('public')->delete($item->image_path);
-        }
+        \App\Support\Uploads::delete($item->image_path);
 
         $item->forceDelete();
         
@@ -766,7 +762,7 @@ class StaffController extends Controller
 
         $returnImagePath = null;
         if ($request->hasFile('return_image')) {
-            $returnImagePath = $request->file('return_image')->store('return-images', 'public');
+            $returnImagePath = \App\Support\Uploads::store($request->file('return_image'), 'return-images');
         }
 
         try {

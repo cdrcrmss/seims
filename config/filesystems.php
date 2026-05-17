@@ -17,6 +17,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Uploads Disk (item images, return photos)
+    |--------------------------------------------------------------------------
+    |
+    | Local development: "public" (storage/app/public).
+    | Laravel Cloud: auto-detected from your object storage bucket, or set
+    | FILESYSTEM_UPLOADS_DISK to your bucket disk name (e.g. "r2").
+    |
+    */
+
+    'uploads_disk' => env('FILESYSTEM_UPLOADS_DISK', 'public'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |

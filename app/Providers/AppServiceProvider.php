@@ -25,6 +25,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->configureUploadsDisk();
+
         // Fix MySQL key length for utf8mb4 encoding
         Schema::defaultStringLength(191);
 
@@ -84,5 +86,39 @@ class AppServiceProvider extends ServiceProvider
             $view->with('headerNotifications', $headerNotifications)
                  ->with('unreadNotifCount', $unreadNotifCount);
         });
+    }
+
+    /**
+     * Use Laravel Cloud object storage for uploads when a bucket is attached.
+     */
+    protected function configureUploadsDisk(): void
+    {
+        if (env('FILESYSTEM_UPLOADS_DISK')) {
+            return;
+        }
+
+        if (! filled(env('AWS_BUCKET'))) {
+            config(['filesystems.uploads_disk' => 'public']);
+
+            return;
+        }
+
+        $default = env('FILESYSTEM_DISK');
+
+        if ($default && $default !== 'local' && config("filesystems.disks.{$default}.driver") === 's3') {
+            config(['filesystems.uploads_disk' => $default]);
+
+            return;
+        }
+
+        foreach (array_keys(config('filesystems.disks', [])) as $disk) {
+            if (config("filesystems.disks.{$disk}.driver") === 's3') {
+                config(['filesystems.uploads_disk' => $disk]);
+
+                return;
+            }
+        }
+
+        config(['filesystems.uploads_disk' => 's3']);
     }
 }

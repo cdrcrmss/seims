@@ -294,12 +294,6 @@ class Item extends Model
      */
     public function getImageUrlAttribute(): ?string
     {
-        if (blank($this->image_path)) {
-            return null;
-        }
-
-        $path = ltrim(str_replace(['public/', 'storage/'], '', $this->image_path), '/');
-
-        return route('storage.public.show', ['path' => $path]);
+        return \App\Support\Uploads::url($this->image_path);
     }
 }
