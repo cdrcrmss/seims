@@ -43,7 +43,6 @@
                         <option value="demand_forecast">Demand Forecast</option>
                         <option value="utilization">Equipment Utilization</option>
                         <option value="maintenance">Maintenance Predictions</option>
-                        <option value="procurement">Procurement Analytics</option>
                     </select>
                 </div>
             </div>

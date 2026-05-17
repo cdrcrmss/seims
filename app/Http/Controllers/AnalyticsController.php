@@ -225,7 +225,7 @@ class AnalyticsController extends Controller
     public function exportReport(Request $request)
     {
         $request->validate([
-            'type'       => 'nullable|in:comprehensive,demand_forecast,utilization,maintenance,procurement',
+            'type'       => 'nullable|in:comprehensive,demand_forecast,utilization,maintenance',
             'format'     => 'nullable|in:pdf',
             'date_from'  => 'nullable|date',
             'date_to'    => 'nullable|date|after_or_equal:date_from',
