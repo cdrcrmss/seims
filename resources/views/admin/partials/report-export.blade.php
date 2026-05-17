@@ -39,6 +39,7 @@
                     <label class="block text-xs font-semibold text-gray-600 mb-1.5">Report Type</label>
                     <select name="type"
                             class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50">
+                        <option value="all">All Types</option>
                         <option value="top_borrowers">Top Borrowers</option>
                         <option value="item_categories">Item Categories</option>
                         <option value="most_borrowed_items">Most Borrowed Items</option>

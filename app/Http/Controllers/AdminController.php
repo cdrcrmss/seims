@@ -418,7 +418,7 @@ class AdminController extends Controller
     public function exportReport(Request $request, SystemReportService $reports)
     {
         $request->validate([
-            'type'      => 'required|in:top_borrowers,item_categories,most_borrowed_items,borrowing_trend',
+            'type'      => 'required|in:all,top_borrowers,item_categories,most_borrowed_items,borrowing_trend',
             'format'    => 'nullable|in:pdf',
             'date_from' => 'nullable|date',
             'date_to'   => 'nullable|date|after_or_equal:date_from',
@@ -428,19 +428,41 @@ class AdminController extends Controller
         $from = $request->date_from;
         $to = $request->date_to;
 
-        $rows = match ($type) {
-            'top_borrowers' => $reports->topBorrowers($from, $to),
-            'item_categories' => $reports->itemsByCategory(),
-            'most_borrowed_items' => $reports->mostBorrowedItems($from, $to),
-            'borrowing_trend' => $reports->borrowingTrend($from, $to),
-        };
-
         [$start, $end] = $reports->dateRange($from, $to);
+
+        $sectionLabels = [
+            'top_borrowers' => 'Top Borrowers',
+            'item_categories' => 'Item Categories',
+            'most_borrowed_items' => 'Most Borrowed Items',
+            'borrowing_trend' => 'Borrowing Trend',
+        ];
+
+        $sections = null;
+        $rows = null;
+
+        if ($type === 'all') {
+            $sections = [
+                'top_borrowers' => $reports->topBorrowers($from, $to),
+                'item_categories' => $reports->itemsByCategory(),
+                'most_borrowed_items' => $reports->mostBorrowedItems($from, $to),
+                'borrowing_trend' => $reports->borrowingTrend($from, $to),
+            ];
+        } else {
+            $rows = match ($type) {
+                'top_borrowers' => $reports->topBorrowers($from, $to),
+                'item_categories' => $reports->itemsByCategory(),
+                'most_borrowed_items' => $reports->mostBorrowedItems($from, $to),
+                'borrowing_trend' => $reports->borrowingTrend($from, $to),
+            };
+        }
+
         $meta = $reports->reportMeta($type);
 
         $pdf = Pdf::loadView('admin.system-report-pdf', [
             'type' => $type,
             'rows' => $rows,
+            'sections' => $sections,
+            'section_labels' => $sectionLabels,
             'report_title' => $meta['title'],
             'report_description' => $meta['description'],
             'date_from' => $start->format('M d, Y'),

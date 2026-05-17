@@ -225,54 +225,62 @@ class AnalyticsController extends Controller
     public function exportReport(Request $request)
     {
         $request->validate([
-            'type'       => 'nullable|in:comprehensive,demand_forecast,utilization,maintenance',
+            'type'       => 'nullable|in:all,comprehensive,demand_forecast,utilization,maintenance',
             'format'     => 'nullable|in:pdf',
             'date_from'  => 'nullable|date',
             'date_to'    => 'nullable|date|after_or_equal:date_from',
         ]);
 
         $type = $request->input('type', 'comprehensive');
-        
-        // Generate report data based on type
-        $data = [];
-        
-        switch ($type) {
-            case 'demand_forecast':
-                $data = $this->generateDemandForecastReport();
-                break;
-            case 'utilization':
-                $data = $this->generateUtilizationReport();
-                break;
-            case 'maintenance':
-                $data = $this->generateMaintenanceReport();
-                break;
-            case 'procurement':
-                $data = $this->generateProcurementReport();
-                break;
-            default:
-                $data = $this->generateComprehensiveReport();
-        }
 
-        $filename = 'seims_' . $type . '_report_' . now()->format('Y-m-d') . '.pdf';
+        $sectionLabels = [
+            'comprehensive' => 'Comprehensive Overview',
+            'demand_forecast' => 'Demand Forecast',
+            'utilization' => 'Equipment Utilization',
+            'maintenance' => 'Maintenance Predictions',
+        ];
 
         $reportTitles = [
+            'all' => 'All Analytics Reports',
             'comprehensive' => 'Comprehensive Analytics Report',
             'demand_forecast' => 'Demand Forecast Report',
             'utilization' => 'Equipment Utilization Report',
             'maintenance' => 'Maintenance Predictions Report',
-            'procurement' => 'Procurement Analytics Report',
         ];
 
         $reportDescriptions = [
+            'all' => 'Combined export of all analytics report types.',
             'comprehensive' => 'Complete overview of inventory, borrowings, and maintenance metrics.',
             'demand_forecast' => 'Predicted demand for equipment over the next 30 days.',
             'utilization' => 'Equipment usage rates and efficiency analysis.',
             'maintenance' => 'Maintenance schedules, costs, and critical items requiring attention.',
-            'procurement' => 'Procurement requests, spending, and low stock alerts.',
         ];
+
+        $sections = null;
+        $data = [];
+
+        if ($type === 'all') {
+            $sections = [
+                'comprehensive' => $this->generateComprehensiveReport(),
+                'demand_forecast' => $this->generateDemandForecastReport(),
+                'utilization' => $this->generateUtilizationReport(),
+                'maintenance' => $this->generateMaintenanceReport(),
+            ];
+        } else {
+            $data = match ($type) {
+                'demand_forecast' => $this->generateDemandForecastReport(),
+                'utilization' => $this->generateUtilizationReport(),
+                'maintenance' => $this->generateMaintenanceReport(),
+                default => $this->generateComprehensiveReport(),
+            };
+        }
+
+        $filename = 'seims_' . $type . '_report_' . now()->format('Y-m-d') . '.pdf';
 
         $pdf = Pdf::loadView('analytics.report-pdf', [
             'data' => $data,
+            'sections' => $sections,
+            'section_labels' => $sectionLabels,
             'type' => $type,
             'generated_at' => now()->format('F d, Y h:i A'),
             'date_from' => $request->date_from,

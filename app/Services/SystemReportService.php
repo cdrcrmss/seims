@@ -98,6 +98,7 @@ class SystemReportService
     public function reportMeta(string $type): array
     {
         $titles = [
+            'all' => 'All System Reports',
             'top_borrowers' => 'Top Borrowers Report',
             'item_categories' => 'Item Categories Report',
             'most_borrowed_items' => 'Most Borrowed Items Report',
@@ -105,6 +106,7 @@ class SystemReportService
         ];
 
         $descriptions = [
+            'all' => 'Combined export of all system report types.',
             'top_borrowers' => 'Users with the most borrowing activity in the selected period.',
             'item_categories' => 'Current inventory distribution across item categories.',
             'most_borrowed_items' => 'Equipment borrowed most frequently in the selected period.',

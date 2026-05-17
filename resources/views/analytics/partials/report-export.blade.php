@@ -39,6 +39,7 @@
                     <label class="block text-xs font-semibold text-gray-600 mb-1.5">Report Type</label>
                     <select name="type"
                             class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-gray-50">
+                        <option value="all">All Types</option>
                         <option value="comprehensive">Comprehensive Overview</option>
                         <option value="demand_forecast">Demand Forecast</option>
                         <option value="utilization">Equipment Utilization</option>
