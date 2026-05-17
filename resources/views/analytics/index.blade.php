@@ -124,7 +124,7 @@
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Total Items</p>
             <p class="text-3xl font-bold text-green-600 mt-1 font-poppins">{{ $dashboardData['total_items'] }}</p>
         </a>
-        <a href="{{ route('staff.items.index', ['status' => 'out_of_stock']) }}" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-red-500 hover:ring-red-300 transition-all cursor-pointer block">
+        <a href="{{ route('staff.items.index', ['stock_filter' => 'low_stock']) }}" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-red-500 hover:ring-red-300 transition-all cursor-pointer block">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Low Stock</p>
             <p class="text-3xl font-bold text-red-600 mt-1 font-poppins">{{ $dashboardData['low_stock_items'] }}</p>
         </a>

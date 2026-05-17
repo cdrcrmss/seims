@@ -71,7 +71,7 @@
             </div>
         </a>
 
-        <a href="{{ route('staff.items.index', ['status' => 'out_of_stock']) }}" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden cursor-pointer hover:ring-red-200 transition-all">
+        <a href="{{ route('staff.items.index', ['stock_filter' => 'out_of_stock']) }}" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden cursor-pointer hover:ring-red-200 transition-all">
             <div class="absolute top-0 left-0 w-1 h-full bg-red-500 rounded-r-full"></div>
             <div class="flex items-center justify-between">
                 <div>

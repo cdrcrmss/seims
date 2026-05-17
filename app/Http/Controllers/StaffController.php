@@ -34,6 +34,12 @@ class StaffController extends Controller
         $laboratory = $request->get('laboratory');
         $status = $request->get('status'); // Item status: available, in_use, maintenance, damaged, lost, disposed
         $stockFilter = $request->get('stock_filter'); // Stock level: in_stock, low_stock, out_of_stock
+
+        // Legacy links used status=out_of_stock; map to stock_filter
+        if ($status === 'out_of_stock') {
+            $stockFilter = $stockFilter ?: 'out_of_stock';
+            $status = null;
+        }
         
         // Stats counts (unfiltered)
         $totalItemsCount = Item::count();
@@ -72,15 +78,20 @@ class StaffController extends Controller
                 }
                 return $query->where('status', $status);
             })
-            ->when($stockFilter, function($query, $stockFilter) {
-                // Filter by stock level
+            ->when($stockFilter, function ($query, $stockFilter) {
                 if ($stockFilter === 'in_stock') {
-                    return $query->where('available_stock', '>', 5);
-                } elseif ($stockFilter === 'low_stock') {
-                    return $query->where('available_stock', '>', 0)->where('available_stock', '<=', 5);
-                } elseif ($stockFilter === 'out_of_stock') {
+                    return $query->whereColumn('available_stock', '>', 'low_stock_threshold');
+                }
+
+                if ($stockFilter === 'low_stock') {
+                    return $query->lowStock();
+                }
+
+                if ($stockFilter === 'out_of_stock') {
                     return $query->where('available_stock', 0);
                 }
+
+                return $query;
             })
             ->orderBy('name')
             ->paginate(20)
