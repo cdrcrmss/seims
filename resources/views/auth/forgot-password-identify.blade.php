@@ -68,22 +68,9 @@
             </div>
             <h1 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 8px;">Forgot your password?</h1>
             <p style="font-size: 14px; color: #64748b; margin: 0; line-height: 1.6;">
-                Enter your administrator email and we will send you a password reset link.
+                Enter the email address registered to your account.
             </p>
         </div>
-
-        @if (session('status'))
-        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 14px 16px; margin-bottom: 20px;">
-            <p style="font-size: 14px; color: #166534; margin: 0;">{{ session('status') }}</p>
-        </div>
-        @endif
-
-        @if (session('dev_reset_url'))
-        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 14px 16px; margin-bottom: 20px;">
-            <p style="font-size: 13px; font-weight: 600; color: #92400e; margin: 0 0 8px;">Development reset link</p>
-            <a href="{{ session('dev_reset_url') }}" style="font-size: 13px; color: #b45309; word-break: break-all;">{{ session('dev_reset_url') }}</a>
-        </div>
-        @endif
 
         @if ($errors->any())
         <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 14px 16px; margin-bottom: 20px;">
@@ -93,7 +80,7 @@
         </div>
         @endif
 
-        <form method="POST" action="{{ route('password.email') }}" @submit="loading = true">
+        <form method="POST" action="{{ route('password.request.lookup') }}" @submit="loading = true">
             @csrf
             <div style="margin-bottom: 20px;">
                 <label style="display: block; font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 8px;">Email address</label>
@@ -101,18 +88,14 @@
                     <svg class="input-icon" style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
                     </svg>
-                    <input type="email" name="email" value="{{ $email ?? old('email') }}" class="form-input" placeholder="admin@example.com" required autofocus @if(!empty($email)) readonly style="background:#f8fafc;" @endif>
+                    <input type="email" name="email" value="{{ $email ?? old('email') }}" class="form-input" placeholder="you@example.com" required autofocus>
                 </div>
             </div>
             <button type="submit" class="btn-primary" :disabled="loading" style="margin-bottom: 16px;">
-                <span x-show="!loading">Send reset link</span>
-                <span x-show="loading" x-cloak>Sending...</span>
+                <span x-show="!loading">Continue</span>
+                <span x-show="loading" x-cloak>Please wait...</span>
             </button>
         </form>
-
-        <p style="text-align: center; margin-bottom: 16px;">
-            <a href="{{ route('password.request') }}" style="font-size: 13px; color: #64748b; text-decoration: none;">Use a different email</a>
-        </p>
 
         <div style="text-align: center;">
             <a href="{{ route('login') }}" style="font-size: 14px; color: #16a34a; text-decoration: none; font-weight: 500;">&larr; Back to Sign In</a>

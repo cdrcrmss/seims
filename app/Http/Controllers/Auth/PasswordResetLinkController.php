@@ -13,15 +13,38 @@ use Illuminate\View\View;
 class PasswordResetLinkController extends Controller
 {
     /**
-     * Display the password reset link request view.
+     * Step 1: enter account email to determine reset flow by role.
      */
     public function create(): View
     {
-        return view('auth.forgot-password');
+        return view('auth.forgot-password-identify');
     }
 
     /**
-     * Handle an incoming password reset link request.
+     * Step 2: route admins to email reset; staff/students to contact-admin page.
+     */
+    public function lookup(Request $request): View|RedirectResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user) {
+            return back()->withInput($request->only('email'))
+                ->withErrors(['email' => 'No account found with this email address.']);
+        }
+
+        if ($user->isAdmin()) {
+            return view('auth.forgot-password', ['email' => $user->email]);
+        }
+
+        return view('auth.forgot-password-contact-admin');
+    }
+
+    /**
+     * Send password reset link (admin accounts only).
      */
     public function store(Request $request): RedirectResponse
     {
@@ -34,6 +57,12 @@ class PasswordResetLinkController extends Controller
         if (! $user) {
             return back()->withInput($request->only('email'))
                 ->withErrors(['email' => 'No account found with this email address.']);
+        }
+
+        if (! $user->isAdmin()) {
+            return redirect()->route('password.request')
+                ->withInput($request->only('email'))
+                ->withErrors(['email' => 'Password reset via email is only available for administrator accounts.']);
         }
 
         if (! MailConfig::canDeliver()) {
