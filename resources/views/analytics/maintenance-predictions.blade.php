@@ -17,30 +17,46 @@
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up stagger-1">
         @php
-            $critical = collect($predictions)->where('prediction.urgency', 'critical')->count();
-            $high = collect($predictions)->where('prediction.urgency', 'high')->count();
-            $moderate = collect($predictions)->where('prediction.urgency', 'moderate')->count();
+            $critical = collect($allPredictions)->where('prediction.urgency', 'critical')->count();
+            $high = collect($allPredictions)->where('prediction.urgency', 'high')->count();
+            $moderate = collect($allPredictions)->where('prediction.urgency', 'moderate')->count();
         @endphp
-        <div class="bg-white rounded-2xl ring-1 ring-red-200 p-6 border-l-4 border-red-500">
+        <a href="{{ $urgencyFilter === 'critical' ? route('analytics.maintenance-predictions') : route('analytics.maintenance-predictions', ['urgency' => 'critical']) }}"
+           class="bg-white rounded-2xl ring-1 p-6 border-l-4 border-red-500 block transition-all cursor-pointer
+                  {{ $urgencyFilter === 'critical' ? 'ring-red-400 ring-2 shadow-md' : 'ring-red-200 hover:ring-red-300' }}">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Critical</p>
             <p class="text-3xl font-bold text-red-600 mt-1 font-poppins">{{ $critical }}</p>
             <p class="text-xs text-gray-500 mt-1">Wear ≥ 70% — Immediate attention</p>
-        </div>
-        <div class="bg-white rounded-2xl ring-1 ring-orange-200 p-6 border-l-4 border-orange-500">
+        </a>
+        <a href="{{ $urgencyFilter === 'high' ? route('analytics.maintenance-predictions') : route('analytics.maintenance-predictions', ['urgency' => 'high']) }}"
+           class="bg-white rounded-2xl ring-1 p-6 border-l-4 border-orange-500 block transition-all cursor-pointer
+                  {{ $urgencyFilter === 'high' ? 'ring-orange-400 ring-2 shadow-md' : 'ring-orange-200 hover:ring-orange-300' }}">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">High</p>
             <p class="text-3xl font-bold text-orange-600 mt-1 font-poppins">{{ $high }}</p>
             <p class="text-xs text-gray-500 mt-1">Wear 50-70% — Schedule soon</p>
-        </div>
-        <div class="bg-white rounded-2xl ring-1 ring-yellow-200 p-6 border-l-4 border-yellow-500">
+        </a>
+        <a href="{{ $urgencyFilter === 'moderate' ? route('analytics.maintenance-predictions') : route('analytics.maintenance-predictions', ['urgency' => 'moderate']) }}"
+           class="bg-white rounded-2xl ring-1 p-6 border-l-4 border-yellow-500 block transition-all cursor-pointer
+                  {{ $urgencyFilter === 'moderate' ? 'ring-yellow-400 ring-2 shadow-md' : 'ring-yellow-200 hover:ring-yellow-300' }}">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Moderate</p>
             <p class="text-3xl font-bold text-yellow-600 mt-1 font-poppins">{{ $moderate }}</p>
             <p class="text-xs text-gray-500 mt-1">Wear 30-50% — Monitor closely</p>
-        </div>
+        </a>
     </div>
 
-    @php $lowUrgencyCount = collect($predictions)->where('prediction.urgency', 'low')->count(); @endphp
-    @if($lowUrgencyCount > 0)
-        <p class="text-center text-sm text-gray-500">{{ $lowUrgencyCount }} additional item(s) shown as routine/low urgency (scroll the list below).</p>
+    @if($urgencyFilter)
+    <div class="flex items-center justify-between gap-3 animate-fade-in-up">
+        <p class="text-sm text-gray-600">
+            Showing <span class="font-semibold text-gray-900">{{ ucfirst($urgencyFilter) }}</span> urgency
+            ({{ count($predictions) }} {{ Str::plural('item', count($predictions)) }})
+        </p>
+        <a href="{{ route('analytics.maintenance-predictions') }}" class="text-sm font-semibold text-green-600 hover:text-green-700">Clear filter</a>
+    </div>
+    @else
+        @php $lowUrgencyCount = collect($allPredictions)->where('prediction.urgency', 'low')->count(); @endphp
+        @if($lowUrgencyCount > 0)
+            <p class="text-center text-sm text-gray-500">{{ $lowUrgencyCount }} additional item(s) with routine/low urgency (scroll the list below).</p>
+        @endif
     @endif
 
     <!-- Predictions List -->
@@ -95,9 +111,14 @@
         </div>
         @empty
         <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-12 text-center text-gray-400">
-            <svg class="w-16 h-16 mx-auto mb-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-            <p class="text-lg">All equipment is in good condition</p>
-            <p class="text-sm mt-1">No urgent maintenance predictions at this time</p>
+            @if($urgencyFilter)
+                <p class="text-lg">No {{ $urgencyFilter }} urgency items</p>
+                <a href="{{ route('analytics.maintenance-predictions') }}" class="text-sm text-green-600 font-semibold mt-2 inline-block">View all</a>
+            @else
+                <svg class="w-16 h-16 mx-auto mb-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                <p class="text-lg">All equipment is in good condition</p>
+                <p class="text-sm mt-1">No urgent maintenance predictions at this time</p>
+            @endif
         </div>
         @endforelse
     </div>

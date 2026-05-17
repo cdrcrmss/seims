@@ -18,26 +18,42 @@
     <!-- Summary Stats -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up stagger-1">
         @php
-            $highUtil = collect($utilizations)->where('utilization.status', 'high')->count();
-            $modUtil = collect($utilizations)->where('utilization.status', 'moderate')->count();
-            $lowUtil = collect($utilizations)->where('utilization.status', 'low')->count();
+            $highUtil = collect($allUtilizations)->where('utilization.status', 'high')->count();
+            $modUtil = collect($allUtilizations)->where('utilization.status', 'moderate')->count();
+            $lowUtil = collect($allUtilizations)->where('utilization.status', 'low')->count();
         @endphp
-        <div class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-green-500">
+        <a href="{{ $statusFilter === 'high' ? route('analytics.utilization') : route('analytics.utilization', ['status' => 'high']) }}"
+           class="bg-white rounded-2xl ring-1 p-6 border-l-4 border-green-500 block transition-all cursor-pointer
+                  {{ $statusFilter === 'high' ? 'ring-green-400 ring-2 shadow-md' : 'ring-gray-200 hover:ring-green-300' }}">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">High Utilization</p>
             <p class="text-3xl font-bold text-green-600 mt-1 font-poppins">{{ $highUtil }}</p>
             <p class="text-xs text-gray-500 mt-1">≥ 80% usage</p>
-        </div>
-        <div class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-yellow-500">
+        </a>
+        <a href="{{ $statusFilter === 'moderate' ? route('analytics.utilization') : route('analytics.utilization', ['status' => 'moderate']) }}"
+           class="bg-white rounded-2xl ring-1 p-6 border-l-4 border-yellow-500 block transition-all cursor-pointer
+                  {{ $statusFilter === 'moderate' ? 'ring-yellow-400 ring-2 shadow-md' : 'ring-gray-200 hover:ring-yellow-300' }}">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Moderate</p>
             <p class="text-3xl font-bold text-yellow-600 mt-1 font-poppins">{{ $modUtil }}</p>
             <p class="text-xs text-gray-500 mt-1">50-80% usage</p>
-        </div>
-        <div class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-gray-400">
+        </a>
+        <a href="{{ $statusFilter === 'low' ? route('analytics.utilization') : route('analytics.utilization', ['status' => 'low']) }}"
+           class="bg-white rounded-2xl ring-1 p-6 border-l-4 border-gray-400 block transition-all cursor-pointer
+                  {{ $statusFilter === 'low' ? 'ring-gray-500 ring-2 shadow-md' : 'ring-gray-200 hover:ring-gray-400' }}">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Low Utilization</p>
             <p class="text-3xl font-bold text-gray-600 mt-1 font-poppins">{{ $lowUtil }}</p>
             <p class="text-xs text-gray-500 mt-1">< 50% usage</p>
-        </div>
+        </a>
     </div>
+
+    @if($statusFilter)
+    <div class="flex items-center justify-between gap-3 animate-fade-in-up">
+        <p class="text-sm text-gray-600">
+            Showing <span class="font-semibold text-gray-900">{{ ucfirst($statusFilter) }}</span> utilization
+            ({{ count($utilizations) }} {{ Str::plural('item', count($utilizations)) }})
+        </p>
+        <a href="{{ route('analytics.utilization') }}" class="text-sm font-semibold text-green-600 hover:text-green-700">Clear filter</a>
+    </div>
+    @endif
 
     <!-- Utilization Table -->
     <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm overflow-hidden animate-fade-in-up stagger-2">
@@ -86,7 +102,12 @@
                     @empty
                     <tr>
                         <td colspan="6" class="px-6 py-12 text-center text-gray-400">
-                            <p>No utilization data available</p>
+                            @if($statusFilter)
+                                <p>No equipment with {{ $statusFilter }} utilization</p>
+                                <a href="{{ route('analytics.utilization') }}" class="text-sm text-green-600 font-semibold mt-2 inline-block">View all</a>
+                            @else
+                                <p>No utilization data available</p>
+                            @endif
                         </td>
                     </tr>
                     @endforelse

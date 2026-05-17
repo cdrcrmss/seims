@@ -102,37 +102,53 @@ class AnalyticsController extends Controller
     /**
      * Show equipment utilization analytics
      */
-    public function utilization()
+    public function utilization(Request $request)
     {
+        $statusFilter = $request->query('status');
+        if (! in_array($statusFilter, ['high', 'moderate', 'low'], true)) {
+            $statusFilter = null;
+        }
+
         // Only analyze items that have been borrowed recently
         $items = Item::with(['borrowings'])
             ->whereHas('borrowings', function ($q) {
             $q->where('issued_date', '>=', now()->subDays(30));
         })->get();
 
-        $utilizations = [];
+        $allUtilizations = [];
 
         foreach ($items as $item) {
             $utilization = $this->analyticsService->calculateUtilizationRate($item, 30);
-            $utilizations[] = [
+            $allUtilizations[] = [
                 'item' => $item,
                 'utilization' => $utilization,
             ];
         }
 
-        // Sort by utilization rate (highest first)
-        usort($utilizations, function ($a, $b) {
+        usort($allUtilizations, function ($a, $b) {
             return $b['utilization']['utilization_rate'] <=> $a['utilization']['utilization_rate'];
         });
 
-        return view('analytics.utilization', compact('utilizations'));
+        $utilizations = $statusFilter
+            ? array_values(array_filter(
+                $allUtilizations,
+                fn ($row) => ($row['utilization']['status'] ?? '') === $statusFilter
+            ))
+            : $allUtilizations;
+
+        return view('analytics.utilization', compact('utilizations', 'allUtilizations', 'statusFilter'));
     }
 
     /**
      * Show maintenance predictions
      */
-    public function maintenancePredictions()
+    public function maintenancePredictions(Request $request)
     {
+        $urgencyFilter = $request->query('urgency');
+        if (! in_array($urgencyFilter, ['critical', 'high', 'moderate', 'low'], true)) {
+            $urgencyFilter = null;
+        }
+
         $items = Item::with(['maintenanceRecords', 'borrowings'])
             ->where(function ($q) {
                 $q->where('wear_level', '>', 0)
@@ -169,7 +185,15 @@ class AnalyticsController extends Controller
             return $diff !== 0 ? $diff : strcmp($a['item']->name, $b['item']->name);
         });
 
-        return view('analytics.maintenance-predictions', compact('predictions'));
+        $allPredictions = $predictions;
+        if ($urgencyFilter) {
+            $predictions = array_values(array_filter(
+                $predictions,
+                fn ($row) => ($row['prediction']['urgency'] ?? '') === $urgencyFilter
+            ));
+        }
+
+        return view('analytics.maintenance-predictions', compact('predictions', 'allPredictions', 'urgencyFilter'));
     }
 
     /**
