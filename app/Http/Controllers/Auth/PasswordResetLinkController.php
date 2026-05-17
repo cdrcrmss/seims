@@ -50,11 +50,32 @@ class PasswordResetLinkController extends Controller
             return view('auth.forgot-password-contact-admin');
         }
 
+        if (! $this->mailCanDeliver()) {
+            return back()
+                ->withInput($request->only('email'))
+                ->withErrors([
+                    'email' => 'Email is not configured on this server (MAIL_MAILER is set to log). '
+                        . 'Configure SMTP in your .env file to receive reset links in Gmail. '
+                        . 'See .env.example for Gmail SMTP settings.',
+                ]);
+        }
+
         $status = Password::sendResetLink($request->only('email'));
 
-        return $status === Password::RESET_LINK_SENT
-            ? back()->with('status', __($status))
-            : back()->withInput($request->only('email'))
+        if ($status !== Password::RESET_LINK_SENT) {
+            return back()
+                ->withInput($request->only('email'))
                 ->withErrors(['email' => __($status)]);
+        }
+
+        return back()->with('status', 'We have emailed your password reset link. Check your inbox and spam folder.');
+    }
+
+    /**
+     * True when mail is configured to send off-server (not log/array drivers).
+     */
+    private function mailCanDeliver(): bool
+    {
+        return ! in_array(config('mail.default'), ['log', 'array'], true);
     }
 }
