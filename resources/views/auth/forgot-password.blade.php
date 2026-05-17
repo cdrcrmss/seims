@@ -78,6 +78,13 @@
         </div>
         @endif
 
+        @if (session('dev_reset_url'))
+        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 14px 16px; margin-bottom: 20px;">
+            <p style="font-size: 13px; font-weight: 600; color: #92400e; margin: 0 0 8px;">Development reset link</p>
+            <a href="{{ session('dev_reset_url') }}" style="font-size: 13px; color: #b45309; word-break: break-all;">{{ session('dev_reset_url') }}</a>
+        </div>
+        @endif
+
         @if ($errors->any())
         <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 14px 16px; margin-bottom: 20px;">
             @foreach ($errors->all() as $error)

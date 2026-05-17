@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\MailConfig;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -25,6 +26,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        config(['mail.default' => MailConfig::resolveDefaultMailer()]);
+
         $this->configureUploadsDisk();
 
         // Fix MySQL key length for utf8mb4 encoding
