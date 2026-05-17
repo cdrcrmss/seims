@@ -15,13 +15,9 @@ class PasswordResetLinkController extends Controller
     /**
      * Display the password reset link request view.
      */
-    public function create(Request $request): View
+    public function create(): View
     {
-        if ($request->user()?->isAdmin()) {
-            return view('auth.forgot-password');
-        }
-
-        return view('auth.forgot-password-contact-admin');
+        return view('auth.forgot-password');
     }
 
     /**
@@ -38,11 +34,6 @@ class PasswordResetLinkController extends Controller
         if (! $user) {
             return back()->withInput($request->only('email'))
                 ->withErrors(['email' => 'No account found with this email address.']);
-        }
-
-        if (! $user->isAdmin()) {
-            return back()->withInput($request->only('email'))
-                ->withErrors(['email' => 'Password reset via email is only available for administrator accounts. Students and staff should contact an administrator.']);
         }
 
         if (! MailConfig::canDeliver()) {

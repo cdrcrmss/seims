@@ -68,7 +68,7 @@
             </div>
             <h1 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 8px;">Forgot your password?</h1>
             <p style="font-size: 14px; color: #64748b; margin: 0; line-height: 1.6;">
-                Enter your administrator account email and we will send you a password reset link.
+                Enter your account email and we will send you a password reset link.
             </p>
         </div>
 
@@ -101,7 +101,7 @@
                     <svg class="input-icon" style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
                     </svg>
-                    <input type="email" name="email" value="{{ $email ?? old('email') }}" class="form-input" placeholder="admin@example.com" required autofocus>
+                    <input type="email" name="email" value="{{ $email ?? old('email') }}" class="form-input" placeholder="you@example.com" required autofocus>
                 </div>
             </div>
             <button type="submit" class="btn-primary" :disabled="loading" style="margin-bottom: 16px;">
