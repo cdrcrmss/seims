@@ -38,6 +38,8 @@
         </a>
     </div>
 
+    @include('maintenance.partials.report-export', ['class' => 'animate-fade-in-up stagger-2'])
+
     <!-- Generate Alerts -->
     <div class="flex justify-end animate-fade-in-up stagger-2">
         <form method="POST" action="{{ route('maintenance.generate-alerts') }}">
