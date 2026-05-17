@@ -192,7 +192,7 @@ class MaintenanceController extends Controller
     }
 
     /**
-     * Export filtered maintenance records as CSV or PDF.
+     * Export filtered maintenance records as PDF.
      */
     public function exportReport(Request $request)
     {
@@ -201,7 +201,7 @@ class MaintenanceController extends Controller
             'date_to'          => 'nullable|date|after_or_equal:date_from',
             'status'           => 'nullable|string',
             'maintenance_type' => 'nullable|string',
-            'format'           => 'nullable|in:csv,pdf',
+            'format'           => 'nullable|in:pdf',
         ]);
 
         $query = MaintenanceRecord::with('item', 'technician');
@@ -229,56 +229,16 @@ class MaintenanceController extends Controller
         $dateLabel = ($request->date_from ?? 'all') . '_to_' . ($request->date_to ?? 'all');
         $filename  = 'seims_maintenance_' . $dateLabel;
 
-        if ($request->format === 'pdf') {
-            $pdf = Pdf::loadView('admin.maintenance-report-pdf', [
-                'records'    => $records,
-                'date_from'  => $request->date_from,
-                'date_to'    => $request->date_to,
-                'status'     => $request->status,
-                'maint_type' => $request->maintenance_type,
-                'generated'  => now()->format('F d, Y h:i A'),
-            ]);
-            $pdf->setPaper('a4', 'landscape');
+        $pdf = Pdf::loadView('admin.maintenance-report-pdf', [
+            'records'    => $records,
+            'date_from'  => $request->date_from,
+            'date_to'    => $request->date_to,
+            'status'     => $request->status,
+            'maint_type' => $request->maintenance_type,
+            'generated'  => now()->format('F d, Y h:i A'),
+        ]);
+        $pdf->setPaper('a4', 'landscape');
 
-            return $pdf->download($filename . '.pdf');
-        }
-
-        $headers = [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '.csv"',
-        ];
-
-        $callback = function () use ($records) {
-            $handle = fopen('php://output', 'w');
-            fwrite($handle, "\xEF\xBB\xBF");
-            fputcsv($handle, [
-                'ID', 'Item', 'Type', 'Status',
-                'Scheduled Date', 'Completed Date', 'Performed By',
-                'Condition Before', 'Condition After', 'Wear Level (%)',
-                'Issues Found', 'Actions Taken', 'Cost', 'Next Maintenance', 'Notes',
-            ]);
-            foreach ($records as $r) {
-                fputcsv($handle, [
-                    $r->id,
-                    $r->item->name ?? 'N/A',
-                    ucfirst($r->maintenance_type),
-                    ucfirst(str_replace('_', ' ', $r->status)),
-                    $r->scheduled_date?->format('Y-m-d'),
-                    $r->completed_date?->format('Y-m-d'),
-                    $r->technician->name ?? 'N/A',
-                    $r->condition_before,
-                    $r->condition_after,
-                    $r->wear_level,
-                    $r->issues_found,
-                    $r->actions_taken,
-                    $r->cost ? number_format($r->cost, 2) : '',
-                    $r->next_maintenance_date?->format('Y-m-d'),
-                    $r->notes,
-                ]);
-            }
-            fclose($handle);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return $pdf->download($filename . '.pdf');
     }
 }

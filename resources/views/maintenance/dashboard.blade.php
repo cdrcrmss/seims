@@ -62,6 +62,8 @@
         </a>
     </div>
 
+    @include('maintenance.partials.report-export', ['class' => 'animate-fade-in-up stagger-2'])
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <!-- Overdue Maintenance -->
         @if($overdueMaintenance->count() > 0)
