@@ -121,7 +121,7 @@ class DashboardController extends Controller
             $activeBorrowings = Borrowing::whereIn('status', ['approved', 'issued'])->count();
             $overdueItems = Borrowing::where('status', 'issued')
                 ->where('expected_return_date', '<', now())->count();
-            $lowStockItems = Item::whereColumn('available_stock', '<=', 'low_stock_threshold')->count();
+            $lowStockItems = Item::lowStock()->count();
             $maintenanceDue = MaintenanceRecord::where('status', 'scheduled')
                 ->where('scheduled_date', '<=', now())->count();
             $pendingReservations = Reservation::where('status', 'pending')->count();
@@ -190,7 +190,7 @@ class DashboardController extends Controller
     {
         try {
             $totalItems = Item::count();
-            $lowStockItems = Item::whereColumn('available_stock', '<=', 'low_stock_threshold')->count();
+            $lowStockItems = Item::lowStock()->count();
             $pendingRequests = Borrowing::where('status', 'pending')->count();
             $overdueItems = Borrowing::where('status', 'issued')
                                    ->where('expected_return_date', '<', now())
@@ -219,7 +219,7 @@ class DashboardController extends Controller
                 ->get();
 
             // Low stock items list
-            $lowStockItemsList = Item::whereColumn('available_stock', '<=', 'low_stock_threshold')
+            $lowStockItemsList = Item::lowStock()
                 ->orderBy('available_stock')
                 ->take(5)
                 ->get();

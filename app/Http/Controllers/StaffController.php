@@ -88,7 +88,7 @@ class StaffController extends Controller
                 }
 
                 if ($stockFilter === 'out_of_stock') {
-                    return $query->where('available_stock', 0);
+                    return $query->outOfStock();
                 }
 
                 return $query;

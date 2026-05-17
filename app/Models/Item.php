@@ -179,7 +179,8 @@ class Item extends Model
      */
     public function isLowStock(): bool
     {
-        return $this->available_stock <= $this->low_stock_threshold;
+        return $this->available_stock > 0
+            && $this->available_stock <= $this->low_stock_threshold;
     }
 
     /**
@@ -255,7 +256,16 @@ class Item extends Model
      */
     public function scopeLowStock($query)
     {
-        return $query->whereColumn('available_stock', '<=', 'low_stock_threshold');
+        return $query->where('available_stock', '>', 0)
+            ->whereColumn('available_stock', '<=', 'low_stock_threshold');
+    }
+
+    /**
+     * Scope for out of stock items (no units available).
+     */
+    public function scopeOutOfStock($query)
+    {
+        return $query->where('available_stock', '<=', 0);
     }
 
     /**
