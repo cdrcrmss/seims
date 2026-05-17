@@ -481,10 +481,19 @@ class AdminController extends Controller
         $status = $request->get('status');
         $search = $request->get('search');
         $archived = $request->get('archived', '0');
+        $active = $request->boolean('active');
+        $overdue = $request->boolean('overdue');
 
         $borrowings = Borrowing::with(['user', 'item', 'approver', 'issuer', 'rejector', 'returnedToUser'])
             ->where('is_archived', $archived === '1')
-            ->when($status, function($query, $status) {
+            ->when($overdue, function ($query) {
+                return $query->where('status', 'issued')
+                    ->where('expected_return_date', '<', now());
+            })
+            ->when($active && ! $overdue, function ($query) {
+                return $query->whereIn('status', ['approved', 'issued']);
+            })
+            ->when($status && ! $overdue && ! $active, function ($query, $status) {
                 return $query->where('status', $status);
             })
             ->when($search, function($query, $search) {
@@ -497,9 +506,10 @@ class AdminController extends Controller
                 });
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('admin.borrowings.index', compact('borrowings', 'status', 'search', 'archived'));
+        return view('admin.borrowings.index', compact('borrowings', 'status', 'search', 'archived', 'active', 'overdue'));
     }
 
     /**

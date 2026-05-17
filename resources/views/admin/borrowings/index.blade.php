@@ -8,7 +8,17 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 animate-fade-in-up">
         <div>
             <h1 class="text-3xl font-bold text-gray-900 font-poppins">{{ $archived === '1' ? 'Archived Borrowings' : 'Borrowing Management' }}</h1>
-            <p class="text-gray-600">{{ $archived === '1' ? 'View archived borrowing records' : 'View and manage all borrowing transactions' }}</p>
+            <p class="text-gray-600">
+                @if(!empty($overdue))
+                    Showing overdue borrowings that need attention
+                @elseif(!empty($active))
+                    Showing active borrowings (approved and issued)
+                @elseif($archived === '1')
+                    View archived borrowing records
+                @else
+                    View and manage all borrowing transactions
+                @endif
+            </p>
         </div>
         <div>
             @if($archived === '1')
@@ -29,6 +39,8 @@
     <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-6 animate-fade-in-up stagger-1 relative z-10">
         <form method="GET" action="{{ route('admin.borrowings') }}" class="flex flex-col md:flex-row gap-4">
             @if($archived === '1')<input type="hidden" name="archived" value="1">@endif
+            @if(!empty($active))<input type="hidden" name="active" value="1">@endif
+            @if(!empty($overdue))<input type="hidden" name="overdue" value="1">@endif
             <div class="flex-1 relative" x-data="borrowingSearchComponent()" @click.away="showSuggestions = false">
                 <div class="relative">
                     <input type="text" name="search" value="{{ $search }}" placeholder="Search by user or item name..."
@@ -88,8 +100,8 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                 Filter
             </button>
-            @if($search || $status)
-            <a href="{{ route('admin.borrowings') }}" class="inline-flex items-center px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-200">
+            @if($search || $status || !empty($active) || !empty($overdue))
+            <a href="{{ route('admin.borrowings', $archived === '1' ? ['archived' => '1'] : []) }}" class="inline-flex items-center px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-200">
                 Clear
             </a>
             @endif
@@ -105,11 +117,11 @@
                 ['label' => 'Approved', 'count' => $allBorrowings->where('status', 'approved')->count(), 'color' => 'blue', 'status' => 'approved'],
                 ['label' => 'Issued', 'count' => $allBorrowings->where('status', 'issued')->count(), 'color' => 'green', 'status' => 'issued'],
                 ['label' => 'Returned', 'count' => $allBorrowings->where('status', 'returned')->count(), 'color' => 'gray', 'status' => 'returned'],
-                ['label' => 'Overdue', 'count' => $allBorrowings->where('status', 'issued')->where('expected_return_date', '<', now())->count(), 'color' => 'red', 'status' => 'issued'],
+                ['label' => 'Overdue', 'count' => $allBorrowings->where('status', 'issued')->where('expected_return_date', '<', now())->count(), 'color' => 'red', 'status' => 'issued', 'overdue' => true],
             ];
         @endphp
         @foreach($stats as $stat)
-        <a href="{{ route('admin.borrowings', ['status' => $stat['status']]) }}" class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-4 text-center border-l-4 border-{{ $stat['color'] }}-500 hover:ring-{{ $stat['color'] }}-300 transition-all cursor-pointer block">
+        <a href="{{ route('admin.borrowings', !empty($stat['overdue']) ? ['overdue' => 1] : ['status' => $stat['status']]) }}" class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-4 text-center border-l-4 border-{{ $stat['color'] }}-500 hover:ring-{{ $stat['color'] }}-300 transition-all cursor-pointer block">
             <p class="text-2xl font-bold text-gray-900 font-poppins">{{ $stat['count'] }}</p>
             <p class="text-xs text-gray-500 uppercase font-semibold">{{ $stat['label'] }}</p>
         </a>
