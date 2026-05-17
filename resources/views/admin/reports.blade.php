@@ -229,6 +229,21 @@
                 <h3 class="text-xl font-bold text-gray-900">Item Categories</h3>
                 <span class="text-sm text-gray-500">Distribution</span>
             </div>
+            @if(count($itemsByCategory) > 0)
+                <div class="h-64">
+                    <canvas id="categoryDistributionChart"></canvas>
+                </div>
+                <div class="mt-4 space-y-2 max-h-32 overflow-y-auto">
+                    @foreach($itemsByCategory as $category => $count)
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-gray-700 truncate pr-2">{{ $category }}</span>
+                            <span class="font-semibold text-gray-900">{{ $count }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="text-sm text-gray-400 text-center py-16">No items in inventory yet</p>
+            @endif
         </div>
     </div>
 
@@ -238,15 +253,17 @@
         <div class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm">
             <h3 class="text-xl font-bold text-gray-900 mb-6">Recent Activity</h3>
             <div class="space-y-4">
-                @foreach($recentActivity as $activity)
-                    <div class="flex items-center space-x-4 p-4 bg-white/5 rounded-xl">
-                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <div class="flex-1">
+                @forelse($recentActivity as $activity)
+                    <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
+                        <div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                        <div class="flex-1 min-w-0">
                             <p class="text-sm font-medium text-gray-900">{{ $activity['action'] }}</p>
                             <p class="text-xs text-gray-500">{{ $activity['user'] }} • {{ $activity['time'] }}</p>
                         </div>
                     </div>
-                @endforeach
+                @empty
+                    <p class="text-sm text-gray-400 text-center py-8">No recent activity yet</p>
+                @endforelse
             </div>
         </div>
 
@@ -276,6 +293,37 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const categoryCanvas = document.getElementById('categoryDistributionChart');
+    const categoryData = @json($itemsByCategory);
+    if (categoryCanvas && Object.keys(categoryData).length > 0) {
+        const labels = Object.keys(categoryData);
+        const values = Object.values(categoryData);
+        const colors = ['#16a34a', '#6366f1', '#f59e0b', '#ef4444', '#06b6d4', '#8b5cf6', '#ec4899', '#64748b'];
+
+        new Chart(categoryCanvas.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: labels.map((_, i) => colors[i % colors.length]),
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 12, font: { size: 11 } }
+                    }
+                }
+            }
+        });
+    }
+
     const ctx = document.getElementById('borrowingTrendsChart').getContext('2d');
     const trendsData = @json($borrowingTrends);
     

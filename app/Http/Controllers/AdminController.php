@@ -300,23 +300,62 @@ class AdminController extends Controller
                                 ->count();
 
         // Items by category for distribution chart
-        $itemsByCategory = Item::selectRaw('category, COUNT(*) as count')
-                              ->groupBy('category')
-                              ->pluck('count', 'category')
-                              ->toArray();
+        $itemsByCategory = Item::query()
+            ->selectRaw("COALESCE(NULLIF(TRIM(category), ''), 'Uncategorized') as category_label, COUNT(*) as count")
+            ->groupBy('category_label')
+            ->orderByDesc('count')
+            ->pluck('count', 'category_label')
+            ->toArray();
 
-        // Recent activity from audit logs
-        $recentActivity = \App\Models\AuditLog::with('user')
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
+        // Recent activity: audit logs + recent borrowings (works even if queue worker is off)
+        $recentActivity = collect();
+
+        \App\Models\AuditLog::with('user')
+            ->orderByDesc('created_at')
+            ->limit(8)
             ->get()
-            ->map(function ($log) {
-                return [
-                    'action' => $log->action,
-                    'user' => $log->user ? $log->user->name : 'System',
+            ->each(function ($log) use ($recentActivity) {
+                $recentActivity->push([
+                    'action' => $log->description ?: ucfirst($log->action).' ('.$log->module.')',
+                    'user' => $log->user?->name ?? 'System',
                     'time' => $log->created_at->diffForHumans(),
-                ];
-            })
+                    'at' => $log->created_at,
+                ]);
+            });
+
+        Borrowing::with(['user', 'item'])
+            ->orderByDesc('updated_at')
+            ->limit(12)
+            ->get()
+            ->each(function ($borrowing) use ($recentActivity) {
+                $itemName = $borrowing->item?->name ?? 'an item';
+                $statusLabel = match ($borrowing->status) {
+                    'pending' => 'Requested borrow',
+                    'approved' => 'Approved borrow',
+                    'issued' => 'Issued',
+                    'returned' => 'Returned',
+                    'rejected' => 'Rejected borrow',
+                    'cancelled' => 'Cancelled borrow',
+                    default => ucfirst($borrowing->status).' borrow',
+                };
+
+                $recentActivity->push([
+                    'action' => "{$statusLabel}: {$itemName}",
+                    'user' => $borrowing->user?->name ?? 'Unknown user',
+                    'time' => $borrowing->updated_at->diffForHumans(),
+                    'at' => $borrowing->updated_at,
+                ]);
+            });
+
+        $recentActivity = $recentActivity
+            ->sortByDesc('at')
+            ->take(10)
+            ->map(fn ($row) => [
+                'action' => $row['action'],
+                'user' => $row['user'],
+                'time' => $row['time'],
+            ])
+            ->values()
             ->toArray();
 
         // Top borrowers
