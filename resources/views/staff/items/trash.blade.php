@@ -28,6 +28,7 @@
                        placeholder="Search by name, asset code, or QR code..." 
                        x-model="searchQuery"
                        @input="debouncedSearch"
+                       @focus="onSearchFocus()"
                        class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
                        autocomplete="off">
                 
@@ -158,6 +159,14 @@ function trashSearch() {
 
         initSearch() {
             this.searchQuery = '{{ $search ?? '' }}';
+        },
+
+        onSearchFocus() {
+            if (this.searchQuery.trim().length >= 1) {
+                this.performSearch();
+            } else if (this.searchResults.length > 0) {
+                this.showDropdown = true;
+            }
         },
 
         debouncedSearch() {

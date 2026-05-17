@@ -871,14 +871,19 @@
             onInput() {
                 clearTimeout(this.debounceTimer);
                 this.debounceTimer = setTimeout(() => {
-                    this.fetchSuggestions();
+                    if (this.query.trim().length >= 1) {
+                        this.showSuggestions = true;
+                        this.fetchSuggestions();
+                    }
                     this.submitSearch();
                 }, 400);
             },
 
             onFocus() {
-                if (this.query.trim().length >= 2) {
+                if (this.query.trim().length >= 1) {
                     this.fetchSuggestions();
+                } else if (this.suggestions.length > 0) {
+                    this.showSuggestions = true;
                 }
             },
 
@@ -902,7 +907,7 @@
 
             async fetchSuggestions() {
                 const q = this.query.trim();
-                if (q.length < 2) {
+                if (q.length < 1) {
                     this.suggestions = [];
                     this.showSuggestions = false;
                     return;
@@ -917,10 +922,11 @@
                         name: i.name,
                         detail: i.category,
                     }));
-                    this.showSuggestions = this.suggestions.length > 0;
+                    this.showSuggestions = this.showSuggestions && this.suggestions.length > 0;
                     this.highlightedIndex = -1;
                 } catch (e) {
                     this.suggestions = [];
+                    this.showSuggestions = false;
                 }
             },
 

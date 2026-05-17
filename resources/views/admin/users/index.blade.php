@@ -411,7 +411,11 @@
                 this.debounceTimer = setTimeout(() => this.fetchSuggestions(), 250);
             },
             onFocus() {
-                if (this.query.trim().length >= 2) this.fetchSuggestions();
+                if (this.query.trim().length >= 1) {
+                    this.fetchSuggestions();
+                } else if (this.suggestions.length > 0) {
+                    this.showSuggestions = true;
+                }
             },
             submitSearch() {
                 const form = this.$el.closest('form');
@@ -425,7 +429,7 @@
             },
             async fetchSuggestions() {
                 const q = this.query.trim();
-                if (q.length < 2) {
+                if (q.length < 1) {
                     this.suggestions = [];
                     this.showSuggestions = false;
                     return;

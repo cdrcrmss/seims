@@ -46,7 +46,7 @@
                     <input type="text" name="search" value="{{ $search }}" placeholder="Search by user or item name..."
                         x-model="query"
                         @input="filterRows(); updateSuggestions()"
-                        @focus="if(query.length > 0) showSuggestions = true"
+                        @focus="onSearchFocus()"
                         @keydown.escape="showSuggestions = false"
                         @keydown.arrow-down.prevent="highlightNext()"
                         @keydown.arrow-up.prevent="highlightPrev()"
@@ -277,6 +277,14 @@
             suggestions: [],
             showSuggestions: false,
             highlightedIndex: -1,
+
+            onSearchFocus() {
+                if (this.query.trim().length > 0) {
+                    this.updateSuggestions();
+                } else if (this.suggestions.length > 0) {
+                    this.showSuggestions = true;
+                }
+            },
 
             filterRows() {
                 const q = this.query.toLowerCase().trim();

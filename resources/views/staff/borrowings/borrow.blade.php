@@ -45,10 +45,10 @@
             <!-- Search & Filter -->
             <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-4">
                 <div class="flex flex-col sm:flex-row gap-3">
-                    <div class="flex-1 relative" x-data="{ searchOpen: false }">
+                    <div class="flex-1 relative" @click.outside="searchOpen = false">
                         <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         <input type="text" x-model="searchQuery" @input="debouncedSearch()" @keydown.enter.prevent="applyFilters()"
-                               @focus="searchOpen = true" @click.away="searchOpen = false"
+                               @focus="onSearchFocus()"
                                placeholder="Search by name, description, or code..."
                                class="w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white">
                         <button type="button" x-show="searchQuery.length > 0" @click="clearSearch()" x-cloak
@@ -307,6 +307,7 @@ function borrowForm() {
         isSubmitting: false,
         searchQuery: @json($search ?? ''),
         searchResults: [],
+        searchOpen: false,
         searchTimeout: null,
         filterTimeout: null,
         selectedCategory: @json($category ?? ''),
@@ -346,29 +347,48 @@ function borrowForm() {
         clearSearch() {
             this.searchQuery = '';
             this.searchResults = [];
+            this.searchOpen = false;
             this.applyFilters();
+        },
+
+        onSearchFocus() {
+            this.searchOpen = true;
+            if (this.searchQuery.trim().length >= 1) {
+                this.performSearch();
+            } else if (this.searchResults.length > 0) {
+                this.searchOpen = true;
+            }
         },
 
         debouncedSearch() {
             clearTimeout(this.searchTimeout);
             clearTimeout(this.filterTimeout);
-            this.searchTimeout = setTimeout(() => this.performSearch(), 200);
+            this.searchTimeout = setTimeout(() => {
+                if (this.searchQuery.trim().length >= 1) {
+                    this.searchOpen = true;
+                    this.performSearch();
+                }
+            }, 200);
             this.filterTimeout = setTimeout(() => this.applyFilters(), 450);
         },
 
         async performSearch() {
-            if (this.searchQuery.trim().length < 1) {
+            const q = this.searchQuery.trim();
+            if (q.length < 1) {
                 this.searchResults = [];
+                this.searchOpen = false;
                 return;
             }
 
             try {
-                const response = await fetch('{{ route('staff.api.search-items') }}?q=' + encodeURIComponent(this.searchQuery.trim()));
+                const response = await fetch('{{ route('staff.api.search-items') }}?q=' + encodeURIComponent(q));
                 const data = await response.json();
-                this.searchResults = data;
+                this.searchResults = Array.isArray(data) ? data : [];
+                this.searchOpen = this.searchOpen && this.searchResults.length > 0;
             } catch (error) {
                 console.error('Search failed:', error);
                 this.searchResults = [];
+                this.searchOpen = false;
             }
         },
 
