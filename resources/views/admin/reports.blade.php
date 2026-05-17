@@ -5,28 +5,9 @@
 @section('content')
 <div class="space-y-8">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900 font-poppins">System Reports</h1>
-            <p class="text-gray-600">Comprehensive reports and analytics</p>
-        </div>
-        <div class="flex items-center space-x-4">
-            <select class="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option value="monthly">Monthly</option>
-                <option value="quarterly">Quarterly</option>
-                <option value="yearly">Yearly</option>
-            </select>
-            <form method="POST" action="{{ route('analytics.export') }}" class="inline" data-file-download>
-                @csrf
-                <input type="hidden" name="type" value="comprehensive">
-                <button type="submit" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
-                    </svg>
-                    Export Report
-                </button>
-            </form>
-        </div>
+    <div class="animate-fade-in-up">
+        <h1 class="text-3xl font-bold text-gray-900 font-poppins">System Reports</h1>
+        <p class="text-gray-600">Comprehensive reports and analytics</p>
     </div>
 
     <!-- Overview Stats -->
@@ -91,6 +72,8 @@
             </div>
         </a>
     </div>
+
+    @include('admin.partials.report-export')
 
     <!-- Charts Section -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">

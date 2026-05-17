@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Item;
 use App\Models\Borrowing;
 use App\Models\MaintenanceRecord;
+use App\Services\SystemReportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -409,6 +410,48 @@ class AdminController extends Controller
             'activeBorrowings', 'pendingRequests', 'overdueItems',
             'itemsByCategory', 'recentActivity', 'topBorrowers', 'borrowingTrends', 'mostBorrowedItems'
         ));
+    }
+
+    /**
+     * Export system reports dashboard data as PDF.
+     */
+    public function exportReport(Request $request, SystemReportService $reports)
+    {
+        $request->validate([
+            'type'      => 'required|in:top_borrowers,item_categories,most_borrowed_items,borrowing_trend',
+            'format'    => 'nullable|in:pdf',
+            'date_from' => 'nullable|date',
+            'date_to'   => 'nullable|date|after_or_equal:date_from',
+        ]);
+
+        $type = $request->type;
+        $from = $request->date_from;
+        $to = $request->date_to;
+
+        $rows = match ($type) {
+            'top_borrowers' => $reports->topBorrowers($from, $to),
+            'item_categories' => $reports->itemsByCategory(),
+            'most_borrowed_items' => $reports->mostBorrowedItems($from, $to),
+            'borrowing_trend' => $reports->borrowingTrend($from, $to),
+        };
+
+        [$start, $end] = $reports->dateRange($from, $to);
+        $meta = $reports->reportMeta($type);
+
+        $pdf = Pdf::loadView('admin.system-report-pdf', [
+            'type' => $type,
+            'rows' => $rows,
+            'report_title' => $meta['title'],
+            'report_description' => $meta['description'],
+            'date_from' => $start->format('M d, Y'),
+            'date_to' => $end->format('M d, Y'),
+            'generated' => now()->format('F d, Y h:i A'),
+        ]);
+        $pdf->setPaper('a4', 'portrait');
+
+        $filename = 'seims_' . $type . '_' . $start->format('Y-m-d') . '_to_' . $end->format('Y-m-d') . '.pdf';
+
+        return $pdf->download($filename);
     }
 
     /**
