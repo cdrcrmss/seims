@@ -47,9 +47,14 @@
                 <div class="flex flex-col sm:flex-row gap-3">
                     <div class="flex-1 relative" x-data="{ searchOpen: false }">
                         <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        <input type="text" x-model="searchQuery" @input="debouncedSearch()" @focus="searchOpen = true" @click.away="searchOpen = false"
+                        <input type="text" x-model="searchQuery" @input="debouncedSearch()" @keydown.enter.prevent="applyFilters()"
+                               @focus="searchOpen = true" @click.away="searchOpen = false"
                                placeholder="Search by name, description, or code..."
-                               class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white">
+                               class="w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white">
+                        <button type="button" x-show="searchQuery.length > 0" @click="clearSearch()" x-cloak
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
                         
                         <!-- Search Results Dropdown -->
                         <div x-show="searchOpen && searchResults.length > 0" x-cloak
@@ -61,7 +66,7 @@
                              x-transition:leave-end="opacity-0 scale-95"
                              class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg ring-1 ring-gray-200 z-50 max-h-64 overflow-y-auto">
                             <template x-for="item in searchResults" :key="item.id">
-                                <div @click="selectItem(item.id, item.name, item.category, item.available_stock); searchOpen = false; searchQuery = ''"
+                                <div @click="pickSearchResult(item); searchOpen = false"
                                      class="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0">
                                     <div class="flex items-center gap-3">
                                         <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -300,35 +305,77 @@ function borrowForm() {
         selectedItemStock: {{ old('item_id') ? (\App\Models\Item::find(old('item_id'))?->available_stock ?? 0) : ($selectedItem?->available_stock ?? 0) }},
         quantity: {{ old('quantity', 1) }},
         isSubmitting: false,
-        searchQuery: '',
+        searchQuery: @json($search ?? ''),
         searchResults: [],
         searchTimeout: null,
+        filterTimeout: null,
+        selectedCategory: @json($category ?? ''),
 
         get canSubmit() {
             return this.selectedItemId && this.quantity > 0;
         },
 
+        buildFilterUrl() {
+            const params = new URLSearchParams();
+            const q = this.searchQuery.trim();
+            if (q) params.set('search', q);
+            if (this.selectedCategory) params.set('category', this.selectedCategory);
+            const qs = params.toString();
+            return '{{ route('staff.borrow.form') }}' + (qs ? '?' + qs : '');
+        },
+
+        filtersMatchUrl() {
+            const current = new URL(window.location.href);
+            const expectedSearch = this.searchQuery.trim();
+            const expectedCategory = this.selectedCategory || '';
+            return (current.searchParams.get('search') || '') === expectedSearch
+                && (current.searchParams.get('category') || '') === expectedCategory;
+        },
+
+        applyFilters() {
+            const target = this.buildFilterUrl();
+            if (!this.filtersMatchUrl()) {
+                window.location.href = target;
+            }
+        },
+
+        filterByCategory() {
+            this.applyFilters();
+        },
+
+        clearSearch() {
+            this.searchQuery = '';
+            this.searchResults = [];
+            this.applyFilters();
+        },
+
         debouncedSearch() {
             clearTimeout(this.searchTimeout);
-            this.searchTimeout = setTimeout(() => {
-                this.performSearch();
-            }, 150);
+            clearTimeout(this.filterTimeout);
+            this.searchTimeout = setTimeout(() => this.performSearch(), 200);
+            this.filterTimeout = setTimeout(() => this.applyFilters(), 450);
         },
 
         async performSearch() {
-            if (this.searchQuery.length < 1) {
+            if (this.searchQuery.trim().length < 1) {
                 this.searchResults = [];
                 return;
             }
 
             try {
-                const response = await fetch('{{ route('staff.api.search-items') }}?q=' + encodeURIComponent(this.searchQuery));
+                const response = await fetch('{{ route('staff.api.search-items') }}?q=' + encodeURIComponent(this.searchQuery.trim()));
                 const data = await response.json();
                 this.searchResults = data;
             } catch (error) {
                 console.error('Search failed:', error);
                 this.searchResults = [];
             }
+        },
+
+        pickSearchResult(item) {
+            this.searchQuery = item.name;
+            this.selectItem(item.id, item.name, item.category, item.available_stock);
+            this.applyFilters();
         },
 
         selectItem(id, name, category, stock) {

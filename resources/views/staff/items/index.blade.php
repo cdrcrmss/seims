@@ -870,7 +870,10 @@
 
             onInput() {
                 clearTimeout(this.debounceTimer);
-                this.debounceTimer = setTimeout(() => this.fetchSuggestions(), 250);
+                this.debounceTimer = setTimeout(() => {
+                    this.fetchSuggestions();
+                    this.submitSearch();
+                }, 400);
             },
 
             onFocus() {
@@ -881,7 +884,13 @@
 
             submitSearch() {
                 const form = this.$el.closest('form');
-                if (form) form.submit();
+                if (!form) return;
+
+                const params = new URLSearchParams(new FormData(form));
+                params.delete('page');
+
+                const qs = params.toString();
+                window.location.href = form.action + (qs ? '?' + qs : '');
             },
 
             clearSearch() {
