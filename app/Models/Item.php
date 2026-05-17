@@ -292,10 +292,14 @@ class Item extends Model
     /**
      * Get the image URL
      */
-    public function getImageUrlAttribute(): string
+    public function getImageUrlAttribute(): ?string
     {
-        return $this->image_path 
-            ? asset('storage/' . $this->image_path)
-            : asset('images/default-item.png');
+        if (blank($this->image_path)) {
+            return null;
+        }
+
+        $path = ltrim(str_replace(['public/', 'storage/'], '', $this->image_path), '/');
+
+        return route('storage.public.show', ['path' => $path]);
     }
 }

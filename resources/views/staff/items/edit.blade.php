@@ -30,10 +30,10 @@
                     @method('PUT')
 
                     <!-- Current Image Display -->
-                    @if($item->image_path)
+                    @if($item->image_url)
                         <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
                             <div class="w-20 h-20 bg-white rounded-xl overflow-hidden ring-1 ring-gray-200 flex-shrink-0">
-                                <img src="{{ asset('storage/' . $item->image_path) }}" alt="{{ $item->name }}" class="w-full h-full object-cover">
+                                <img src="{{ $item->image_url }}" alt="{{ $item->name }}" class="w-full h-full object-cover">
                             </div>
                             <div>
                                 <p class="text-sm font-semibold text-gray-900">{{ $item->name }}</p>

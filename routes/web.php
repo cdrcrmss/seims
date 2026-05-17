@@ -10,6 +10,7 @@ use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\QrCodeController;
+use App\Http\Controllers\PublicFileController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -30,6 +31,10 @@ Route::middleware(['auth'])->group(function () {
 
 // Dashboard Routes
 Route::middleware(['auth', 'approved'])->group(function () {
+    Route::get('/files/{path}', [PublicFileController::class, 'show'])
+        ->where('path', '.*')
+        ->name('storage.public.show');
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Student Borrow Routes (with rate limiting)
