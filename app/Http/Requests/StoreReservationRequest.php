@@ -113,7 +113,7 @@ class StoreReservationRequest extends FormRequest
                 })->exists();
 
             if ($roomConflict) {
-                $validator->errors()->add('conflict', 'The selected room is already reserved during this time period.');
+                $validator->errors()->add('conflict', 'That room is already reserved for the time you selected. Choose another room or pick a different schedule.');
                 return;
             }
         });

@@ -3,7 +3,7 @@
 @section('title', 'New Room Reservation')
 
 @section('content')
-<div class="space-y-8" x-data="reservationForm()">
+<div class="space-y-8" x-data="reservationForm()" x-init="init()">
     <!-- Header -->
     <div class="flex items-center space-x-4 animate-fade-in-up">
         <a href="{{ route('reservations.index') }}" class="p-2 rounded-xl hover:bg-gray-100 transition-colors">
@@ -52,15 +52,25 @@
                             No rooms are currently available. Please contact the lab staff.
                         </div>
                     @else
+                    <p class="text-xs text-gray-500 mb-3">Choose your schedule below first — booked rooms will be locked.</p>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         @foreach($rooms as $room)
-                        <label class="cursor-pointer">
-                            <input type="radio" name="room_id" value="{{ $room->id }}" x-model="selectedRoomId" class="peer hidden" required {{ old('room_id') == $room->id ? 'checked' : '' }}>
-                            <div class="peer-checked:ring-2 peer-checked:ring-green-500 peer-checked:bg-green-50 bg-gray-50 rounded-xl p-5 transition-all hover:bg-gray-100 h-full flex flex-col items-center justify-center text-center gap-3">
-                                <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                        <label class="block" :class="roomIsBooked({{ $room->id }}) ? 'cursor-not-allowed' : 'cursor-pointer'">
+                            <input type="radio" name="room_id" value="{{ $room->id }}" x-model="selectedRoomId"
+                                   :disabled="roomIsBooked({{ $room->id }})"
+                                   @change="onRoomSelect()"
+                                   class="peer hidden" required {{ old('room_id') == $room->id ? 'checked' : '' }}>
+                            <div class="rounded-xl p-5 transition-all h-full flex flex-col items-center justify-center text-center gap-2 border"
+                                 :class="roomCardClass({{ $room->id }})">
+                                <div class="w-12 h-12 rounded-xl flex items-center justify-center"
+                                     :class="roomIsBooked({{ $room->id }}) ? 'bg-red-100' : 'bg-purple-100'">
+                                    <svg class="w-6 h-6" :class="roomIsBooked({{ $room->id }}) ? 'text-red-600' : 'text-purple-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                                 </div>
-                                <p class="text-sm font-bold text-gray-900 leading-tight">{{ $room->name }}</p>
+                                <p class="text-sm font-bold leading-tight" :class="roomIsBooked({{ $room->id }}) ? 'text-gray-500' : 'text-gray-900'">{{ $room->name }}</p>
+                                <span x-show="!scheduleReady" class="text-[10px] font-medium text-gray-400 uppercase tracking-wide">Set schedule</span>
+                                <span x-show="scheduleReady && !roomIsBooked({{ $room->id }})" class="text-[10px] font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Available</span>
+                                <span x-show="scheduleReady && roomIsBooked({{ $room->id }})" class="text-[10px] font-semibold text-red-700 bg-red-100 px-2 py-0.5 rounded-full">Already reserved</span>
+                                <p x-show="scheduleReady && roomIsBooked({{ $room->id }})" class="text-[10px] text-red-600 leading-snug px-1" x-text="roomConflictHint({{ $room->id }})"></p>
                             </div>
                         </label>
                         @endforeach
@@ -73,12 +83,12 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label for="start_datetime" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Start Date & Time</label>
-                        <input type="datetime-local" name="start_datetime" id="start_datetime" x-model="startDatetime" value="{{ old('start_datetime') }}" min="{{ now()->format('Y-m-d\TH:i') }}" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
+                        <input type="datetime-local" name="start_datetime" id="start_datetime" x-model="startDatetime" @change="refreshRoomAvailability()" value="{{ old('start_datetime') }}" min="{{ now()->format('Y-m-d\TH:i') }}" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
                         @error('start_datetime') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
                         <label for="end_datetime" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">End Date & Time</label>
-                        <input type="datetime-local" name="end_datetime" id="end_datetime" x-model="endDatetime" value="{{ old('end_datetime') }}" :min="startDatetime || '{{ now()->format('Y-m-d\TH:i') }}'" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
+                        <input type="datetime-local" name="end_datetime" id="end_datetime" x-model="endDatetime" @change="refreshRoomAvailability()" value="{{ old('end_datetime') }}" :min="startDatetime || '{{ now()->format('Y-m-d\TH:i') }}'" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
                         @error('end_datetime') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
@@ -97,7 +107,7 @@
                         <template x-if="!available">
                             <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                         </template>
-                        <span x-text="available ? 'This room is available for the selected time!' : 'Conflict detected! This room is already reserved for the selected time.'"></span>
+                        <span x-text="availabilityMessage()"></span>
                     </div>
                 </div>
 
@@ -136,7 +146,7 @@
 
                 <!-- Submit -->
                 <div class="flex gap-3 pt-4 border-t border-gray-100">
-                    <button type="submit" :disabled="submitting"
+                    <button type="submit" :disabled="submitting || !canSubmit()"
                             :class="submitting ? 'bg-green-400 cursor-not-allowed' : (purpose.length < 10 ? 'bg-green-500 hover:bg-green-600' : 'bg-green-600 hover:bg-green-700 shadow-lg hover:shadow-xl')"
                             class="flex-1 inline-flex items-center justify-center gap-2 text-white px-6 py-4 rounded-xl text-base font-bold transition-all duration-200">
                         <template x-if="!submitting">
@@ -253,9 +263,75 @@ function reservationForm() {
         availabilityChecked: false,
         submitting: false,
         durationHours: 0,
+        roomStatuses: {},
+        scheduleReady: false,
+        checkingRooms: false,
+        refreshTimeout: null,
+
+        init() {
+            if (this.startDatetime && this.endDatetime) {
+                this.refreshRoomAvailability();
+            }
+        },
 
         canCheckAvailability() {
             return this.selectedRoomId && this.startDatetime && this.endDatetime;
+        },
+
+        canSubmit() {
+            if (!this.selectedRoomId || !this.startDatetime || !this.endDatetime) return false;
+            if (this.purpose.length < 10) return false;
+            if (this.roomIsBooked(this.selectedRoomId)) return false;
+            return this.availabilityChecked ? this.available : !this.roomIsBooked(this.selectedRoomId);
+        },
+
+        roomIsBooked(roomId) {
+            const status = this.roomStatuses[roomId];
+            return this.scheduleReady && status && !status.available;
+        },
+
+        roomCardClass(roomId) {
+            if (!this.scheduleReady) {
+                return 'bg-gray-50 border-gray-200 hover:bg-gray-100 peer-checked:ring-2 peer-checked:ring-green-500 peer-checked:bg-green-50';
+            }
+            if (this.roomIsBooked(roomId)) {
+                return 'bg-red-50 border-red-200 opacity-75';
+            }
+            if (String(this.selectedRoomId) === String(roomId)) {
+                return 'bg-green-50 border-green-400 ring-2 ring-green-500';
+            }
+            return 'bg-gray-50 border-gray-200 hover:border-green-300 hover:bg-green-50/50 peer-checked:ring-2 peer-checked:ring-green-500 peer-checked:bg-green-50';
+        },
+
+        roomConflictHint(roomId) {
+            const status = this.roomStatuses[roomId];
+            if (!status || !status.conflicts || !status.conflicts.length) {
+                return 'Reserved for this time slot';
+            }
+            const c = status.conflicts[0];
+            return 'Booked ' + c.start + ' – ' + c.end;
+        },
+
+        availabilityMessage() {
+            if (!this.selectedRoomId) return 'Select a room to verify availability.';
+            if (this.roomIsBooked(this.selectedRoomId)) {
+                return this.roomConflictHint(this.selectedRoomId) || 'This room is already reserved for your selected time.';
+            }
+            return this.available
+                ? 'This room is available for the selected time!'
+                : 'Conflict detected! This room is already reserved for the selected time.';
+        },
+
+        onRoomSelect() {
+            if (this.roomIsBooked(this.selectedRoomId)) {
+                this.selectedRoomId = '';
+                this.available = false;
+                this.availabilityChecked = false;
+                return;
+            }
+            if (this.canCheckAvailability()) {
+                this.checkAvailability();
+            }
         },
 
         computeDuration() {
@@ -273,11 +349,67 @@ function reservationForm() {
         },
 
         handleSubmit(e) {
-            if (this.submitting) {
+            if (this.submitting || !this.canSubmit()) {
                 e.preventDefault();
+                if (this.roomIsBooked(this.selectedRoomId)) {
+                    alert('That room is already reserved for your selected time. Please pick another room or change your schedule.');
+                }
                 return;
             }
             this.submitting = true;
+        },
+
+        refreshRoomAvailability() {
+            clearTimeout(this.refreshTimeout);
+            this.availabilityChecked = false;
+            this.available = false;
+
+            if (!this.startDatetime || !this.endDatetime) {
+                this.scheduleReady = false;
+                this.roomStatuses = {};
+                if (this.selectedRoomId) this.selectedRoomId = '';
+                return;
+            }
+
+            const start = new Date(this.startDatetime);
+            const end = new Date(this.endDatetime);
+            if (end <= start) {
+                this.scheduleReady = false;
+                return;
+            }
+
+            this.refreshTimeout = setTimeout(() => this.fetchAllRoomStatuses(), 350);
+        },
+
+        async fetchAllRoomStatuses() {
+            this.checkingRooms = true;
+            const formData = new FormData();
+            formData.append('start_datetime', this.startDatetime);
+            formData.append('end_datetime', this.endDatetime);
+            formData.append('check_all_rooms', '1');
+
+            try {
+                const resp = await fetch('{{ route("reservations.check-availability") }}', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
+                    body: formData
+                });
+                const data = await resp.json();
+                this.roomStatuses = data.rooms || {};
+                this.scheduleReady = true;
+
+                if (this.selectedRoomId && this.roomIsBooked(this.selectedRoomId)) {
+                    this.selectedRoomId = '';
+                }
+
+                if (this.selectedRoomId) {
+                    await this.checkAvailability();
+                }
+            } catch (e) {
+                console.error('Room availability check failed:', e);
+            } finally {
+                this.checkingRooms = false;
+            }
         },
 
         async checkAvailability() {

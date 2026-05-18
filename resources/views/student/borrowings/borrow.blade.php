@@ -109,6 +109,7 @@
                                         <div class="flex-1 min-w-0">
                                             <p class="text-sm font-semibold text-gray-900 truncate" x-text="item.name"></p>
                                             <p class="text-xs text-gray-500" x-text="item.category"></p>
+                                            <p class="text-xs text-emerald-700 font-medium" x-show="item.laboratory" x-text="item.laboratory ? item.laboratory + ' Lab' : ''"></p>
                                         </div>
                                         <div class="text-xs text-gray-400">
                                             <span x-text="item.available_stock"></span> available
@@ -143,7 +144,7 @@
             <!-- Item Cards Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 @forelse($availableItems as $item)
-                <div @click="selectItem({{ $item->id }}, {{ json_encode($item->name) }}, {{ json_encode($item->category) }}, {{ $item->available_stock }})"
+                <div @click="selectItem({{ $item->id }}, {{ json_encode($item->name) }}, {{ json_encode($item->category) }}, {{ $item->available_stock }}, {{ json_encode($item->laboratory) }})"
                      :class="selectedItemId == {{ $item->id }} ? 'ring-2 ring-green-500 bg-green-50/60' : 'ring-1 ring-gray-200 hover:ring-green-300 hover:shadow-md'"
                      class="bg-white rounded-xl p-4 cursor-pointer transition-all duration-200 group relative">
 
@@ -165,6 +166,9 @@
                         <div class="flex-1 min-w-0 pr-6">
                             <h3 class="text-sm font-semibold text-gray-900 truncate group-hover:text-green-700 transition-colors">{{ $item->name }}</h3>
                             <p class="text-xs text-gray-500">{{ $item->category }}</p>
+                            @if($item->laboratory)
+                                <div class="mt-1">@include('partials.laboratory-badge', ['laboratory' => $item->laboratory])</div>
+                            @endif
                             @if($item->description)
                                 <p class="text-xs text-gray-400 mt-1 line-clamp-1">{{ Str::limit($item->description, 60) }}</p>
                             @endif
@@ -235,6 +239,7 @@
                                     <div>
                                         <p class="text-sm font-bold text-green-900" x-text="selectedItemName"></p>
                                         <p class="text-xs text-green-700" x-text="selectedItemCategory"></p>
+                                        <p class="text-xs font-semibold text-emerald-800 mt-0.5" x-show="selectedItemLaboratory" x-text="'Pick up from: ' + selectedItemLaboratory + ' Lab'"></p>
                                     </div>
                                 </div>
                                 <button type="button" @click="clearSelection()" class="p-1.5 text-green-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
@@ -362,6 +367,7 @@ function borrowForm() {
         selectedItemName: {!! json_encode(old('item_id') ? (\App\Models\Item::find(old('item_id'))?->name ?? '') : ($selectedItem?->name ?? '')) !!},
         selectedItemCategory: {!! json_encode(old('item_id') ? (\App\Models\Item::find(old('item_id'))?->category ?? '') : ($selectedItem?->category ?? '')) !!},
         selectedItemStock: {{ old('item_id') ? (\App\Models\Item::find(old('item_id'))?->available_stock ?? 0) : ($selectedItem?->available_stock ?? 0) }},
+        selectedItemLaboratory: {!! json_encode(old('item_id') ? (\App\Models\Item::find(old('item_id'))?->laboratory ?? '') : ($selectedItem?->laboratory ?? '')) !!},
         quantity: {{ old('quantity', 1) }},
         purpose: {!! json_encode(old('purpose', '')) !!},
         isSubmitting: false,
@@ -459,17 +465,18 @@ function borrowForm() {
         pickSearchResult(item) {
             if ({{ $hasOverdue ? 'true' : 'false' }} || {{ $activeBorrowCount }} >= {{ $maxItems }}) return;
             this.searchQuery = item.name;
-            this.selectItem(item.id, item.name, item.category, item.available_stock);
+            this.selectItem(item.id, item.name, item.category, item.available_stock, item.laboratory || '');
             this.applyFilters();
         },
 
-        selectItem(id, name, category, stock) {
+        selectItem(id, name, category, stock, laboratory = '') {
             if ({{ $hasOverdue ? 'true' : 'false' }} || {{ $activeBorrowCount }} >= {{ $maxItems }}) return;
 
             this.selectedItemId = id;
             this.selectedItemName = name;
             this.selectedItemCategory = category;
             this.selectedItemStock = stock;
+            this.selectedItemLaboratory = laboratory || '';
 
             if (this.quantity > Math.min(stock, 10)) {
                 this.quantity = Math.min(stock, 10);
@@ -481,6 +488,7 @@ function borrowForm() {
             this.selectedItemName = '';
             this.selectedItemCategory = '';
             this.selectedItemStock = 0;
+            this.selectedItemLaboratory = '';
             this.quantity = 1;
         },
 

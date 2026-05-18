@@ -81,15 +81,18 @@ class ItemUnit extends Model
     }
 
     /**
-     * Mark unit as damaged
+     * Mark unit as damaged and auto-schedule maintenance.
      */
-    public function markDamaged(): void
+    public function markDamaged(array $context = []): void
     {
         $this->update([
             'status' => 'damaged',
             'current_borrower_id' => null,
             'borrowing_id' => null,
         ]);
+
+        app(\App\Services\MaintenanceAutoScheduleService::class)
+            ->scheduleForDamagedUnit($this->fresh(), $context);
     }
 
     /**

@@ -80,8 +80,11 @@ class ReservationController extends Controller
 
         // Conflict Detective: Check for scheduling conflicts
         if ($reservation->hasConflict()) {
+            $room = Room::find($request->room_id);
+            $roomName = $room?->name ?? 'This room';
+
             return back()->withErrors([
-                'conflict' => 'A scheduling conflict was detected. The selected resource is already reserved for this time period.'
+                'conflict' => $roomName . ' is already reserved for the time you selected. Pick another room or change your schedule.',
             ])->withInput();
         }
 
@@ -211,23 +214,35 @@ class ReservationController extends Controller
             }
         }
 
+        if ($request->boolean('check_all_rooms')) {
+            $rooms = Room::where('status', 'available')->orderBy('name')->get();
+            $roomStatuses = [];
+
+            foreach ($rooms as $room) {
+                $overlaps = $room->overlappingReservations($request->start_datetime, $request->end_datetime)->get();
+                $roomStatuses[$room->id] = [
+                    'available' => $overlaps->isEmpty(),
+                    'room_name' => $room->name,
+                    'conflicts' => $overlaps->map(fn ($r) => [
+                        'start' => $r->start_datetime->format('M j, Y g:i A'),
+                        'end' => $r->end_datetime->format('M j, Y g:i A'),
+                        'status' => $r->status,
+                    ])->values()->all(),
+                ];
+            }
+
+            return response()->json([
+                'rooms' => $roomStatuses,
+                'available' => collect($roomStatuses)->contains(fn ($s) => $s['available']),
+            ]);
+        }
+
         if ($request->room_id) {
             $room = Room::find($request->room_id);
-            if (!$room->isAvailable($request->start_datetime, $request->end_datetime)) {
-                $available = false;
+            $roomConflicts = $room->overlappingReservations($request->start_datetime, $request->end_datetime)->get();
 
-                // Also fetch the specific room conflicts for the response
-                $roomConflicts = Reservation::whereIn('status', ['pending', 'approved'])
-                    ->where('room_id', $request->room_id)
-                    ->where(function ($q) use ($request) {
-                        $q->whereBetween('start_datetime', [$request->start_datetime, $request->end_datetime])
-                            ->orWhereBetween('end_datetime', [$request->start_datetime, $request->end_datetime])
-                            ->orWhere(function ($q2) use ($request) {
-                                $q2->where('start_datetime', '<=', $request->start_datetime)
-                                    ->where('end_datetime', '>=', $request->end_datetime);
-                            });
-                    })
-                    ->get();
+            if ($roomConflicts->isNotEmpty()) {
+                $available = false;
 
                 foreach ($roomConflicts as $conflict) {
                     $conflicts[] = [
@@ -235,6 +250,9 @@ class ReservationController extends Controller
                         'reservation_id' => $conflict->id,
                         'start_datetime' => $conflict->start_datetime->toDateTimeString(),
                         'end_datetime' => $conflict->end_datetime->toDateTimeString(),
+                        'start_label' => $conflict->start_datetime->format('M j, Y g:i A'),
+                        'end_label' => $conflict->end_datetime->format('M j, Y g:i A'),
+                        'status' => $conflict->status,
                     ];
                 }
             }

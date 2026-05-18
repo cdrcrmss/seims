@@ -60,12 +60,13 @@ class Room extends Model
     }
 
     /**
-     * Check if room is available for a time period
+     * Reservations that overlap a time window (pending + approved block booking).
      */
-    public function isAvailable($startDateTime, $endDateTime)
+    public function overlappingReservations($startDateTime, $endDateTime, ?int $excludeReservationId = null)
     {
-        return !$this->reservations()
-            ->where('status', 'approved')
+        return $this->reservations()
+            ->whereIn('status', ['pending', 'approved'])
+            ->when($excludeReservationId, fn ($q) => $q->where('id', '!=', $excludeReservationId))
             ->where(function ($q) use ($startDateTime, $endDateTime) {
                 $q->whereBetween('start_datetime', [$startDateTime, $endDateTime])
                     ->orWhereBetween('end_datetime', [$startDateTime, $endDateTime])
@@ -73,6 +74,14 @@ class Room extends Model
                         $q2->where('start_datetime', '<=', $startDateTime)
                             ->where('end_datetime', '>=', $endDateTime);
                     });
-            })->exists();
+            });
+    }
+
+    /**
+     * Check if room is available for a time period
+     */
+    public function isAvailable($startDateTime, $endDateTime, ?int $excludeReservationId = null): bool
+    {
+        return ! $this->overlappingReservations($startDateTime, $endDateTime, $excludeReservationId)->exists();
     }
 }

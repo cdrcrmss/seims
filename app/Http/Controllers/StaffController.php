@@ -291,7 +291,11 @@ class StaffController extends Controller
             $updates['borrowing_id'] = null;
         }
 
-        $unit->update($updates);
+        if ($request->status === 'damaged') {
+            $unit->markDamaged(['source' => 'manual_status_update']);
+        } else {
+            $unit->update($updates);
+        }
 
         if ($item->units()->where('status', '!=', 'disposed')->count() === 0) {
             $item->applyDisposedState();
@@ -560,7 +564,7 @@ class StaffController extends Controller
             })
             ->orderBy('name')
             ->limit(10)
-            ->get(['id', 'name', 'category', 'available_stock', 'asset_code', 'image_path']);
+            ->get(['id', 'name', 'category', 'laboratory', 'location', 'available_stock', 'asset_code', 'image_path']);
 
         return response()->json($items);
     }
@@ -807,7 +811,11 @@ class StaffController extends Controller
                     $unit = ItemUnit::find($borrowing->item_unit_id);
                     if ($unit) {
                         if ($request->return_condition === 'damaged') {
-                            $unit->markDamaged();
+                            $unit->markDamaged([
+                                'return_condition' => $request->return_condition,
+                                'notes' => $request->return_notes,
+                                'issues_found' => 'Returned damaged' . ($request->return_notes ? ': ' . $request->return_notes : '.'),
+                            ]);
                         } elseif ($request->return_condition === 'needs_repair') {
                             $unit->markNeedsRepair();
                         } else {
@@ -829,8 +837,8 @@ class StaffController extends Controller
                     'priority' => $isOverdue || in_array($request->return_condition, ['needs_repair', 'damaged']) ? 'high' : 'low',
                 ]);
 
-                // If item needs repair, notify staff/admin
-                if ($request->return_condition === 'needs_repair' || $request->return_condition === 'damaged') {
+                // If item needs repair, notify staff/admin (damaged auto-schedules maintenance separately)
+                if ($request->return_condition === 'needs_repair') {
                     $staffUsers = User::whereIn('role', ['staff', 'admin'])->where('id', '!=', auth()->id())->get();
                     foreach ($staffUsers as $staff) {
                         Notification::create([

@@ -231,7 +231,7 @@ class StudentController extends Controller
             })
             ->orderBy('name')
             ->limit(10)
-            ->get(['id', 'name', 'category', 'available_stock', 'asset_code', 'image_path']);
+            ->get(['id', 'name', 'category', 'laboratory', 'location', 'available_stock', 'asset_code', 'image_path']);
 
         return response()->json($items);
     }
