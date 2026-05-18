@@ -3,7 +3,7 @@
 @section('title', 'Item Management')
 
 @section('content')
-<div class="space-y-8" x-data="{ showAddItemModal: false, showImportModal: false, showQrModal: false, qrItem: null, showUnitsModal: false, unitsData: { item_id: null, item_name: '', units: [], total: 0 }, unitsLoading: false, async loadUnits(itemId) { this.unitsLoading = true; this.showUnitsModal = true; try { const res = await fetch('/staff/items/' + itemId + '/units'); this.unitsData = await res.json(); } catch(e) { this.unitsData = { item_id: itemId, item_name: 'Error', units: [], total: 0 }; } this.unitsLoading = false; this.$nextTick(() => { setTimeout(() => { this.unitsData.units.forEach(unit => { generateUnitQr(unit.id, unit.qr_code); }); }, 150); }); }, async disposeUnit(unit) { if (!confirm('Mark this unit as disposed? It cannot be borrowed.')) return; try { const res = await fetch('/staff/items/' + this.unitsData.item_id + '/units/' + unit.id, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }, body: JSON.stringify({ status: 'disposed' }) }); const data = await res.json(); if (!res.ok) { alert(data.message || 'Could not dispose unit.'); return; } const idx = this.unitsData.units.findIndex(u => u.id === unit.id); if (idx !== -1) { this.unitsData.units[idx] = data.unit; } } catch (e) { alert('Could not dispose unit.'); } } }">
+<div class="space-y-8" x-data="{ showAddItemModal: @json($errors->any() && old('name') !== null), showImportModal: false, showQrModal: false, qrItem: null, showUnitsModal: false, unitsData: { item_id: null, item_name: '', units: [], total: 0 }, unitsLoading: false, async loadUnits(itemId) { this.unitsLoading = true; this.showUnitsModal = true; try { const res = await fetch('/staff/items/' + itemId + '/units'); this.unitsData = await res.json(); } catch(e) { this.unitsData = { item_id: itemId, item_name: 'Error', units: [], total: 0 }; } this.unitsLoading = false; this.$nextTick(() => { setTimeout(() => { this.unitsData.units.forEach(unit => { generateUnitQr(unit.id, unit.qr_code); }); }, 150); }); }, async disposeUnit(unit) { if (!confirm('Mark this unit as disposed? It cannot be borrowed.')) return; try { const res = await fetch('/staff/items/' + this.unitsData.item_id + '/units/' + unit.id, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }, body: JSON.stringify({ status: 'disposed' }) }); const data = await res.json(); if (!res.ok) { alert(data.message || 'Could not dispose unit.'); return; } const idx = this.unitsData.units.findIndex(u => u.id === unit.id); if (idx !== -1) { this.unitsData.units[idx] = data.unit; } } catch (e) { alert('Could not dispose unit.'); } } }">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -405,7 +405,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="md:col-span-2">
                             <label for="name" class="block mb-2 text-sm font-medium text-gray-900">Item Name</label>
-                            <input type="text" id="name" name="name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-green-500 focus:border-green-500 block w-full p-2.5" required>
+                            <input type="text" id="name" name="name" value="{{ old('name') }}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-green-500 focus:border-green-500 block w-full p-2.5" required>
                         </div>
                         <div>
                             <label for="quick_category" class="block mb-2 text-sm font-medium text-gray-900">Category</label>
@@ -417,11 +417,24 @@
                         </div>
                         <div>
                             <label for="total_stock" class="block mb-2 text-sm font-medium text-gray-900">Total Stock</label>
-                            <input type="number" id="total_stock" name="total_stock" min="1" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-green-500 focus:border-green-500 block w-full p-2.5" required>
+                            <input type="number" id="total_stock" name="total_stock" value="{{ old('total_stock') }}" min="1" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-green-500 focus:border-green-500 block w-full p-2.5" required>
+                        </div>
+                        <div>
+                            <label for="quick_laboratory" class="block mb-2 text-sm font-medium text-gray-900">Laboratory <span class="text-red-500">*</span></label>
+                            <select id="quick_laboratory" name="laboratory" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-green-500 focus:border-green-500 block w-full p-2.5">
+                                <option value="">Select Laboratory</option>
+                                @foreach($laboratories as $lab)
+                                    <option value="{{ $lab }}" {{ old('laboratory') == $lab ? 'selected' : '' }}>{{ $lab }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label for="location" class="block mb-2 text-sm font-medium text-gray-900">Storage Location <span class="text-red-500">*</span></label>
+                            <input type="text" id="location" name="location" value="{{ old('location') }}" placeholder="e.g. Shelf A3, Cabinet 2" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-green-500 focus:border-green-500 block w-full p-2.5" required>
                         </div>
                         <div class="md:col-span-2">
                             <label for="description" class="block mb-2 text-sm font-medium text-gray-900">Description</label>
-                            <textarea id="description" name="description" rows="3" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-green-500 focus:border-green-500 block w-full p-2.5"></textarea>
+                            <textarea id="description" name="description" rows="3" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-green-500 focus:border-green-500 block w-full p-2.5">{{ old('description') }}</textarea>
                         </div>
                         <div class="md:col-span-2">
                             <label for="image" class="block mb-2 text-sm font-medium text-gray-900">Item Image</label>

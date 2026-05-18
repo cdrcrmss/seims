@@ -100,6 +100,19 @@
                             @enderror
                         </div>
 
+                        <!-- Storage Location -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                                Storage Location <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="location" value="{{ old('location', $item->location) }}" required
+                                   placeholder="e.g. Shelf A3, Cabinet 2"
+                                   class="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-green-500/30 focus:border-green-500 transition-colors text-sm">
+                            @error('location')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <!-- Status -->
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1.5">

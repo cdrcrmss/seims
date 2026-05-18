@@ -120,6 +120,7 @@ class StaffController extends Controller
             'description' => 'nullable|string',
             'category' => 'required|string|max:100',
             'laboratory' => 'required|string|in:Alfresco,Kitchen,Food Lab,Hotel',
+            'location' => 'required|string|max:255',
             'total_stock' => 'required|integer|min:1',
             'available_stock' => 'nullable|integer|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -145,6 +146,7 @@ class StaffController extends Controller
             'description' => $request->description,
             'category' => $request->category,
             'laboratory' => $request->laboratory,
+            'location' => $request->location,
             'total_stock' => $request->total_stock,
             'available_stock' => $availableStock,
             'image_path' => $imagePath,
@@ -209,6 +211,7 @@ class StaffController extends Controller
             'description' => 'nullable|string',
             'category' => 'required|string|max:100',
             'laboratory' => 'required|string|in:Alfresco,Kitchen,Food Lab,Hotel',
+            'location' => 'required|string|max:255',
             'total_stock' => 'required|integer|min:0',
             'available_stock' => 'required|integer|min:0',
             'status' => 'nullable|string|in:available,in_use,maintenance,disposed,damaged,lost,retired',
@@ -244,6 +247,7 @@ class StaffController extends Controller
             'description' => $request->description,
             'category' => $request->category,
             'laboratory' => $request->laboratory,
+            'location' => $request->location,
             'image_path' => $imagePath,
         ]);
 
