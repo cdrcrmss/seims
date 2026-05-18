@@ -127,7 +127,7 @@
         <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-6 animate-fade-in-up stagger-3">
             <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
                 <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                <span>Critical Wear Items (&ge;70%)</span>
+                <span>High Wear Only (&ge;70%)</span>
             </h2>
             @forelse($criticalItems as $item)
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl mb-2">

@@ -99,21 +99,33 @@ class MaintenanceRecord extends Model
     }
 
     /**
-     * Scope for upcoming maintenance
+     * Scheduled date is before today (date-only; same day is not overdue).
+     */
+    public function isScheduleOverdue(): bool
+    {
+        if ($this->status !== 'scheduled' || ! $this->scheduled_date) {
+            return false;
+        }
+
+        return $this->scheduled_date->startOfDay()->lt(now()->startOfDay());
+    }
+
+    /**
+     * Scope for upcoming maintenance (today through next 30 days).
      */
     public function scopeUpcoming($query)
     {
         return $query->where('status', 'scheduled')
-            ->where('scheduled_date', '>=', now())
-            ->where('scheduled_date', '<=', now()->addDays(30));
+            ->whereDate('scheduled_date', '>=', now()->toDateString())
+            ->whereDate('scheduled_date', '<=', now()->addDays(30)->toDateString());
     }
 
     /**
-     * Scope for overdue maintenance
+     * Scope for overdue maintenance (scheduled before today).
      */
     public function scopeOverdue($query)
     {
         return $query->where('status', 'scheduled')
-            ->where('scheduled_date', '<', now());
+            ->whereDate('scheduled_date', '<', now()->toDateString());
     }
 }
