@@ -145,7 +145,6 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::get('/create', [MaintenanceController::class, 'create'])->name('create');
         Route::post('/', [MaintenanceController::class, 'store'])->name('store');
         Route::patch('/{maintenance}/complete', [MaintenanceController::class, 'complete'])->name('complete');
-        Route::post('/generate-alerts', [MaintenanceController::class, 'generatePredictiveAlerts'])->name('generate-alerts');
         Route::post('/export', [MaintenanceController::class, 'exportReport'])->name('export');
     });
 

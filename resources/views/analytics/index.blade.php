@@ -73,33 +73,7 @@
             <a href="{{ route('analytics.utilization') }}" class="block text-center text-sm text-green-600 font-semibold mt-3 hover:text-green-700">View All →</a>
         </div>
 
-        <!-- Critical Maintenance Items -->
-        <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-6 animate-fade-in-up stagger-3">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                <span>Critical Maintenance (Wear ≥ 70%)</span>
-            </h2>
-            @forelse($dashboardData['critical_maintenance_items'] as $item)
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl mb-2">
-                <div>
-                    <p class="font-medium text-gray-900">{{ $item->name }}</p>
-                    <p class="text-xs text-gray-500">{{ $item->category }}</p>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <div class="w-24 bg-gray-200 rounded-full h-2.5">
-                        <div class="h-2.5 rounded-full {{ $item->wear_level >= 80 ? 'bg-red-500' : 'bg-orange-500' }}" style="width: {{ $item->wear_level }}%"></div>
-                    </div>
-                    <span class="text-sm font-bold {{ $item->wear_level >= 80 ? 'text-red-600' : 'text-orange-600' }} w-14 text-right">{{ $item->wear_level }}%</span>
-                </div>
-            </div>
-            @empty
-            <div class="text-center py-6 text-gray-400">
-                <svg class="w-10 h-10 mx-auto mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                <p>All equipment in good condition!</p>
-            </div>
-            @endforelse
-            <a href="{{ route('analytics.maintenance-predictions') }}" class="block text-center text-sm text-green-600 font-semibold mt-3 hover:text-green-700">View Predictions →</a>
-        </div>
+        @include('analytics.partials.critical-maintenance-widget')
 
         <!-- Monthly Borrowing Trends -->
         <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-6 animate-fade-in-up stagger-4">

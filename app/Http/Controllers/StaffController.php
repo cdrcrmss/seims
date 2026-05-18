@@ -293,6 +293,10 @@ class StaffController extends Controller
 
         if ($request->status === 'damaged') {
             $unit->markDamaged(['source' => 'manual_status_update']);
+        } elseif ($request->status === 'disposed') {
+            app(\App\Services\MaintenanceAutoScheduleService::class)
+                ->cancelScheduledMaintenanceForUnit($unit, 'Unit disposed — beyond repair.');
+            $unit->update($updates);
         } else {
             $unit->update($updates);
         }

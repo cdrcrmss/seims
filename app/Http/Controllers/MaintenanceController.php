@@ -20,7 +20,9 @@ class MaintenanceController extends Controller
     {
         $status = $request->get('status');
 
-        $query = MaintenanceRecord::with(['item', 'technician']);
+        MaintenanceAutoScheduleService::ensureCorrectiveRecordsForCriticalUnits();
+
+        $query = MaintenanceRecord::with(['item', 'itemUnit', 'technician']);
 
         if ($status === 'upcoming') {
             $query->upcoming();
@@ -127,50 +129,12 @@ class MaintenanceController extends Controller
     }
 
     /**
-     * Generate predictive maintenance alerts
-     */
-    public function generatePredictiveAlerts()
-    {
-        $items = Item::where('wear_level', '>=', 60)
-            ->whereDoesntHave('maintenanceRecords', function ($query) {
-                $query->where('status', 'scheduled')
-                    ->where('maintenance_type', 'predictive');
-            })
-            ->get();
-
-        $alertsGenerated = 0;
-
-        foreach ($items as $item) {
-            $nextMaintenanceDate = MaintenanceRecord::predictNextMaintenance($item);
-
-            $maintenance = MaintenanceRecord::create([
-                'item_id' => $item->id,
-                'maintenance_type' => 'predictive',
-                'scheduled_date' => $nextMaintenanceDate,
-                'wear_level' => $item->wear_level,
-                'status' => 'scheduled',
-                'notes' => 'Auto-generated predictive maintenance alert based on wear analysis.',
-                'predictive_alert_sent' => true,
-            ]);
-
-            // Notify staff
-            $staffUsers = User::where('role', 'staff')->orWhere('role', 'admin')->get();
-            foreach ($staffUsers as $staff) {
-                Notification::createMaintenanceAlert($item, $maintenance, $staff);
-            }
-
-            $alertsGenerated++;
-        }
-
-        return back()->with('success', "Generated {$alertsGenerated} predictive maintenance alerts.");
-    }
-
-    /**
      * Show maintenance dashboard with analytics
      */
     public function dashboard()
     {
-        $upcomingMaintenance = MaintenanceRecord::upcoming()->with('item')->get();
+        MaintenanceAutoScheduleService::ensureCorrectiveRecordsForCriticalUnits();
+        $upcomingMaintenance = MaintenanceRecord::upcoming()->with(['item', 'itemUnit'])->get();
         $overdueMaintenance = MaintenanceRecord::overdue()->with('item')->get();
         $recentlyCompleted = MaintenanceRecord::where('status', 'completed')
             ->orderBy('completed_date', 'desc')

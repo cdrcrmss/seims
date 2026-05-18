@@ -16,11 +16,66 @@ class MaintenanceAutoScheduleService
     public static function criticalUnits()
     {
         return ItemUnit::query()
-            ->with(['item'])
+            ->with(['item', 'activeMaintenanceRecord'])
             ->whereIn('status', ['maintenance', 'damaged'])
             ->whereHas('item')
             ->orderBy('unit_code')
             ->get();
+    }
+
+    /**
+     * Backfill corrective maintenance for units already flagged critical.
+     */
+    public static function ensureCorrectiveRecordsForCriticalUnits(): int
+    {
+        $service = new self();
+        $created = 0;
+
+        foreach (static::criticalUnits() as $unit) {
+            $hasScheduled = MaintenanceRecord::where('item_unit_id', $unit->id)
+                ->where('status', 'scheduled')
+                ->exists();
+
+            if (! $hasScheduled) {
+                $service->ensureCorrectiveRecord($unit);
+                $created++;
+            }
+        }
+
+        return $created;
+    }
+
+    public function ensureCorrectiveRecord(ItemUnit $unit): ?MaintenanceRecord
+    {
+        $unit->loadMissing('item');
+        $item = $unit->item;
+
+        if (! $item) {
+            return null;
+        }
+
+        $unitCode = $unit->unit_code ?: ('UNIT-' . $unit->id);
+
+        return $this->createScheduledCorrectiveRecord(
+            $item,
+            $unit,
+            "Unit {$unitCode} requires corrective maintenance.",
+            "Auto-scheduled for unit {$unitCode} (ID #{$unit->id})."
+        );
+    }
+
+    public function cancelScheduledMaintenanceForUnit(ItemUnit $unit, string $reason = ''): void
+    {
+        $records = MaintenanceRecord::where('item_unit_id', $unit->id)
+            ->where('status', 'scheduled')
+            ->get();
+
+        foreach ($records as $record) {
+            $record->update([
+                'status' => 'cancelled',
+                'notes' => trim(($record->notes ? $record->notes . ' ' : '') . $reason),
+            ]);
+        }
     }
 
     /**

@@ -43,6 +43,18 @@ class ItemUnit extends Model
         return $this->hasMany(Borrowing::class, 'item_unit_id');
     }
 
+    public function maintenanceRecords()
+    {
+        return $this->hasMany(MaintenanceRecord::class);
+    }
+
+    public function activeMaintenanceRecord()
+    {
+        return $this->hasOne(MaintenanceRecord::class)
+            ->where('status', 'scheduled')
+            ->latestOfMany();
+    }
+
     /**
      * Check if this unit is available
      */

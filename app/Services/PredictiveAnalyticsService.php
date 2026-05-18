@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Item;
+use App\Models\ItemUnit;
 use App\Models\Borrowing;
 use App\Models\MaintenanceRecord;
 use App\Models\ProcurementRequest;
@@ -251,7 +252,12 @@ class PredictiveAnalyticsService
             ];
         })->sortByDesc('utilization_rate')->take(5)->values();
 
+        $criticalItemIds = ItemUnit::whereIn('status', ['maintenance', 'damaged'])
+            ->pluck('item_id')
+            ->unique();
+
         $criticalMaintenanceItems = Item::where('wear_level', '>=', 70)
+            ->whereNotIn('id', $criticalItemIds)
             ->orderBy('wear_level', 'desc')
             ->take(10)
             ->get();

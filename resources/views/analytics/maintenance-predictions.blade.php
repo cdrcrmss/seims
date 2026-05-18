@@ -77,9 +77,9 @@
                         <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-red-100 text-red-700">Critical</span>
                     </div>
                     <p class="text-sm text-gray-600">{{ $unit->item?->category }}</p>
-                    <p class="text-xs text-gray-500 mt-1">Unit ID: <span class="font-mono font-semibold text-red-700">{{ $unit->unit_code }}</span> — {{ ucfirst($unit->status) }}, corrective maintenance scheduled for today. Other stock units are unaffected.</p>
+                    <p class="text-xs text-gray-500 mt-1">Unit ID: <span class="font-mono font-semibold text-red-700">{{ $unit->unit_code }}</span> — {{ ucfirst($unit->status) }}. Other stock units are unaffected.</p>
                 </div>
-                <a href="{{ route('maintenance.index') }}" class="text-sm font-semibold text-red-600 hover:text-red-700 whitespace-nowrap">View maintenance list</a>
+                @include('partials.critical-unit-actions', ['unit' => $unit])
             </div>
         </div>
         @endforeach
@@ -153,4 +153,5 @@
         @endforelse
     </div>
 </div>
+@include('partials.dispose-critical-unit-script')
 @endsection

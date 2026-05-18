@@ -15,13 +15,6 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
                 View All Records
             </a>
-            <form method="POST" action="{{ route('maintenance.generate-alerts') }}">
-                @csrf
-                <button type="submit" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                    Generate Predictive Alerts
-                </button>
-            </form>
         </div>
     </div>
 
@@ -97,7 +90,7 @@
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl mb-2">
                 <div>
                     <p class="font-medium text-gray-900">{{ $record->item?->name ?? 'Unknown' }}</p>
-                    <p class="text-xs text-gray-500">{{ $record->scheduled_date->format('M d, Y') }} Â· {{ ucfirst($record->maintenance_type) }}</p>
+                    <p class="text-xs text-gray-500">{{ $record->scheduled_date->format('M d, Y') }} · {{ ucfirst($record->maintenance_type) }}</p>
                 </div>
                 <span class="text-xs text-gray-500">{{ $record->scheduled_date->diffForHumans() }}</span>
             </div>
@@ -122,9 +115,9 @@
                     <div>
                         <p class="font-medium text-gray-900">{{ $unit->item?->name ?? 'Unknown item' }}</p>
                         <p class="text-xs text-gray-500">{{ $unit->item?->category }} &middot; Unit ID: <span class="font-mono font-semibold text-red-700">{{ $unit->unit_code }}</span></p>
-                        <p class="text-xs text-red-600 mt-1">{{ ucfirst($unit->status) }} â?? corrective maintenance scheduled</p>
+                        <p class="text-xs text-red-600 mt-1">{{ ucfirst($unit->status) }} ??? corrective maintenance scheduled</p>
                     </div>
-                    <a href="{{ route('maintenance.index') }}" class="text-xs font-semibold px-2.5 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200">Maintenance</a>
+                    @include('partials.critical-unit-actions', ['unit' => $unit])
                 </div>
                 @endforeach
             </div>
@@ -164,7 +157,7 @@
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl mb-2">
                 <div>
                     <p class="font-medium text-gray-900">{{ $record->item?->name ?? 'Unknown' }}</p>
-                    <p class="text-xs text-gray-500">{{ $record->completed_date ? $record->completed_date->format('M d, Y') : 'N/A' }} Â· {{ ucfirst($record->maintenance_type) }}</p>
+                    <p class="text-xs text-gray-500">{{ $record->completed_date ? $record->completed_date->format('M d, Y') : 'N/A' }} · {{ ucfirst($record->maintenance_type) }}</p>
                 </div>
                 <span class="text-xs font-semibold px-2.5 py-1 bg-green-100 text-green-700 rounded-lg">Completed</span>
             </div>
@@ -174,4 +167,5 @@
         </div>
     </div>
 </div>
+@include('partials.dispose-critical-unit-script')
 @endsection

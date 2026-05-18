@@ -27,7 +27,9 @@ class AnalyticsController extends Controller
      */
     public function index()
     {
+        MaintenanceAutoScheduleService::ensureCorrectiveRecordsForCriticalUnits();
         $dashboardData = $this->analyticsService->getDashboardAnalytics();
+        $criticalUnits = MaintenanceAutoScheduleService::criticalUnits();
         
         // Get monthly trends (database-agnostic)
         $driver = DB::connection()->getDriverName();
@@ -51,7 +53,8 @@ class AnalyticsController extends Controller
         return view('analytics.index', compact(
             'dashboardData',
             'monthlyBorrowings',
-            'monthlyMaintenanceCosts'
+            'monthlyMaintenanceCosts',
+            'criticalUnits'
         ));
     }
 
@@ -187,14 +190,23 @@ class AnalyticsController extends Controller
         });
 
         $allPredictions = $predictions;
-        if ($urgencyFilter) {
-            $predictions = array_values(array_filter(
-                $predictions,
-                fn ($row) => ($row['prediction']['urgency'] ?? '') === $urgencyFilter
-            ));
-        }
 
+        MaintenanceAutoScheduleService::ensureCorrectiveRecordsForCriticalUnits();
         $criticalUnits = MaintenanceAutoScheduleService::criticalUnits();
+        $criticalItemIds = $criticalUnits->pluck('item_id')->unique()->all();
+
+        $wearPredictions = array_values(array_filter(
+            $allPredictions,
+            fn ($row) => ! in_array($row['item']->id, $criticalItemIds, true)
+        ));
+
+        $allPredictions = $wearPredictions;
+        $predictions = $urgencyFilter
+            ? array_values(array_filter(
+                $wearPredictions,
+                fn ($row) => ($row['prediction']['urgency'] ?? '') === $urgencyFilter
+            ))
+            : $wearPredictions;
 
         return view('analytics.maintenance-predictions', compact(
             'predictions',
