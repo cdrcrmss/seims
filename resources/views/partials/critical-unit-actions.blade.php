@@ -4,7 +4,7 @@
     $record = $unit->activeMaintenanceRecord;
 @endphp
 
-<div class="flex flex-wrap items-center gap-2 shrink-0">
+<div class="flex flex-wrap items-center justify-end gap-2 shrink-0 sm:ml-4">
     @if($record)
         <span class="text-xs font-semibold text-orange-700 bg-orange-50 px-2.5 py-1 rounded-lg whitespace-nowrap">
             Corrective · {{ $record->scheduled_date->format('M d, Y') }}

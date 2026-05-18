@@ -58,7 +58,33 @@
 
     @include('maintenance.partials.report-export', ['class' => 'animate-fade-in-up stagger-2'])
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    @if($criticalUnits->count() > 0)
+    <div class="bg-white rounded-2xl ring-1 ring-red-200 shadow-sm p-6 animate-fade-in-up stagger-2">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+            <h2 class="text-lg font-semibold text-red-700 flex items-center space-x-2">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                <span>Units Needing Immediate Attention</span>
+            </h2>
+            <a href="{{ route('analytics.maintenance-predictions', ['urgency' => 'critical']) }}" class="text-sm font-semibold text-red-600 hover:text-red-700 shrink-0">View all critical</a>
+        </div>
+        <div class="space-y-2">
+            @foreach($criticalUnits as $unit)
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 bg-red-50 rounded-xl ring-1 ring-red-100">
+                <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <p class="font-medium text-gray-900">{{ $unit->item?->name ?? 'Unknown item' }}</p>
+                        <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-red-100 text-red-700">{{ $unit->status }}</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">{{ $unit->item?->category }} &middot; <span class="font-mono text-red-700">{{ $unit->unit_code }}</span></p>
+                </div>
+                @include('partials.critical-unit-actions', ['unit' => $unit])
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         <!-- Overdue Maintenance -->
         @if($overdueMaintenance->count() > 0)
         <div class="bg-white rounded-2xl ring-1 ring-red-200 shadow-sm p-6 animate-fade-in-up stagger-2">
@@ -66,7 +92,7 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                 <span>Overdue Maintenance</span>
             </h2>
-            <div class="space-y-3">
+            <div class="space-y-2">
                 @foreach($overdueMaintenance as $record)
                 <div class="flex items-center justify-between p-3 bg-red-50 rounded-xl">
                     <div>
@@ -81,48 +107,26 @@
         @endif
 
         <!-- Upcoming Maintenance -->
-        <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-6 animate-fade-in-up stagger-2">
+        <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-6 animate-fade-in-up stagger-2 flex flex-col {{ $overdueMaintenance->count() === 0 ? 'lg:col-span-2' : '' }}">
             <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
                 <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <span>Upcoming Maintenance (Next 30 Days)</span>
             </h2>
+            <div class="space-y-2 flex-1">
             @forelse($upcomingMaintenance as $record)
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl mb-2">
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                 <div>
                     <p class="font-medium text-gray-900">{{ $record->item?->name ?? 'Unknown' }}</p>
-                    <p class="text-xs text-gray-500">{{ $record->scheduled_date->format('M d, Y') }} · {{ ucfirst($record->maintenance_type) }}</p>
+                    <p class="text-xs text-gray-500">{{ $record->scheduled_date->format('M d, Y') }} &middot; {{ ucfirst($record->maintenance_type) }}</p>
                 </div>
                 <span class="text-xs text-gray-500">{{ $record->scheduled_date->diffForHumans() }}</span>
             </div>
-            @empty
-            <p class="text-gray-400 text-sm text-center py-4">No upcoming maintenance scheduled</p>
-            @endforelse
-        </div>
-
-
-        @if($criticalUnits->count() > 0)
-        <div class="bg-white rounded-2xl ring-1 ring-red-200 shadow-sm p-6 animate-fade-in-up stagger-3 lg:col-span-2">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-red-700 flex items-center space-x-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    <span>Units Needing Immediate Attention</span>
-                </h2>
-                <a href="{{ route('analytics.maintenance-predictions', ['urgency' => 'critical']) }}" class="text-sm font-semibold text-red-600 hover:text-red-700">View all critical</a>
-            </div>
-            <div class="space-y-3">
-                @foreach($criticalUnits as $unit)
-                <div class="flex items-center justify-between p-3 bg-red-50 rounded-xl">
-                    <div>
-                        <p class="font-medium text-gray-900">{{ $unit->item?->name ?? 'Unknown item' }}</p>
-                        <p class="text-xs text-gray-500">{{ $unit->item?->category }} &middot; Unit ID: <span class="font-mono font-semibold text-red-700">{{ $unit->unit_code }}</span></p>
-                        <p class="text-xs text-red-600 mt-1">{{ ucfirst($unit->status) }} ??? corrective maintenance scheduled</p>
-                    </div>
-                    @include('partials.critical-unit-actions', ['unit' => $unit])
-                </div>
-                @endforeach
+                @empty
+                <p class="text-gray-400 text-sm text-center py-8">No upcoming maintenance scheduled</p>
+                @endforelse
             </div>
         </div>
-        @endif
+
         <!-- Critical Items (High Wear) -->
         <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-6 animate-fade-in-up stagger-3">
             <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
@@ -130,7 +134,7 @@
                 <span>High Wear Only (&ge;70%)</span>
             </h2>
             @forelse($criticalItems as $item)
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl mb-2">
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                 <div>
                     <p class="font-medium text-gray-900">{{ $item->name }}</p>
                     <p class="text-xs text-gray-500">{{ $item->category }}</p>
@@ -143,7 +147,7 @@
                 </div>
             </div>
             @empty
-            <p class="text-gray-400 text-sm text-center py-4">No critical items. All equipment in good condition!</p>
+            <p class="text-gray-400 text-sm text-center py-8">No critical items. All equipment in good condition!</p>
             @endforelse
         </div>
 
@@ -154,15 +158,15 @@
                 <span>Recently Completed</span>
             </h2>
             @forelse($recentlyCompleted as $record)
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl mb-2">
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                 <div>
                     <p class="font-medium text-gray-900">{{ $record->item?->name ?? 'Unknown' }}</p>
-                    <p class="text-xs text-gray-500">{{ $record->completed_date ? $record->completed_date->format('M d, Y') : 'N/A' }} · {{ ucfirst($record->maintenance_type) }}</p>
+                    <p class="text-xs text-gray-500">{{ $record->completed_date ? $record->completed_date->format('M d, Y') : 'N/A' }} &middot; {{ ucfirst($record->maintenance_type) }}</p>
                 </div>
                 <span class="text-xs font-semibold px-2.5 py-1 bg-green-100 text-green-700 rounded-lg">Completed</span>
             </div>
             @empty
-            <p class="text-gray-400 text-sm text-center py-4">No recently completed maintenance</p>
+            <p class="text-gray-400 text-sm text-center py-8">No recently completed maintenance</p>
             @endforelse
         </div>
     </div>
