@@ -11,7 +11,20 @@ use App\Models\User;
 class MaintenanceAutoScheduleService
 {
     /**
-     * When a unit is marked damaged, queue corrective maintenance immediately.
+     * Units that need immediate attention (damaged or in corrective maintenance).
+     */
+    public static function criticalUnits()
+    {
+        return ItemUnit::query()
+            ->with(['item'])
+            ->whereIn('status', ['maintenance', 'damaged'])
+            ->whereHas('item')
+            ->orderBy('unit_code')
+            ->get();
+    }
+
+    /**
+     * When a unit is marked damaged, queue corrective maintenance for that unit only.
      */
     public function scheduleForDamagedUnit(ItemUnit $unit, array $context = []): ?MaintenanceRecord
     {
@@ -22,13 +35,15 @@ class MaintenanceAutoScheduleService
             return null;
         }
 
+        $unitCode = $unit->unit_code ?: ('UNIT-' . $unit->id);
+
         $issues = $context['issues_found']
-            ?? 'Unit ' . $unit->unit_code . ' reported as damaged'
+            ?? "Unit {$unitCode} reported as damaged"
             . (isset($context['return_condition']) ? ' on return (' . $context['return_condition'] . ').' : '.');
 
-        $notes = trim(($context['notes'] ?? '') . ' Auto-scheduled from damaged unit #' . $unit->id . '.');
+        $notes = trim(($context['notes'] ?? '') . " Auto-scheduled for unit {$unitCode} (ID #{$unit->id}).");
 
-        $record = $this->createScheduledCorrectiveRecord($item, $issues, $notes);
+        $record = $this->createScheduledCorrectiveRecord($item, $unit, $issues, $notes);
 
         $unit->update(['status' => 'maintenance']);
 
@@ -38,12 +53,11 @@ class MaintenanceAutoScheduleService
         return $record;
     }
 
-    protected function createScheduledCorrectiveRecord(Item $item, string $issuesFound, string $notes): MaintenanceRecord
+    protected function createScheduledCorrectiveRecord(Item $item, ItemUnit $unit, string $issuesFound, string $notes): MaintenanceRecord
     {
-        $existing = MaintenanceRecord::where('item_id', $item->id)
+        $existing = MaintenanceRecord::where('item_unit_id', $unit->id)
             ->where('status', 'scheduled')
             ->where('maintenance_type', 'corrective')
-            ->whereDate('scheduled_date', '<=', now()->addDay())
             ->first();
 
         if ($existing) {
@@ -57,6 +71,7 @@ class MaintenanceAutoScheduleService
 
         return MaintenanceRecord::create([
             'item_id' => $item->id,
+            'item_unit_id' => $unit->id,
             'maintenance_type' => 'corrective',
             'scheduled_date' => now()->toDateString(),
             'status' => 'scheduled',
@@ -70,8 +85,14 @@ class MaintenanceAutoScheduleService
     {
         if ($item->units()->exists()) {
             $item->syncStockFromUnits();
-            if ($item->units()->where('status', 'maintenance')->exists()) {
+            $hasUnavailableUnits = $item->units()
+                ->whereIn('status', ['maintenance', 'damaged', 'needs_repair', 'lost'])
+                ->exists();
+
+            if ($hasUnavailableUnits && $item->available_stock === 0) {
                 $item->update(['status' => 'maintenance']);
+            } elseif ($item->available_stock > 0 && $item->status === 'maintenance') {
+                $item->update(['status' => 'available']);
             }
         } else {
             $item->update(['status' => 'maintenance']);
@@ -80,15 +101,16 @@ class MaintenanceAutoScheduleService
 
     protected function notifyStaff(Item $item, ItemUnit $unit, MaintenanceRecord $record): void
     {
+        $unitCode = $unit->unit_code ?: ('UNIT-' . $unit->id);
         $staffUsers = User::whereIn('role', ['staff', 'admin'])->get();
 
         foreach ($staffUsers as $staff) {
             Notification::create([
                 'user_id' => $staff->id,
                 'type' => 'warning',
-                'title' => 'Maintenance Auto-Scheduled',
-                'message' => '"' . $item->name . '" (unit ' . $unit->unit_code . ') was marked damaged and queued for maintenance on ' . $record->scheduled_date->format('M j, Y') . '.',
-                'action_url' => route('maintenance.index'),
+                'title' => 'Unit Queued for Maintenance',
+                'message' => $item->name . ' — unit ' . $unitCode . ' is damaged and scheduled for maintenance today. Other units of this item are unaffected.',
+                'action_url' => route('analytics.maintenance-predictions', ['urgency' => 'critical']),
                 'priority' => 'high',
             ]);
         }

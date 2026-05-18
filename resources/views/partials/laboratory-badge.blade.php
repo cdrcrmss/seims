@@ -12,6 +12,6 @@
         $sizeClass = $size === 'sm' ? 'text-sm px-2.5 py-0.5' : 'text-xs px-2 py-0.5';
     @endphp
     <span class="inline-flex items-center rounded-full font-medium {{ $sizeClass }} {{ $labColor }}">
-        {{ $laboratory }} Lab
+        {{ $laboratory }}
     </span>
 @endif

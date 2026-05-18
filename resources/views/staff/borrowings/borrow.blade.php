@@ -75,7 +75,7 @@
                                         <div class="flex-1 min-w-0">
                                             <p class="text-sm font-semibold text-gray-900 truncate" x-text="item.name"></p>
                                             <p class="text-xs text-gray-500" x-text="item.category"></p>
-                                            <p class="text-xs text-emerald-700 font-medium" x-show="item.laboratory" x-text="item.laboratory ? item.laboratory + ' Lab' : ''"></p>
+                                            <p class="text-xs text-emerald-700 font-medium" x-show="item.laboratory" x-text="item.laboratory || ''"></p>
                                         </div>
                                         <div class="text-xs text-gray-400">
                                             <span x-text="item.available_stock"></span> available
@@ -205,7 +205,7 @@
                                     <div>
                                         <p class="text-sm font-bold text-green-900" x-text="selectedItemName"></p>
                                         <p class="text-xs text-green-700" x-text="selectedItemCategory"></p>
-                                        <p class="text-xs font-semibold text-emerald-800 mt-0.5" x-show="selectedItemLaboratory" x-text="'Pick up from: ' + selectedItemLaboratory + ' Lab'"></p>
+                                        <p class="text-xs font-semibold text-emerald-800 mt-0.5" x-show="selectedItemLaboratory" x-text="selectedItemLaboratory ? 'Pick up from: ' + selectedItemLaboratory : ''"></p>
                                     </div>
                                 </div>
                                 <button type="button" @click="clearSelection()" class="p-1.5 text-green-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">

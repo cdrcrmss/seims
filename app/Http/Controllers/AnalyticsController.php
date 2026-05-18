@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\MaintenanceAutoScheduleService;
 use App\Services\PredictiveAnalyticsService;
 use App\Models\Item;
 use App\Models\Borrowing;
@@ -193,7 +194,14 @@ class AnalyticsController extends Controller
             ));
         }
 
-        return view('analytics.maintenance-predictions', compact('predictions', 'allPredictions', 'urgencyFilter'));
+        $criticalUnits = MaintenanceAutoScheduleService::criticalUnits();
+
+        return view('analytics.maintenance-predictions', compact(
+            'predictions',
+            'allPredictions',
+            'urgencyFilter',
+            'criticalUnits'
+        ));
     }
 
     /**

@@ -49,11 +49,12 @@
                 </div>
             </div>
         </a>
-        <a href="{{ route('staff.items.index') }}" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-orange-500 hover:ring-orange-300 transition-all cursor-pointer block">
+        <a href="{{ route('analytics.maintenance-predictions', ['urgency' => 'critical']) }}" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-orange-500 hover:ring-orange-300 transition-all cursor-pointer block">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Critical Items</p>
-                    <p class="text-3xl font-bold text-orange-600 mt-1 font-poppins">{{ $criticalItems->count() }}</p>
+                    <p class="text-3xl font-bold text-orange-600 mt-1 font-poppins">{{ $criticalCount }}</p>
+                    <p class="text-xs text-gray-500 mt-1">Damaged units + high wear</p>
                 </div>
                 <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
                     <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
@@ -105,11 +106,35 @@
             @endforelse
         </div>
 
+
+        @if($criticalUnits->count() > 0)
+        <div class="bg-white rounded-2xl ring-1 ring-red-200 shadow-sm p-6 animate-fade-in-up stagger-3 lg:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-red-700 flex items-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    <span>Units Needing Immediate Attention</span>
+                </h2>
+                <a href="{{ route('analytics.maintenance-predictions', ['urgency' => 'critical']) }}" class="text-sm font-semibold text-red-600 hover:text-red-700">View all critical</a>
+            </div>
+            <div class="space-y-3">
+                @foreach($criticalUnits as $unit)
+                <div class="flex items-center justify-between p-3 bg-red-50 rounded-xl">
+                    <div>
+                        <p class="font-medium text-gray-900">{{ $unit->item?->name ?? 'Unknown item' }}</p>
+                        <p class="text-xs text-gray-500">{{ $unit->item?->category }} &middot; Unit ID: <span class="font-mono font-semibold text-red-700">{{ $unit->unit_code }}</span></p>
+                        <p class="text-xs text-red-600 mt-1">{{ ucfirst($unit->status) }} â?? corrective maintenance scheduled</p>
+                    </div>
+                    <a href="{{ route('maintenance.index') }}" class="text-xs font-semibold px-2.5 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200">Maintenance</a>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
         <!-- Critical Items (High Wear) -->
         <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-6 animate-fade-in-up stagger-3">
             <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
                 <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                <span>Critical Wear Items (â‰¥80%)</span>
+                <span>Critical Wear Items (&ge;70%)</span>
             </h2>
             @forelse($criticalItems as $item)
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl mb-2">

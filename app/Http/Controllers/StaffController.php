@@ -786,7 +786,10 @@ class StaffController extends Controller
 
                 // Update item wear level based on return condition
                 if (in_array($request->return_condition, ['needs_repair', 'damaged'])) {
-                    $wearIncrease = $request->return_condition === 'damaged' ? 30 : 15;
+                    $unitCount = max(1, $item->total_stock ?: 1);
+                    $wearIncrease = $request->return_condition === 'damaged'
+                        ? (int) max(5, round(30 / $unitCount))
+                        : (int) max(3, round(15 / $unitCount));
                     $item->wear_level = min(100, $item->wear_level + $wearIncrease);
                     
                     // Damaged/needs_repair units are not available, so decrement available stock

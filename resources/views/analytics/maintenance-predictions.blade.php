@@ -17,7 +17,8 @@
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up stagger-1">
         @php
-            $critical = collect($allPredictions)->where('prediction.urgency', 'critical')->count();
+            $criticalWear = collect($allPredictions)->where('prediction.urgency', 'critical')->count();
+            $critical = $criticalWear + $criticalUnits->count();
             $high = collect($allPredictions)->where('prediction.urgency', 'high')->count();
             $moderate = collect($allPredictions)->where('prediction.urgency', 'moderate')->count();
         @endphp
@@ -26,7 +27,7 @@
                   {{ $urgencyFilter === 'critical' ? 'ring-red-400 ring-2 shadow-md' : 'ring-red-200 hover:ring-red-300' }}">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Critical</p>
             <p class="text-3xl font-bold text-red-600 mt-1 font-poppins">{{ $critical }}</p>
-            <p class="text-xs text-gray-500 mt-1">Wear ≥ 70% — Immediate attention</p>
+            <p class="text-xs text-gray-500 mt-1">Damaged units + wear &ge; 70%</p>
         </a>
         <a href="{{ $urgencyFilter === 'high' ? route('analytics.maintenance-predictions') : route('analytics.maintenance-predictions', ['urgency' => 'high']) }}"
            class="bg-white rounded-2xl ring-1 p-6 border-l-4 border-orange-500 block transition-all cursor-pointer
@@ -48,7 +49,11 @@
     <div class="flex items-center justify-between gap-3 animate-fade-in-up">
         <p class="text-sm text-gray-600">
             Showing <span class="font-semibold text-gray-900">{{ ucfirst($urgencyFilter) }}</span> urgency
-            ({{ count($predictions) }} {{ Str::plural('item', count($predictions)) }})
+            @if($urgencyFilter === 'critical' && $criticalUnits->count() > 0)
+                ({{ $criticalUnits->count() }} {{ Str::plural('unit', $criticalUnits->count()) }}@if(count($predictions) > 0), plus {{ count($predictions) }} wear-based @endif)
+            @else
+                ({{ count($predictions) }} {{ Str::plural('item', count($predictions)) }})
+            @endif
         </p>
         <a href="{{ route('analytics.maintenance-predictions') }}" class="text-sm font-semibold text-green-600 hover:text-green-700">Clear filter</a>
     </div>
@@ -57,6 +62,28 @@
         @if($lowUrgencyCount > 0)
             <p class="text-center text-sm text-gray-500">{{ $lowUrgencyCount }} additional item(s) with routine/low urgency (scroll the list below).</p>
         @endif
+    @endif
+
+
+    @if($criticalUnits->count() > 0 && (!$urgencyFilter || $urgencyFilter === 'critical'))
+    <div class="space-y-4 animate-fade-in-up stagger-2">
+        <h2 class="text-lg font-semibold text-red-700">Damaged units (immediate critical)</h2>
+        @foreach($criticalUnits as $unit)
+        <div class="bg-white rounded-2xl ring-1 ring-red-200 shadow-sm p-6 border-l-4 border-red-500">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex-1">
+                    <div class="flex items-center space-x-3 mb-2">
+                        <h3 class="text-lg font-semibold text-gray-900">{{ $unit->item?->name ?? 'Unknown' }}</h3>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-red-100 text-red-700">Critical</span>
+                    </div>
+                    <p class="text-sm text-gray-600">{{ $unit->item?->category }}</p>
+                    <p class="text-xs text-gray-500 mt-1">Unit ID: <span class="font-mono font-semibold text-red-700">{{ $unit->unit_code }}</span> — {{ ucfirst($unit->status) }}, corrective maintenance scheduled for today. Other stock units are unaffected.</p>
+                </div>
+                <a href="{{ route('maintenance.index') }}" class="text-sm font-semibold text-red-600 hover:text-red-700 whitespace-nowrap">View maintenance list</a>
+            </div>
+        </div>
+        @endforeach
+    </div>
     @endif
 
     <!-- Predictions List -->
@@ -110,6 +137,8 @@
             </div>
         </div>
         @empty
+            @if($urgencyFilter === 'critical' && $criticalUnits->count() > 0)
+            @else
         <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-12 text-center text-gray-400">
             @if($urgencyFilter)
                 <p class="text-lg">No {{ $urgencyFilter }} urgency items</p>
@@ -120,6 +149,7 @@
                 <p class="text-sm mt-1">No urgent maintenance predictions at this time</p>
             @endif
         </div>
+            @endif
         @endforelse
     </div>
 </div>

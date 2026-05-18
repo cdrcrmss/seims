@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\MaintenanceRecord;
+use App\Services\MaintenanceAutoScheduleService;
 use App\Models\Item;
 use App\Models\User;
 use App\Models\Notification;
@@ -177,7 +178,12 @@ class MaintenanceController extends Controller
             ->with('item')
             ->get();
 
-        $criticalItems = Item::where('wear_level', '>=', 80)->get();
+        $criticalUnits = MaintenanceAutoScheduleService::criticalUnits();
+        $itemIdsWithCriticalUnits = $criticalUnits->pluck('item_id')->unique();
+        $criticalItems = Item::where('wear_level', '>=', 70)
+            ->whereNotIn('id', $itemIdsWithCriticalUnits)
+            ->get();
+        $criticalCount = $criticalUnits->count() + $criticalItems->count();
         $maintenanceCosts = MaintenanceRecord::where('status', 'completed')
             ->whereYear('completed_date', now()->year)
             ->sum('cost');
@@ -186,7 +192,9 @@ class MaintenanceController extends Controller
             'upcomingMaintenance',
             'overdueMaintenance',
             'recentlyCompleted',
+            'criticalUnits',
             'criticalItems',
+            'criticalCount',
             'maintenanceCosts'
         ));
     }

@@ -16,6 +16,7 @@ class MaintenanceRecord extends Model
      */
     protected $fillable = [
         'item_id',
+        'item_unit_id',
         'maintenance_type',
         'scheduled_date',
         'completed_date',
@@ -58,6 +59,11 @@ class MaintenanceRecord extends Model
             'name' => 'Deleted Item',
             'image_path' => null,
         ]);
+    }
+
+    public function itemUnit()
+    {
+        return $this->belongsTo(ItemUnit::class);
     }
 
     public function technician()
