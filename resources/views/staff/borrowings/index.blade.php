@@ -170,7 +170,7 @@
 
         <div class="divide-y divide-white/10">
             @forelse($borrowings as $borrowing)
-                <div class="p-6 hover:bg-white/5 transition-colors borrowing-row" data-search="{{ strtolower(($borrowing->item?->name ?? '') . ' ' . ($borrowing->user?->name ?? '') . ' ' . ($borrowing->user?->student_id ?? '') . ' ' . $borrowing->status . ' ' . ($borrowing->notes ?? '')) }}">
+                <div class="p-6 hover:bg-gray-50/80 transition-colors borrowing-row" data-search="{{ strtolower(($borrowing->item?->name ?? '') . ' ' . ($borrowing->item?->category ?? '') . ' ' . ($borrowing->item?->laboratory ?? '') . ' ' . ($borrowing->item?->asset_code ?? '') . ' ' . ($borrowing->itemUnit?->unit_code ?? '') . ' ' . ($borrowing->user?->name ?? '') . ' ' . ($borrowing->user?->student_id ?? '') . ' ' . $borrowing->status . ' ' . ($borrowing->notes ?? '')) }}">
                     <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                         <!-- Request Info -->
                         <div class="flex-1 min-w-0">
@@ -201,6 +201,26 @@
                                     </div>
                                     @if($borrowing->itemUnit)
                                         <p class="text-xs text-indigo-600 font-mono font-semibold mb-1">Unit: {{ $borrowing->itemUnit->unit_code }}</p>
+                                    @endif
+
+                                    @if($borrowing->item)
+                                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-600 mb-3 mt-1">
+                                        @if($borrowing->item->category)
+                                            <span><span class="text-gray-500">Category:</span> {{ $borrowing->item->category }}</span>
+                                        @endif
+                                        @if($borrowing->item->laboratory)
+                                            <span class="inline-flex items-center gap-1">
+                                                <span class="text-gray-500">Laboratory:</span>
+                                                <span class="font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-md">{{ $borrowing->item->laboratory }}</span>
+                                            </span>
+                                        @endif
+                                        @if($borrowing->item->asset_code)
+                                            <span><span class="text-gray-500">Asset code:</span> <span class="font-mono text-gray-800">{{ $borrowing->item->asset_code }}</span></span>
+                                        @endif
+                                        @if($borrowing->item->location)
+                                            <span><span class="text-gray-500">Location:</span> {{ $borrowing->item->location }}</span>
+                                        @endif
+                                    </div>
                                     @endif
 
                                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
@@ -437,6 +457,9 @@
         
         const itemName = borrowing.item ? borrowing.item.name : 'Deleted Item';
         const itemCategory = borrowing.item ? borrowing.item.category : '—';
+        const itemLaboratory = borrowing.item && borrowing.item.laboratory ? borrowing.item.laboratory : '—';
+        const itemAssetCode = borrowing.item && borrowing.item.asset_code ? borrowing.item.asset_code : null;
+        const itemLocation = borrowing.item && borrowing.item.location ? borrowing.item.location : null;
         const unitCode = borrowing.item_unit ? borrowing.item_unit.unit_code : null;
         const unitQr = borrowing.item_unit ? borrowing.item_unit.qr_code : null;
         const userName = borrowing.user ? borrowing.user.name : 'Unknown User';
@@ -449,7 +472,10 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h4 class="text-base font-bold text-gray-900">${itemName}</h4>
-                        <p class="text-xs text-gray-500">${itemCategory}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Category: ${itemCategory}</p>
+                        <p class="text-xs mt-1"><span class="text-gray-500">Laboratory:</span> <span class="font-semibold text-green-700">${itemLaboratory}</span></p>
+                        ${itemAssetCode ? `<p class="text-xs text-gray-500 mt-0.5">Asset: <span class="font-mono text-gray-800">${itemAssetCode}</span></p>` : ''}
+                        ${itemLocation ? `<p class="text-xs text-gray-500 mt-0.5">Location: ${itemLocation}</p>` : ''}
                     </div>
                     <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md ${s.bg} ${s.text}">
                         <span class="w-1.5 h-1.5 rounded-full ${s.dot}"></span>
