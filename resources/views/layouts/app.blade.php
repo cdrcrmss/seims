@@ -120,9 +120,18 @@
             
             {{-- Logo area --}}
             <div class="flex items-center justify-between px-5 py-5 border-b border-white/10">
-                <div class="flex items-center space-x-3">
-                    <img src="{{ asset('images/spup_logo.png') }}" alt="SPUP Logo" class="w-9 h-9 object-contain rounded-lg bg-white/10 p-0.5">
-                    <h1 class="text-xl font-bold text-white font-poppins tracking-tight">SEIMS</h1>
+                <div class="min-w-0 flex-1 pr-2">
+                    <div class="flex items-center space-x-3">
+                        <img src="{{ asset('images/spup_logo.png') }}" alt="SPUP Logo" class="w-9 h-9 object-contain rounded-lg bg-white/10 p-0.5">
+                        <h1 class="text-xl font-bold text-white font-poppins tracking-tight">SEIMS</h1>
+                    </div>
+                    <a href="{{ route('user-manual') }}"
+                       class="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-white/75 hover:text-white transition-colors {{ request()->routeIs('user-manual') ? 'text-white underline underline-offset-2' : '' }}">
+                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                        User Guide / Manual
+                    </a>
                 </div>
                 <button @click="sidebarOpen = false" class="lg:hidden p-1.5 rounded-lg text-white/70 hover:bg-white/10 transition-colors" aria-label="Close sidebar">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

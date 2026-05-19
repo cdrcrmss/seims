@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,6 +33,56 @@ class AppServiceProvider extends ServiceProvider
 
         // Fix MySQL key length for utf8mb4 encoding
         Schema::defaultStringLength(191);
+
+        // Login brute-force protection: 5 attempts per email+IP per 15 minutes
+        RateLimiter::for('login', function (Request $request) {
+            $email = Str::lower((string) $request->input('email', ''));
+            $key = $email.'|'.$request->ip();
+
+            return Limit::perMinutes(15, 5)
+                ->by($key)
+                ->response(function (Request $request, array $headers) {
+                    $retryAfter = (int) ($headers['Retry-After'] ?? 900);
+                    $minutes = max(1, (int) ceil($retryAfter / 60));
+                    $message = "Too many login attempts. Please wait {$minutes} minute(s) before trying again.";
+
+                    if ($request->expectsJson()) {
+                        return response()->json([
+                            'message' => $message,
+                            'retry_after' => $retryAfter,
+                        ], 429, $headers);
+                    }
+
+                    return redirect()
+                        ->route('login')
+                        ->withErrors(['email' => $message])
+                        ->withInput($request->only('email'));
+                });
+        });
+
+        // Guest / registration abuse protection
+        RateLimiter::for('guest', function (Request $request) {
+            return Limit::perMinute(20)->by($request->ip());
+        });
+
+        // Authenticated JSON/search endpoints (application-layer DDoS mitigation)
+        RateLimiter::for('public-api', function (Request $request) {
+            return Limit::perMinute(60)
+                ->by($request->user()?->id ?: $request->ip())
+                ->response(function (Request $request, array $headers) {
+                    $retryAfter = (int) ($headers['Retry-After'] ?? 60);
+                    $message = 'Too many requests. Please slow down and try again shortly.';
+
+                    if ($request->expectsJson()) {
+                        return response()->json([
+                            'message' => $message,
+                            'retry_after' => $retryAfter,
+                        ], 429, $headers);
+                    }
+
+                    return response($message, 429, $headers);
+                });
+        });
 
         // Rate limiters for borrowing form submissions
         RateLimiter::for('borrow-submit', function (Request $request) {

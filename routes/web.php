@@ -36,6 +36,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
         ->name('storage.public.show');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/user-manual', [DashboardController::class, 'userManual'])->name('user-manual');
     
     // Student Borrow Routes (with rate limiting)
     Route::get('/student/borrow', [StudentController::class, 'borrowForm'])
@@ -54,7 +55,9 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
         // User Management
         Route::get('/users', [AdminController::class, 'users'])->name('users.index');
-        Route::get('/users/search', [AdminController::class, 'searchUsers'])->name('users.search');
+        Route::get('/users/search', [AdminController::class, 'searchUsers'])
+            ->middleware('throttle:public-api')
+            ->name('users.search');
         Route::get('/users/create', [AdminController::class, 'createUser'])->name('users.create');
         Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
         Route::get('/users/{user}/edit', [AdminController::class, 'editUser'])->name('users.edit');
@@ -78,7 +81,9 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::middleware(['staff_or_admin'])->prefix('staff')->name('staff.')->group(function () {
         // Item Management
         Route::get('/items', [StaffController::class, 'items'])->name('items.index');
-        Route::get('/items/search', [StaffController::class, 'searchAllItems'])->name('items.search');
+        Route::get('/items/search', [StaffController::class, 'searchAllItems'])
+            ->middleware('throttle:public-api')
+            ->name('items.search');
         Route::get('/items/trash', [StaffController::class, 'trashedItems'])->name('items.trash');
         Route::get('/items/create', [StaffController::class, 'createItem'])->name('items.create');
         Route::post('/items', [StaffController::class, 'storeItem'])->name('items.store');
@@ -88,14 +93,20 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::post('/items/{item}/restore', [StaffController::class, 'restoreItem'])->name('items.restore');
         Route::delete('/items/{item}/force-delete', [StaffController::class, 'forceDeleteItem'])->name('items.force-delete');
         Route::post('/items/bulk-import', [StaffController::class, 'bulkImportItems'])->name('items.bulk-import');
-        Route::get('/items/{item}/units', [StaffController::class, 'getItemUnits'])->name('items.units');
+        Route::get('/items/{item}/units', [StaffController::class, 'getItemUnits'])
+            ->middleware('throttle:public-api')
+            ->name('items.units');
         Route::patch('/items/{item}/units/{unit}', [StaffController::class, 'updateUnitStatus'])->name('items.units.update');
 
         // Direct Borrowing (Staff/Admin can borrow items directly)
         Route::get('/borrow', [StaffController::class, 'borrowForm'])->name('borrow.form');
         Route::post('/borrow', [StaffController::class, 'borrowItem'])->name('borrow');
-        Route::get('/api/search-items', [StaffController::class, 'searchItems'])->name('api.search-items');
-        Route::get('/api/trashed-items', [StaffController::class, 'searchTrashedItems'])->name('api.trashed-items');
+        Route::get('/api/search-items', [StaffController::class, 'searchItems'])
+            ->middleware('throttle:public-api')
+            ->name('api.search-items');
+        Route::get('/api/trashed-items', [StaffController::class, 'searchTrashedItems'])
+            ->middleware('throttle:public-api')
+            ->name('api.trashed-items');
 
         // Borrowing Management
         Route::get('/borrowings', [StaffController::class, 'borrowings'])->name('borrowings.index');
@@ -115,7 +126,9 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::get('/borrowings', [StudentController::class, 'borrowings'])->name('borrowings.index');
         Route::delete('/borrowings/{borrowing}/cancel', [StudentController::class, 'cancelRequest'])->name('borrowings.cancel');
         Route::post('/borrowings/{borrowing}/extend', [StudentController::class, 'requestExtension'])->name('borrowings.extend');
-        Route::get('/api/search-items', [StudentController::class, 'searchItems'])->name('api.search-items');
+        Route::get('/api/search-items', [StudentController::class, 'searchItems'])
+            ->middleware('throttle:public-api')
+            ->name('api.search-items');
     });
 
     // Reservation & Scheduling Module (Conflict Detective)
@@ -164,7 +177,9 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::prefix('qr')->name('qr.')->group(function () {
         // Scanner and lookup available to all authenticated users
         Route::get('/scanner', [QrCodeController::class, 'scanner'])->name('scanner');
-        Route::get('/lookup/{item?}', [QrCodeController::class, 'lookup'])->name('lookup');
+        Route::get('/lookup/{item?}', [QrCodeController::class, 'lookup'])
+            ->middleware('throttle:public-api')
+            ->name('lookup');
 
         // Generate and batch-generate restricted to staff/admin
         Route::middleware(['staff_or_admin'])->group(function () {

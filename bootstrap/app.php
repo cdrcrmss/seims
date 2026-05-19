@@ -16,6 +16,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'staff_or_admin' => \App\Http\Middleware\StaffOrAdminMiddleware::class,
             'approved' => \App\Http\Middleware\EnsureUserIsApproved::class,
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
+            'no.cache' => \App\Http\Middleware\PreventBrowserCache::class,
+            'session.valid' => \App\Http\Middleware\EnsureServerSessionIsValid::class,
+        ]);
+
+        // Harden all authenticated routes: no browser cache + server session validation
+        $middleware->appendToGroup('auth', [
+            \App\Http\Middleware\PreventBrowserCache::class,
+            \App\Http\Middleware\EnsureServerSessionIsValid::class,
         ]);
 
         // Register AuditLog middleware globally for web requests

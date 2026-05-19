@@ -6,11 +6,12 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 
-Route::middleware('guest')->group(function () {
+Route::middleware(['guest', 'throttle:guest'])->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
                 ->name('login');
 
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+    Route::post('login', [AuthenticatedSessionController::class, 'store'])
+                ->middleware('throttle:login');
 
     Route::get('register', [RegisteredUserController::class, 'create'])
                 ->name('register');

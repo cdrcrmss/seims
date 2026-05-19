@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -269,6 +270,19 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
+    }
+
+    /**
+     * Display the user guide / manual.
+     */
+    public function userManual()
+    {
+        $path = resource_path('docs/user-manual.md');
+        $markdown = file_exists($path) ? file_get_contents($path) : "# User Guide\n\nThe user manual is not available yet.";
+
+        return view('user-manual', [
+            'content' => Str::markdown($markdown),
+        ]);
     }
 
     /**

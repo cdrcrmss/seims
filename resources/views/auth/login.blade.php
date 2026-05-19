@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Sign In - {{ config('app.name', 'SEIMS') }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/spup_logo.png') }}">
     <link rel="shortcut icon" type="image/png" href="{{ asset('images/spup_logo.png') }}">
@@ -585,5 +588,20 @@
             </div>
         </div>
     </div>
+
+    @if(request()->boolean('logged_out') || session('status'))
+    <script>
+        (function () {
+            try {
+                sessionStorage.clear();
+                localStorage.clear();
+            } catch (e) {}
+
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState(null, document.title, @json(route('login')));
+            }
+        })();
+    </script>
+    @endif
 </body>
 </html>

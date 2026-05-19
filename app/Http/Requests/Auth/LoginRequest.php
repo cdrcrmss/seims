@@ -8,9 +8,16 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Response;
 
 class LoginRequest extends FormRequest
 {
+    /** Failed attempts allowed per IP + email within the decay window. */
+    public const MAX_ATTEMPTS = 5;
+
+    /** Decay window in seconds (15 minutes). */
+    public const DECAY_SECONDS = 900;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -42,7 +49,7 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
+            RateLimiter::hit($this->throttleKey(), self::DECAY_SECONDS);
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
@@ -51,7 +58,7 @@ class LoginRequest extends FormRequest
 
         // Only students self-register and need approval; staff are provisioned by admin as approved
         $user = Auth::user();
-        if ($user && !$user->is_approved && $user->isStudent()) {
+        if ($user && ! $user->is_approved && $user->isStudent()) {
             Auth::logout();
             $this->session()->invalidate();
             $this->session()->regenerateToken();
@@ -71,20 +78,18 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (! RateLimiter::tooManyAttempts($this->throttleKey(), self::MAX_ATTEMPTS)) {
             return;
         }
 
         event(new Lockout($this));
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
+        $minutes = max(1, (int) ceil($seconds / 60));
 
         throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
-        ]);
+            'email' => "Too many login attempts. Please wait {$minutes} minute(s) before trying again.",
+        ])->status(Response::HTTP_TOO_MANY_REQUESTS);
     }
 
     /**
