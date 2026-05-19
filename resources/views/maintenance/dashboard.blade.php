@@ -99,7 +99,7 @@
                         <p class="font-medium text-gray-900">{{ $record->item?->name ?? 'Unknown' }}</p>
                         <p class="text-xs text-red-600">Due: {{ $record->scheduled_date->format('M d, Y') }} ({{ $record->scheduled_date->diffForHumans() }})</p>
                     </div>
-                    <span class="text-xs font-semibold px-2.5 py-1 bg-red-100 text-red-700 rounded-lg">{{ ucfirst($record->maintenance_type) }}</span>
+                    <span class="text-xs font-semibold px-2.5 py-1 bg-red-100 text-red-700 rounded-lg">{{ $record->typeLabel() }}</span>
                 </div>
                 @endforeach
             </div>
@@ -108,16 +108,21 @@
 
         <!-- Upcoming Maintenance -->
         <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-6 animate-fade-in-up stagger-2 flex flex-col {{ $overdueMaintenance->count() === 0 ? 'lg:col-span-2' : '' }}">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <span>Upcoming Maintenance (Next 30 Days)</span>
-            </h2>
+            <div class="mb-4">
+                <h2 class="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-yellow-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>Scheduled Maintenance (Next 30 Days)</span>
+                </h2>
+                @if($criticalUnits->count() > 0)
+                    <p class="text-xs text-gray-500 mt-1 ml-7">Other scheduled work — units listed above are not repeated here.</p>
+                @endif
+            </div>
             <div class="space-y-2 flex-1">
             @forelse($upcomingMaintenance as $record)
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                 <div>
                     <p class="font-medium text-gray-900">{{ $record->item?->name ?? 'Unknown' }}</p>
-                    <p class="text-xs text-gray-500">{{ $record->scheduled_date->format('M d, Y') }} &middot; {{ ucfirst($record->maintenance_type) }}</p>
+                    <p class="text-xs text-gray-500">{{ $record->scheduled_date->format('M d, Y') }} &middot; {{ $record->typeLabel() }}</p>
                 </div>
                 <span class="text-xs text-gray-500">{{ $record->scheduled_date->diffForHumans() }}</span>
             </div>
@@ -161,7 +166,7 @@
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                 <div>
                     <p class="font-medium text-gray-900">{{ $record->item?->name ?? 'Unknown' }}</p>
-                    <p class="text-xs text-gray-500">{{ $record->completed_date ? $record->completed_date->format('M d, Y') : 'N/A' }} &middot; {{ ucfirst($record->maintenance_type) }}</p>
+                    <p class="text-xs text-gray-500">{{ $record->completed_date ? $record->completed_date->format('M d, Y') : 'N/A' }} &middot; {{ $record->typeLabel() }}</p>
                 </div>
                 <span class="text-xs font-semibold px-2.5 py-1 bg-green-100 text-green-700 rounded-lg">Completed</span>
             </div>

@@ -86,7 +86,7 @@
                                 @if($record->predictive_alert_sent)
                                     <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 4l7.53 13H4.47L12 6z"/></svg>
                                 @endif
-                                {{ ucfirst($record->maintenance_type) }}
+                                {{ $record->typeLabel() }}
                             </span>
                         </td>
                         <td class="px-6 py-4 text-gray-700">

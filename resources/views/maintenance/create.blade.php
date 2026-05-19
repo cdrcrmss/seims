@@ -38,7 +38,7 @@
                 <label for="maintenance_type" class="block text-sm font-semibold text-gray-700 mb-2">Maintenance Type</label>
                 <select name="maintenance_type" id="maintenance_type" class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
                     <option value="preventive" {{ old('maintenance_type') === 'preventive' ? 'selected' : '' }}>Preventive — Regular scheduled maintenance</option>
-                    <option value="corrective" {{ old('maintenance_type') === 'corrective' ? 'selected' : '' }}>Corrective — Fix existing issues</option>
+                    <option value="corrective" {{ old('maintenance_type') === 'corrective' ? 'selected' : '' }}>Repair — Fix existing issues</option>
                     <option value="predictive" {{ old('maintenance_type') === 'predictive' ? 'selected' : '' }}>Predictive — Based on analytics data</option>
                     <option value="routine" {{ old('maintenance_type') === 'routine' ? 'selected' : '' }}>Routine — Standard inspection</option>
                     <option value="emergency" {{ old('maintenance_type') === 'emergency' ? 'selected' : '' }}>Emergency — Urgent repair needed</option>

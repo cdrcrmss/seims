@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ItemUnit;
 use App\Models\MaintenanceRecord;
 use App\Services\MaintenanceAutoScheduleService;
 use App\Models\Item;
@@ -134,15 +135,34 @@ class MaintenanceController extends Controller
     public function dashboard()
     {
         MaintenanceAutoScheduleService::ensureCorrectiveRecordsForCriticalUnits();
-        $upcomingMaintenance = MaintenanceRecord::upcoming()->with(['item', 'itemUnit'])->get();
-        $overdueMaintenance = MaintenanceRecord::overdue()->with('item')->get();
+
+        $criticalUnits = MaintenanceAutoScheduleService::criticalUnits();
+        $criticalUnitIds = $criticalUnits->pluck('id');
+
+        $excludeCriticalUnits = function ($query) use ($criticalUnitIds) {
+            if ($criticalUnitIds->isNotEmpty()) {
+                $query->where(function ($q) use ($criticalUnitIds) {
+                    $q->whereNotIn('item_unit_id', $criticalUnitIds)
+                        ->orWhereNull('item_unit_id');
+                });
+            }
+        };
+
+        $upcomingMaintenance = MaintenanceRecord::upcoming()
+            ->with(['item', 'itemUnit'])
+            ->where($excludeCriticalUnits)
+            ->get();
+
+        $overdueMaintenance = MaintenanceRecord::overdue()
+            ->with('item')
+            ->where($excludeCriticalUnits)
+            ->get();
+
         $recentlyCompleted = MaintenanceRecord::where('status', 'completed')
             ->orderBy('completed_date', 'desc')
             ->take(10)
             ->with('item')
             ->get();
-
-        $criticalUnits = MaintenanceAutoScheduleService::criticalUnits();
         $itemIdsWithCriticalUnits = $criticalUnits->pluck('item_id')->unique();
         $criticalItems = Item::where('wear_level', '>=', 70)
             ->whereNotIn('id', $itemIdsWithCriticalUnits)
@@ -212,5 +232,43 @@ class MaintenanceController extends Controller
         $pdf->setPaper('a4', 'landscape');
 
         return $pdf->download($filename . '.pdf');
+    }
+
+    /**
+     * Mark a critical unit as disposed (removes from circulation, cancels scheduled work).
+     */
+    public function disposeUnit(ItemUnit $unit)
+    {
+        if ($unit->status === 'borrowed') {
+            return response()->json([
+                'message' => 'Return this unit before marking it as disposed.',
+            ], 422);
+        }
+
+        app(MaintenanceAutoScheduleService::class)
+            ->cancelScheduledMaintenanceForUnit($unit, 'Unit disposed — beyond repair.');
+
+        $unit->update([
+            'status' => 'disposed',
+            'current_borrower_id' => null,
+            'borrowing_id' => null,
+        ]);
+
+        $item = $unit->item;
+        if ($item) {
+            if ($item->units()->where('status', '!=', 'disposed')->count() === 0) {
+                $item->applyDisposedState();
+            } else {
+                if ($item->status === 'disposed') {
+                    $item->update(['status' => 'available']);
+                }
+                $item->syncStockFromUnits();
+            }
+        }
+
+        return response()->json([
+            'message' => 'Unit marked as disposed.',
+            'unit' => $unit->fresh(),
+        ]);
     }
 }

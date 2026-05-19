@@ -111,6 +111,21 @@ class MaintenanceRecord extends Model
     }
 
     /**
+     * Human-readable label for maintenance_type (DB value unchanged).
+     */
+    public function typeLabel(): string
+    {
+        return match ($this->maintenance_type) {
+            'corrective' => 'Repair',
+            'preventive' => 'Preventive',
+            'predictive' => 'Predictive',
+            'routine' => 'Routine',
+            'emergency' => 'Emergency',
+            default => ucfirst((string) $this->maintenance_type),
+        };
+    }
+
+    /**
      * Scope for upcoming maintenance (today through next 30 days).
      */
     public function scopeUpcoming($query)

@@ -1,29 +1,45 @@
 @once
 @push('scripts')
 <script>
-async function disposeCriticalUnit(itemId, unitId, unitCode) {
+async function disposeCriticalUnit(button) {
+    const url = button.dataset.disposeUrl;
+    const unitCode = button.dataset.unitCode || 'this unit';
+
+    if (!url) {
+        alert('Dispose action is not available for this unit.');
+        return;
+    }
+
     if (!confirm('Mark unit ' + unitCode + ' as disposed? It cannot be borrowed. Any scheduled maintenance for this unit will be cancelled.')) {
         return;
     }
 
-    const response = await fetch('/staff/items/' + itemId + '/units/' + unitId, {
-        method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-        },
-        body: JSON.stringify({ status: 'disposed' }),
-    });
+    button.disabled = true;
 
-    const data = await response.json().catch(() => ({}));
+    try {
+        const response = await fetch(url, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            },
+            body: JSON.stringify({}),
+        });
 
-    if (!response.ok) {
-        alert(data.message || 'Could not dispose this unit.');
-        return;
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            alert(data.message || 'Could not dispose this unit.');
+            button.disabled = false;
+            return;
+        }
+
+        window.location.reload();
+    } catch (e) {
+        alert('Could not dispose this unit. Please try again.');
+        button.disabled = false;
     }
-
-    window.location.reload();
 }
 </script>
 @endpush

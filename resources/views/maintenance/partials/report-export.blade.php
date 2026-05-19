@@ -56,7 +56,7 @@
                                 class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-gray-50">
                             <option value="all">All Types</option>
                             <option value="preventive">Preventive</option>
-                            <option value="corrective">Corrective</option>
+                            <option value="corrective">Repair</option>
                             <option value="predictive">Predictive</option>
                         </select>
                     </div>
