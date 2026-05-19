@@ -501,7 +501,7 @@ class StaffController extends Controller
             $query->where('category', $category);
         }
 
-        $availableItems = $query->orderBy('name')->paginate(12)->withQueryString();
+        $availableItems = $query->orderBy('name')->paginate(24)->withQueryString();
 
         // Get all categories for filter
         $categories = Item::borrowable()

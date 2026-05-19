@@ -59,6 +59,7 @@
     'hasOverdue' => false,
     'requirePurpose' => false,
     'submitLabel' => 'Borrow Items',
+    'cartStorageKey' => 'seims_borrow_cart_staff',
     'searchApiUrl' => route('staff.api.search-items'),
     'filterBaseUrl' => route('staff.borrow.form'),
 ])

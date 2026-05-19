@@ -219,4 +219,6 @@
         @endif
     </div>
 </div>
+
+@include('partials.borrow-cart-clear-script', ['cartStorageKeys' => ['seims_borrow_cart_student']])
 @endsection
