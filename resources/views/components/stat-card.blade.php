@@ -1,7 +1,7 @@
 @props([
     'label',
     'value',
-    'color' => 'neutral',
+    'color' => 'green',
     'icon' => null,
     'subtitle' => null,
     'href' => null,
@@ -9,44 +9,30 @@
 
 @php
     $colorMap = [
-        'neutral' => [
-            'accent' => 'bg-slate-300',
-            'text' => 'text-slate-900',
-            'bg' => 'bg-slate-100',
-            'ring' => 'hover:ring-slate-200',
-        ],
-        'danger' => [
-            'accent' => 'bg-rose-400',
-            'text' => 'text-rose-700',
-            'bg' => 'bg-rose-50',
-            'ring' => 'hover:ring-rose-200',
-        ],
-        'red' => [
-            'accent' => 'bg-rose-400',
-            'text' => 'text-rose-700',
-            'bg' => 'bg-rose-50',
-            'ring' => 'hover:ring-rose-200',
-        ],
+        'green'  => ['border' => 'bg-green-500',  'text' => 'text-green-600',  'bg' => 'bg-green-50',  'ring' => 'hover:ring-green-200'],
+        'blue'   => ['border' => 'bg-blue-500',   'text' => 'text-blue-600',   'bg' => 'bg-blue-50',   'ring' => 'hover:ring-blue-200'],
+        'orange' => ['border' => 'bg-orange-500',  'text' => 'text-orange-600',  'bg' => 'bg-orange-50',  'ring' => 'hover:ring-orange-200'],
+        'red'    => ['border' => 'bg-red-500',    'text' => 'text-red-600',    'bg' => 'bg-red-50',    'ring' => 'hover:ring-red-200'],
+        'purple' => ['border' => 'bg-purple-500',  'text' => 'text-purple-600',  'bg' => 'bg-purple-50',  'ring' => 'hover:ring-purple-200'],
+        'yellow' => ['border' => 'bg-yellow-500',  'text' => 'text-yellow-600',  'bg' => 'bg-yellow-50',  'ring' => 'hover:ring-yellow-200'],
     ];
-    $legacy = ['green', 'blue', 'orange', 'purple', 'yellow'];
-    $resolved = in_array($color, $legacy, true) ? 'neutral' : $color;
-    $c = $colorMap[$resolved] ?? $colorMap['neutral'];
+    $c = $colorMap[$color] ?? $colorMap['green'];
     $tag = $href ? 'a' : 'div';
 @endphp
 
-<{{ $tag }} @if($href) href="{{ $href }}" @endif class="bg-white rounded-2xl p-6 ring-1 ring-gray-200/80 shadow-sm card-hover relative overflow-hidden {{ $href ? 'cursor-pointer ' . $c['ring'] . ' transition-all block' : '' }}">
-    <div class="absolute top-0 left-0 w-0.5 h-full {{ $c['accent'] }} rounded-r-full"></div>
+<{{ $tag }} @if($href) href="{{ $href }}" @endif class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden {{ $href ? 'cursor-pointer ' . $c['ring'] . ' transition-all block' : '' }}">
+    <div class="absolute top-0 left-0 w-1 h-full {{ $c['border'] }} rounded-r-full"></div>
     <div class="flex items-center justify-between">
         <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">{{ $label }}</p>
-            <p class="text-3xl font-bold {{ $c['text'] }} font-poppins mt-0.5">{{ $value }}</p>
+            <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">{{ $label }}</p>
+            <p class="text-3xl font-bold {{ $c['text'] }} font-poppins">{{ $value }}</p>
             @if($subtitle)
-                <p class="text-xs text-slate-400 mt-1">{{ $subtitle }}</p>
+                <p class="text-xs text-gray-400 mt-1">{{ $subtitle }}</p>
             @endif
             {{ $slot }}
         </div>
         @if($icon)
-        <div class="w-11 h-11 {{ $c['bg'] }} rounded-xl flex items-center justify-center flex-shrink-0 text-slate-600" aria-hidden="true">
+        <div class="w-12 h-12 {{ $c['bg'] }} rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
             {!! $icon !!}
         </div>
         @endif
