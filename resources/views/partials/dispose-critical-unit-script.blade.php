@@ -1,16 +1,24 @@
 @once
 @push('scripts')
 <script>
-async function disposeCriticalUnit(button) {
+function showAppAlert(title, message, type = 'warning') {
+    window.dispatchEvent(new CustomEvent('open-confirm-modal', {
+        detail: {
+            title,
+            message,
+            type,
+            confirmLabel: 'OK',
+            alertOnly: true,
+        },
+    }));
+}
+
+async function disposeCriticalUnitConfirmed(button) {
     const url = button.dataset.disposeUrl;
     const unitCode = button.dataset.unitCode || 'this unit';
 
     if (!url) {
-        alert('Dispose action is not available for this unit.');
-        return;
-    }
-
-    if (!confirm('Mark unit ' + unitCode + ' as disposed? It cannot be borrowed. Any scheduled maintenance for this unit will be cancelled.')) {
+        showAppAlert('Unable to dispose', 'Dispose action is not available for this unit.');
         return;
     }
 
@@ -30,14 +38,14 @@ async function disposeCriticalUnit(button) {
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-            alert(data.message || 'Could not dispose this unit.');
+            showAppAlert('Unable to dispose', data.message || 'Could not dispose unit ' + unitCode + '.');
             button.disabled = false;
             return;
         }
 
         window.location.reload();
     } catch (e) {
-        alert('Could not dispose this unit. Please try again.');
+        showAppAlert('Unable to dispose', 'Could not dispose unit ' + unitCode + '. Please try again.');
         button.disabled = false;
     }
 }

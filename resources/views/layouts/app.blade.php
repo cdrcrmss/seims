@@ -414,13 +414,19 @@
             message: '',
             type: 'warning',
             confirmLabel: '',
+            alertOnly: false,
             pendingForm: null,
+            pendingAction: null,
+            pendingTarget: null,
             show(detail) {
                 this.title = detail.title || 'Confirm Action';
                 this.message = detail.message || 'Are you sure you want to proceed?';
                 this.type = detail.type || 'warning';
                 this.confirmLabel = detail.confirmLabel || '';
+                this.alertOnly = detail.alertOnly === true;
                 this.pendingForm = detail.form || null;
+                this.pendingAction = detail.action || null;
+                this.pendingTarget = detail.target || null;
                 this.open = true;
             },
             confirmButtonLabel() {
@@ -437,20 +443,34 @@
                     if (t.includes('reject')) return 'Reject';
                     if (t.includes('cancel')) return 'Cancel';
                     if (t.includes('delete')) return 'Delete';
+                    if (t.includes('dispose')) return 'Dispose';
                     return 'Confirm';
                 }
                 return 'Confirm';
             },
             proceed() {
+                if (this.alertOnly) {
+                    this.reset();
+                    return;
+                }
                 if (this.pendingForm) {
                     this.pendingForm.submit();
+                } else if (this.pendingAction === 'dispose-unit' && this.pendingTarget) {
+                    if (typeof window.disposeCriticalUnitConfirmed === 'function') {
+                        window.disposeCriticalUnitConfirmed(this.pendingTarget);
+                    }
                 }
+                this.reset();
+            },
+            reset() {
                 this.open = false;
                 this.pendingForm = null;
+                this.pendingAction = null;
+                this.pendingTarget = null;
+                this.alertOnly = false;
             },
             cancel() {
-                this.open = false;
-                this.pendingForm = null;
+                this.reset();
             }
          }"
          @open-confirm-modal.window="show($event.detail)"
@@ -500,17 +520,18 @@
                 <h3 class="text-lg font-bold text-gray-900 font-poppins mb-1" x-text="title"></h3>
                 <p class="text-sm text-gray-500 mb-6 leading-relaxed" x-text="message"></p>
 
-                <div class="flex gap-3 w-full">
-                    <button @click="cancel()" class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300">
+                <div class="flex gap-3 w-full" :class="alertOnly ? 'justify-center' : ''">
+                    <button x-show="!alertOnly" @click="cancel()" class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300">
                         Cancel
                     </button>
                     <button @click="proceed()"
-                            class="flex-1 px-4 py-2.5 text-white text-sm font-semibold rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
-                            :class="{
-                                'bg-green-600 hover:bg-green-700 focus:ring-green-500': type === 'success',
-                                'bg-red-600 hover:bg-red-700 focus:ring-red-500': type === 'danger',
-                                'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500': type === 'warning'
-                            }">
+                            class="px-4 py-2.5 text-white text-sm font-semibold rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
+                            :class="[
+                                alertOnly ? 'min-w-[8rem]' : 'flex-1',
+                                type === 'success' ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500' : '',
+                                type === 'danger' ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500' : '',
+                                type === 'warning' ? 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500' : '',
+                            ]">
                         <span x-text="confirmButtonLabel()"></span>
                     </button>
                 </div>
