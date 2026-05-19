@@ -27,7 +27,7 @@ class AnalyticsController extends Controller
      */
     public function index()
     {
-        MaintenanceAutoScheduleService::ensureCorrectiveRecordsForCriticalUnits();
+        MaintenanceAutoScheduleService::syncAllScheduledMaintenance();
         $dashboardData = $this->analyticsService->getDashboardAnalytics();
         $criticalUnits = MaintenanceAutoScheduleService::criticalUnits();
         
@@ -191,7 +191,7 @@ class AnalyticsController extends Controller
 
         $allPredictions = $predictions;
 
-        MaintenanceAutoScheduleService::ensureCorrectiveRecordsForCriticalUnits();
+        MaintenanceAutoScheduleService::syncAllScheduledMaintenance();
         $criticalUnits = MaintenanceAutoScheduleService::criticalUnits();
         $criticalItemIds = $criticalUnits->pluck('item_id')->unique()->all();
 

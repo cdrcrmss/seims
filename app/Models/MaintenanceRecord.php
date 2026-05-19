@@ -126,13 +126,12 @@ class MaintenanceRecord extends Model
     }
 
     /**
-     * Scope for upcoming maintenance (today through next 30 days).
+     * Scope for upcoming maintenance (scheduled today or later).
      */
     public function scopeUpcoming($query)
     {
         return $query->where('status', 'scheduled')
-            ->whereDate('scheduled_date', '>=', now()->toDateString())
-            ->whereDate('scheduled_date', '<=', now()->addDays(30)->toDateString());
+            ->whereDate('scheduled_date', '>=', now()->toDateString());
     }
 
     /**

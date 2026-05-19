@@ -21,7 +21,7 @@ class MaintenanceController extends Controller
     {
         $status = $request->get('status');
 
-        MaintenanceAutoScheduleService::ensureCorrectiveRecordsForCriticalUnits();
+        MaintenanceAutoScheduleService::syncAllScheduledMaintenance();
 
         $query = MaintenanceRecord::with(['item', 'itemUnit', 'technician']);
 
@@ -134,29 +134,29 @@ class MaintenanceController extends Controller
      */
     public function dashboard()
     {
-        MaintenanceAutoScheduleService::ensureCorrectiveRecordsForCriticalUnits();
+        MaintenanceAutoScheduleService::syncAllScheduledMaintenance();
 
         $criticalUnits = MaintenanceAutoScheduleService::criticalUnits();
         $criticalUnitIds = $criticalUnits->pluck('id');
 
-        $excludeCriticalUnits = function ($query) use ($criticalUnitIds) {
-            if ($criticalUnitIds->isNotEmpty()) {
+        $otherScheduled = MaintenanceRecord::where('status', 'scheduled')
+            ->with(['item', 'itemUnit'])
+            ->when($criticalUnitIds->isNotEmpty(), function ($query) use ($criticalUnitIds) {
                 $query->where(function ($q) use ($criticalUnitIds) {
                     $q->whereNotIn('item_unit_id', $criticalUnitIds)
                         ->orWhereNull('item_unit_id');
                 });
-            }
-        };
-
-        $upcomingMaintenance = MaintenanceRecord::upcoming()
-            ->with(['item', 'itemUnit'])
-            ->where($excludeCriticalUnits)
+            })
+            ->orderBy('scheduled_date')
             ->get();
 
-        $overdueMaintenance = MaintenanceRecord::overdue()
-            ->with('item')
-            ->where($excludeCriticalUnits)
-            ->get();
+        $upcomingMaintenance = $otherScheduled->filter(
+            fn ($record) => ! $record->isScheduleOverdue()
+        )->values();
+
+        $overdueMaintenance = $otherScheduled->filter(
+            fn ($record) => $record->isScheduleOverdue()
+        )->values();
 
         $recentlyCompleted = MaintenanceRecord::where('status', 'completed')
             ->orderBy('completed_date', 'desc')

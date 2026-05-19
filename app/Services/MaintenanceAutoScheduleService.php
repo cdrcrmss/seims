@@ -11,6 +11,15 @@ use App\Models\User;
 class MaintenanceAutoScheduleService
 {
     /**
+     * Run all automatic maintenance scheduling (corrective + predictive).
+     */
+    public static function syncAllScheduledMaintenance(): void
+    {
+        static::ensureCorrectiveRecordsForCriticalUnits();
+        static::ensurePredictiveRecordsForHighWearItems();
+    }
+
+    /**
      * Units that need immediate attention (damaged or in corrective maintenance).
      */
     public static function criticalUnits()
@@ -40,6 +49,59 @@ class MaintenanceAutoScheduleService
                 $service->ensureCorrectiveRecord($unit);
                 $created++;
             }
+        }
+
+        return $created;
+    }
+
+    /**
+     * Auto-schedule predictive maintenance for high-wear items (no active scheduled record).
+     */
+    public static function ensurePredictiveRecordsForHighWearItems(): int
+    {
+        $analytics = app(PredictiveAnalyticsService::class);
+        $criticalItemIds = static::criticalUnits()->pluck('item_id')->unique();
+        $created = 0;
+
+        $items = Item::query()
+            ->where('wear_level', '>=', 50)
+            ->whereNotIn('status', ['disposed', 'retired', 'lost'])
+            ->when($criticalItemIds->isNotEmpty(), fn ($q) => $q->whereNotIn('id', $criticalItemIds))
+            ->get();
+
+        foreach ($items as $item) {
+            $hasScheduled = MaintenanceRecord::where('item_id', $item->id)
+                ->where('status', 'scheduled')
+                ->exists();
+
+            if ($hasScheduled) {
+                continue;
+            }
+
+            $prediction = $analytics->predictMaintenanceNeeds($item);
+            $urgency = $prediction['urgency'] ?? 'low';
+
+            if (! in_array($urgency, ['moderate', 'high', 'critical'], true)) {
+                continue;
+            }
+
+            $scheduledDate = ($prediction['next_maintenance_date'] ?? now())->copy()->startOfDay();
+            if ($urgency === 'critical' || $scheduledDate->lt(now()->startOfDay())) {
+                $scheduledDate = now()->startOfDay();
+            }
+
+            MaintenanceRecord::create([
+                'item_id' => $item->id,
+                'maintenance_type' => 'predictive',
+                'scheduled_date' => $scheduledDate->toDateString(),
+                'status' => 'scheduled',
+                'wear_level' => $item->wear_level,
+                'issues_found' => $prediction['reasoning'] ?? 'Predictive schedule based on wear analysis.',
+                'notes' => 'Auto-scheduled by predictive maintenance.',
+                'predictive_alert_sent' => true,
+            ]);
+
+            $created++;
         }
 
         return $created;
