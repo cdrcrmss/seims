@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\BorrowItemRequest;
+use App\Http\Requests\DirectBorrowRequest;
 use App\Models\Item;
 use App\Models\Borrowing;
 use App\Http\Controllers\AdminController;
@@ -73,10 +73,6 @@ class StudentController extends Controller
         $this->ensureStudent();
 
         $user = Auth::user();
-        $settings = AdminController::loadSettings();
-        $maxDays = max(1, (int) ($settings['max_borrow_days'] ?? 7));
-        $maxItems = max(1, (int) ($settings['max_items_per_user'] ?? 5));
-
         $search = $request->get('search');
         $category = $request->get('category');
 
@@ -103,27 +99,17 @@ class StudentController extends Controller
             ->orderBy('category')
             ->pluck('category');
 
-        // Active borrow count for the user
-        $activeBorrowCount = Borrowing::where('user_id', $user->id)
-            ->whereIn('status', ['pending', 'approved', 'issued'])
-            ->count();
-
-        // Check for overdue items
         $hasOverdue = Borrowing::where('user_id', $user->id)
             ->where('status', 'issued')
             ->where('expected_return_date', '<', now())
             ->exists();
 
-        // Pre-selected item (if coming from dashboard)
         $selectedItemId = $request->get('item_id');
         $selectedItem = $selectedItemId ? Item::find($selectedItemId) : null;
 
         return view('student.borrowings.borrow', compact(
             'availableItems',
             'categories',
-            'activeBorrowCount',
-            'maxDays',
-            'maxItems',
             'hasOverdue',
             'selectedItem',
             'search',
@@ -134,17 +120,25 @@ class StudentController extends Controller
     /**
      * Submit a borrow request (with strict validation & rate limiting).
      */
-    public function borrowItem(BorrowItemRequest $request)
+    public function borrowItem(DirectBorrowRequest $request)
     {
         try {
-            $data = $request->only(['item_id', 'quantity', 'expected_return_date']);
-            $data['notes'] = 'Purpose: ' . $request->input('purpose');
+            $notes = $request->filled('purpose') ? 'Purpose: ' . $request->input('purpose') : null;
 
-            $this->borrowingService->createBorrowRequest($data);
+            $borrowings = $this->borrowingService->createMultipleDirectBorrows(
+                $request->validated('items'),
+                (int) $request->validated('return_hours'),
+                $notes
+            );
+
+            $count = count($borrowings);
+            $message = $count === 1
+                ? 'Item borrowed successfully! Return it within ' . $request->return_hours . ' hours.'
+                : "{$count} items borrowed successfully! Return them within " . $request->return_hours . ' hours.';
 
             return redirect()
                 ->route('student.borrowings.index')
-                ->with('success', 'Borrowing request submitted successfully! Please wait for staff approval.');
+                ->with('success', $message);
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage())->withInput();
         }
@@ -230,6 +224,15 @@ class StudentController extends Controller
             ->limit(10)
             ->get(['id', 'name', 'category', 'laboratory', 'location', 'available_stock', 'asset_code', 'image_path']);
 
-        return response()->json($items);
+        return response()->json($items->map(fn (Item $item) => [
+            'id' => $item->id,
+            'name' => $item->name,
+            'category' => $item->category,
+            'laboratory' => $item->laboratory,
+            'location' => $item->location,
+            'available_stock' => $item->available_stock,
+            'asset_code' => $item->asset_code,
+            'image_url' => $item->image_url,
+        ]));
     }
 }

@@ -58,7 +58,7 @@ class Borrowing extends Model
             'requested_date' => 'date',
             'approved_date' => 'date',
             'issued_date' => 'date',
-            'expected_return_date' => 'date',
+            'expected_return_date' => 'datetime',
             'returned_date' => 'date',
             'rejected_date' => 'datetime',
             'faculty_approved_date' => 'datetime',

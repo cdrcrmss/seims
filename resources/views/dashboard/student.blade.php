@@ -92,7 +92,7 @@
                     </div>
                     <div class="min-w-0">
                         <p class="text-sm font-semibold text-gray-900 truncate">{{ $borrowing->item?->name ?? 'Unknown' }}</p>
-                        <p class="text-xs text-gray-400 truncate">Qty: {{ $borrowing->quantity }} &middot; Due: {{ $borrowing->expected_return_date ? $borrowing->expected_return_date->format('M d, Y') : 'N/A' }}</p>
+                        <p class="text-xs text-gray-400 truncate">Qty: {{ $borrowing->quantity }} &middot; Due: {{ $borrowing->expected_return_date ? $borrowing->expected_return_date->format('M d, g:i A') : 'N/A' }}</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 flex-shrink-0">

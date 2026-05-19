@@ -168,58 +168,93 @@ class BorrowingService
      *
      * @throws \Exception
      */
-    public function createDirectBorrow(array $data, ?int $userId = null): Borrowing
+    /**
+     * Borrow multiple items immediately (issued status).
+     *
+     * @param  array<int, array{item_id: int, quantity: int}>  $lines
+     * @return Borrowing[]
+     */
+    public function createMultipleDirectBorrows(array $lines, int $returnHours, ?string $notes = null, ?int $userId = null): array
     {
-        $userId = $userId ?? Auth::id();
-        $borrowing = null;
-        $settings = AdminController::loadSettings();
-
-        // Check max borrow days
-        $maxDays = $settings['max_borrow_days'] ?? 7;
-        $expectedReturn = \Carbon\Carbon::parse($data['expected_return_date']);
-        if ($expectedReturn->diffInDays(now()) > $maxDays) {
-            throw new \Exception("Maximum borrowing period is {$maxDays} days.");
+        if ($returnHours < 3 || $returnHours > 8) {
+            throw new \Exception('Return time must be between 3 and 8 hours.');
         }
 
-        DB::transaction(function () use ($data, $userId, &$borrowing) {
-            // Lock the item row to prevent race conditions
-            $item = Item::lockForUpdate()->findOrFail($data['item_id']);
+        $userId = $userId ?? Auth::id();
+        $expectedReturn = now()->addHours($returnHours);
+        $borrowings = [];
 
-            // Check stock availability
-            if ($item->available_stock < $data['quantity']) {
-                throw new \Exception('Not enough stock available for this item.');
-            }
-
-            // Decrement available stock atomically
-            $item->decrement('available_stock', $data['quantity']);
-
-            // Assign an available unit to this borrowing
-            $unit = \App\Models\ItemUnit::where('item_id', $item->id)
-                ->where('status', 'available')
-                ->lockForUpdate()
-                ->first();
-
-            // Create borrowing record directly as "issued" (skip pending/approved)
-            $borrowing = Borrowing::create([
-                'user_id' => $userId,
-                'item_id' => $item->id,
-                'item_unit_id' => $unit ? $unit->id : null,
-                'quantity' => $data['quantity'],
-                'status' => 'issued',
-                'requested_date' => now(),
-                'approved_date' => now(),
-                'approved_by' => $userId,
-                'issued_date' => now(),
-                'issued_by' => $userId,
-                'expected_return_date' => $data['expected_return_date'],
-                'notes' => $data['notes'] ?? null,
-            ]);
-
-            // Mark the unit as borrowed
-            if ($unit) {
-                $unit->markBorrowed($userId, $borrowing->id);
+        DB::transaction(function () use ($lines, $userId, $expectedReturn, $notes, &$borrowings) {
+            foreach ($lines as $line) {
+                $borrowings[] = $this->createDirectBorrowRecord(
+                    (int) $line['item_id'],
+                    (int) $line['quantity'],
+                    $expectedReturn,
+                    $userId,
+                    $notes
+                );
             }
         });
+
+        return $borrowings;
+    }
+
+    /**
+     * @deprecated Use createMultipleDirectBorrows with return_hours instead.
+     */
+    public function createDirectBorrow(array $data, ?int $userId = null): Borrowing
+    {
+        $expectedReturn = isset($data['expected_return_date'])
+            ? \Carbon\Carbon::parse($data['expected_return_date'])
+            : now()->addHours(8);
+
+        $borrowings = [];
+        DB::transaction(function () use ($data, $userId, $expectedReturn, &$borrowings) {
+            $borrowings[] = $this->createDirectBorrowRecord(
+                (int) $data['item_id'],
+                (int) $data['quantity'],
+                $expectedReturn,
+                $userId ?? Auth::id(),
+                $data['notes'] ?? null
+            );
+        });
+
+        return $borrowings[0];
+    }
+
+    protected function createDirectBorrowRecord(int $itemId, int $quantity, \Carbon\Carbon $expectedReturn, int $userId, ?string $notes): Borrowing
+    {
+        $item = Item::lockForUpdate()->findOrFail($itemId);
+
+        if ($item->available_stock < $quantity) {
+            throw new \Exception('Not enough stock available for ' . $item->name . '.');
+        }
+
+        $item->decrement('available_stock', $quantity);
+
+        $unit = \App\Models\ItemUnit::where('item_id', $item->id)
+            ->where('status', 'available')
+            ->lockForUpdate()
+            ->first();
+
+        $borrowing = Borrowing::create([
+            'user_id' => $userId,
+            'item_id' => $item->id,
+            'item_unit_id' => $unit?->id,
+            'quantity' => $quantity,
+            'status' => 'issued',
+            'requested_date' => now(),
+            'approved_date' => now(),
+            'approved_by' => $userId,
+            'issued_date' => now(),
+            'issued_by' => $userId,
+            'expected_return_date' => $expectedReturn,
+            'notes' => $notes,
+        ]);
+
+        if ($unit) {
+            $unit->markBorrowed($userId, $borrowing->id);
+        }
 
         return $borrowing;
     }

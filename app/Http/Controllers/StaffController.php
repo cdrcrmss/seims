@@ -486,9 +486,6 @@ class StaffController extends Controller
         $search = $request->get('search');
         $category = $request->get('category');
 
-        $settings = AdminController::loadSettings();
-        $maxDays = $settings['max_borrow_days'] ?? 7;
-
         // Build query with optional search & category filters
         $query = Item::borrowable();
 
@@ -520,7 +517,6 @@ class StaffController extends Controller
         return view('staff.borrowings.borrow', compact(
             'availableItems',
             'categories',
-            'maxDays',
             'selectedItem',
             'search',
             'category'
@@ -570,24 +566,35 @@ class StaffController extends Controller
             ->limit(10)
             ->get(['id', 'name', 'category', 'laboratory', 'location', 'available_stock', 'asset_code', 'image_path']);
 
-        return response()->json($items);
+        return response()->json($items->map(fn (Item $item) => [
+            'id' => $item->id,
+            'name' => $item->name,
+            'category' => $item->category,
+            'laboratory' => $item->laboratory,
+            'location' => $item->location,
+            'available_stock' => $item->available_stock,
+            'asset_code' => $item->asset_code,
+            'image_url' => $item->image_url,
+        ]));
     }
 
-    public function borrowItem(Request $request)
+    public function borrowItem(\App\Http\Requests\DirectBorrowRequest $request)
     {
-        $request->validate([
-            'item_id' => 'required|exists:items,id',
-            'quantity' => 'required|integer|min:1|max:10',
-            'expected_return_date' => 'required|date|after:today',
-        ]);
-
         try {
-            $data = $request->only(['item_id', 'quantity', 'expected_return_date']);
-            $this->borrowingService->createDirectBorrow($data);
+            $borrowings = $this->borrowingService->createMultipleDirectBorrows(
+                $request->validated('items'),
+                (int) $request->validated('return_hours'),
+                $request->input('notes')
+            );
+
+            $count = count($borrowings);
+            $message = $count === 1
+                ? 'Item borrowed successfully!'
+                : "{$count} items borrowed successfully!";
 
             return redirect()
                 ->route('staff.borrowings.index')
-                ->with('success', 'Item borrowed successfully!');
+                ->with('success', $message);
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage())->withInput();
         }
