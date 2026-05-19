@@ -137,11 +137,8 @@ class StudentController extends Controller
     public function borrowItem(BorrowItemRequest $request)
     {
         try {
-            // Merge purpose into notes field for the service
             $data = $request->only(['item_id', 'quantity', 'expected_return_date']);
-            $purpose = $request->input('purpose');
-            $notes = $request->input('notes');
-            $data['notes'] = "Purpose: {$purpose}" . ($notes ? "\nAdditional Notes: {$notes}" : '');
+            $data['notes'] = 'Purpose: ' . $request->input('purpose');
 
             $this->borrowingService->createBorrowRequest($data);
 

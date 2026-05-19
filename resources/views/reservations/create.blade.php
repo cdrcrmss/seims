@@ -94,17 +94,17 @@
                                    :disabled="roomIsBooked({{ $room->id }})"
                                    @change="onRoomSelect()"
                                    class="peer hidden" required {{ old('room_id') == $room->id ? 'checked' : '' }}>
-                            <div class="rounded-xl p-5 transition-all h-full flex flex-col items-center justify-center text-center gap-2 border"
+                            <div class="group rounded-xl p-5 transition-all h-full flex flex-col items-center justify-center text-center gap-2 border"
                                  :class="roomCardClass({{ $room->id }})">
                                 <div class="w-12 h-12 rounded-xl flex items-center justify-center"
-                                     :class="roomIsBooked({{ $room->id }}) ? 'bg-rose-100/80' : 'bg-slate-100'">
-                                    <svg class="w-6 h-6" :class="roomIsBooked({{ $room->id }}) ? 'text-rose-700' : 'text-slate-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                     :class="roomIsBooked({{ $room->id }}) ? 'bg-red-100' : (String(selectedRoomId) === String({{ $room->id }}) ? 'bg-green-100' : 'bg-gray-100 group-hover:bg-green-50')">
+                                    <svg class="w-6 h-6" :class="roomIsBooked({{ $room->id }}) ? 'text-red-600' : (String(selectedRoomId) === String({{ $room->id }}) ? 'text-green-600' : 'text-gray-500 group-hover:text-green-600')" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                                 </div>
                                 <p class="text-sm font-bold leading-tight" :class="roomIsBooked({{ $room->id }}) ? 'text-gray-500' : 'text-gray-900'">{{ $room->name }}</p>
                                 <span x-show="!scheduleReady" class="text-[10px] font-medium text-gray-400 uppercase tracking-wide">Set schedule</span>
-                                <span x-show="scheduleReady && !roomIsBooked({{ $room->id }})" class="text-[10px] font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full ring-1 ring-slate-200">Available</span>
-                                <span x-show="scheduleReady && roomIsBooked({{ $room->id }})" class="text-[10px] font-semibold text-rose-800 bg-rose-100/90 px-2 py-0.5 rounded-full ring-1 ring-rose-200/80">Already Reserved</span>
-                                <p x-show="scheduleReady && roomIsBooked({{ $room->id }})" class="text-[10px] text-rose-700 leading-snug px-1" x-text="roomConflictHint({{ $room->id }})"></p>
+                                <span x-show="scheduleReady && !roomIsBooked({{ $room->id }})" class="text-[10px] font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Available</span>
+                                <span x-show="scheduleReady && roomIsBooked({{ $room->id }})" class="text-[10px] font-semibold text-red-700 bg-red-100 px-2 py-0.5 rounded-full">Reserved</span>
+                                <p x-show="scheduleReady && roomIsBooked({{ $room->id }})" class="text-[10px] text-red-600 leading-snug px-1" x-text="roomConflictHint({{ $room->id }})"></p>
                             </div>
                         </label>
                         @endforeach
@@ -116,7 +116,7 @@
 
                 <!-- Availability Check Result -->
                 <div x-show="availabilityChecked" x-transition>
-                    <div :class="available ? 'bg-slate-50 ring-1 ring-slate-200 text-slate-700' : 'bg-rose-50 ring-1 ring-rose-200 text-rose-800'" class="rounded-xl p-4 text-sm flex items-center space-x-3">
+                    <div :class="available ? 'bg-green-50 ring-1 ring-green-200 text-green-800' : 'bg-red-50 ring-1 ring-red-200 text-red-800'" class="rounded-xl p-4 text-sm flex items-center space-x-3">
                         <template x-if="available">
                             <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         </template>
@@ -140,17 +140,6 @@
                         @error('purpose') <p class="text-red-500 text-xs">{{ $message }}</p> @enderror
                         <span class="text-xs ml-auto" :class="purpose.length >= 10 ? 'text-green-600' : 'text-gray-400'" x-text="purpose.length + '/100'"></span>
                     </div>
-                </div>
-
-                <!-- Additional Notes -->
-                <div>
-                    <label for="notes" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                        Additional Notes <span class="font-normal normal-case text-gray-400">(optional)</span>
-                    </label>
-                    <textarea name="notes" id="notes" rows="2"
-                              placeholder="Any additional notes or special requests..."
-                              class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all resize-none">{{ old('notes') }}</textarea>
-                    @error('notes') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Submit -->
@@ -300,16 +289,16 @@ function reservationForm() {
         },
 
         roomCardClass(roomId) {
-            if (!this.scheduleReady) {
-                return 'bg-slate-50 border-slate-200 hover:bg-slate-100 peer-checked:ring-2 peer-checked:ring-slate-400 peer-checked:bg-slate-50';
-            }
             if (this.roomIsBooked(roomId)) {
-                return 'bg-rose-50/90 border-rose-200/90 opacity-90';
+                return 'bg-red-50 border-red-200 opacity-90 cursor-not-allowed';
             }
             if (String(this.selectedRoomId) === String(roomId)) {
-                return 'bg-slate-50 border-slate-400 ring-2 ring-slate-500';
+                return 'bg-green-50 border-green-500 ring-2 ring-green-500';
             }
-            return 'bg-slate-50 border-slate-200 hover:border-slate-300 peer-checked:ring-2 peer-checked:ring-slate-500 peer-checked:bg-slate-50';
+            if (!this.scheduleReady) {
+                return 'bg-gray-50 border-gray-200 hover:border-green-400 hover:bg-green-50/70 peer-checked:ring-2 peer-checked:ring-green-500 peer-checked:border-green-400 peer-checked:bg-green-50';
+            }
+            return 'bg-gray-50 border-gray-200 hover:border-green-400 hover:bg-green-50/70 peer-checked:ring-2 peer-checked:ring-green-500 peer-checked:border-green-400 peer-checked:bg-green-50';
         },
 
         roomConflictHint(roomId) {

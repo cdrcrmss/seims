@@ -326,13 +326,6 @@
                                   placeholder="What will you use this equipment for? (min 10 characters)" required></textarea>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Additional Notes</label>
-                        <textarea name="notes" rows="2" maxlength="500"
-                                  class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                  placeholder="Any additional notes (optional)"></textarea>
-                    </div>
-
                     <div class="flex items-center space-x-3 pt-2">
                         <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-sm">
                             Submit Borrow Request

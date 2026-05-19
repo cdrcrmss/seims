@@ -246,18 +246,6 @@
                         </div>
                     </div>
 
-                    <!-- Notes -->
-                    <div>
-                        <label for="notes" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                            Notes <span class="font-normal normal-case text-gray-400">(optional)</span>
-                        </label>
-                        <textarea id="notes" name="notes" rows="2"
-                                  maxlength="500"
-                                  placeholder="Any additional information..."
-                                  class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
-                                  :disabled="!selectedItemId">{{ old('notes') }}</textarea>
-                    </div>
-
                     <!-- Info Bar -->
                     <div class="bg-gray-50 rounded-xl p-4 space-y-2">
                         <div class="flex justify-between items-center">

@@ -579,11 +579,10 @@ class StaffController extends Controller
             'item_id' => 'required|exists:items,id',
             'quantity' => 'required|integer|min:1|max:10',
             'expected_return_date' => 'required|date|after:today',
-            'notes' => 'nullable|string|max:500',
         ]);
 
         try {
-            $data = $request->only(['item_id', 'quantity', 'expected_return_date', 'notes']);
+            $data = $request->only(['item_id', 'quantity', 'expected_return_date']);
             $this->borrowingService->createDirectBorrow($data);
 
             return redirect()
