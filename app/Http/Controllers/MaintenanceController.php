@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\MaintenanceRecord;
 use App\Services\MaintenanceAutoScheduleService;
-use App\Support\MaintenanceManagementRows;
 use App\Models\Item;
 use App\Models\User;
 use App\Models\Notification;
@@ -153,12 +152,6 @@ class MaintenanceController extends Controller
             ->whereYear('completed_date', now()->year)
             ->sum('cost');
 
-        $managementRows = MaintenanceManagementRows::build(
-            $criticalUnits,
-            $overdueMaintenance,
-            $upcomingMaintenance
-        );
-
         return view('maintenance.dashboard', compact(
             'upcomingMaintenance',
             'overdueMaintenance',
@@ -166,8 +159,7 @@ class MaintenanceController extends Controller
             'criticalUnits',
             'criticalItems',
             'criticalCount',
-            'maintenanceCosts',
-            'managementRows'
+            'maintenanceCosts'
         ));
     }
 
