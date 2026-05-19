@@ -3,6 +3,9 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\ThrottleRequestsException;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -32,5 +35,25 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (ThrottleRequestsException $e, Request $request) {
+            if ($request->is('login') && $request->isMethod('POST')) {
+                $retryAfter = $e->getHeaders()['Retry-After'] ?? 60;
+                $minutes = max(1, (int) ceil((int) $retryAfter / 60));
+
+                return redirect()
+                    ->route('login')
+                    ->withInput($request->only('email'))
+                    ->withErrors([
+                        'email' => "Too many sign-in attempts. Please wait {$minutes} minute(s) and try again.",
+                    ]);
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Too many requests. Please slow down and try again.',
+                ], Response::HTTP_TOO_MANY_REQUESTS, $e->getHeaders());
+            }
+
+            return null;
+        });
     })->create();

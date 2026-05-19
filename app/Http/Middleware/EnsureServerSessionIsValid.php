@@ -38,9 +38,16 @@ class EnsureServerSessionIsValid
                 ], 401);
             }
 
-            return redirect()
-                ->route('login')
-                ->with('status', 'Your session has expired. Please sign in again.');
+            $response = redirect()
+                ->route('login', ['logged_out' => 1])
+                ->with('status', 'Your session has expired. Please sign in again.')
+                ->withCookie($this->authSessions->forgetSessionCookie());
+
+            $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+            $response->headers->set('Pragma', 'no-cache');
+            $response->headers->set('Expires', '0');
+
+            return $response;
         }
 
         return $next($request);

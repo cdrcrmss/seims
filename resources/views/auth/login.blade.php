@@ -445,9 +445,10 @@
                 <form method="POST" action="{{ route('login') }}" x-data="{ 
                     showPassword: false, 
                     loading: false,
+                    submitted: false,
                     email: '{{ old('email') }}',
                     password: ''
-                }" @submit="loading = true">
+                }" @submit.prevent="if (loading || submitted) return; loading = true; submitted = true; $el.submit()">
                     @csrf
 
                     <!-- Email Field -->
@@ -547,7 +548,7 @@
                     <button 
                         type="submit" 
                         class="btn-primary"
-                        :disabled="loading"
+                        :disabled="loading || submitted"
                         style="min-height: 56px;"
                     >
                         <template x-if="!loading">
@@ -603,5 +604,7 @@
         })();
     </script>
     @endif
+
+    @include('partials.browser-session-guard')
 </body>
 </html>

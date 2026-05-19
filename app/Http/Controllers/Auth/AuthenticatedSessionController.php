@@ -8,7 +8,7 @@ use App\Services\AuthSessionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -25,6 +25,18 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
+     * Apply no-cache headers so login/logout pages are never served from bfcache.
+     */
+    protected function withNoCacheHeaders(HttpResponse $response): HttpResponse
+    {
+        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        $response->headers->set('Pragma', 'no-cache');
+        $response->headers->set('Expires', '0');
+
+        return $response;
+    }
+
+    /**
      * Handle an incoming authentication request.
      */
     public function store(LoginRequest $request): RedirectResponse
@@ -33,7 +45,9 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        return $this->withNoCacheHeaders(
+            redirect()->intended(route('dashboard'))
+        );
     }
 
     /**
@@ -45,12 +59,9 @@ class AuthenticatedSessionController extends Controller
 
         $response = redirect()
             ->route('login', ['logged_out' => 1])
-            ->with('status', 'You have been signed out securely.');
+            ->with('status', 'You have been signed out securely.')
+            ->withCookie($this->authSessions->forgetSessionCookie());
 
-        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
-        $response->headers->set('Pragma', 'no-cache');
-        $response->headers->set('Expires', '0');
-
-        return $response->withCookie($this->authSessions->forgetSessionCookie());
+        return $this->withNoCacheHeaders($response);
     }
 }

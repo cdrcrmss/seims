@@ -6,7 +6,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 
-Route::middleware(['guest', 'throttle:guest'])->group(function () {
+Route::middleware(['guest', 'throttle:guest', 'no.cache'])->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
                 ->name('login');
 
