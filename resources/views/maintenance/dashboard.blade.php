@@ -153,5 +153,4 @@
         </div>
     </div>
 </div>
-@include('partials.dispose-critical-unit-script')
 @endsection

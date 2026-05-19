@@ -415,18 +415,22 @@
             type: 'warning',
             confirmLabel: '',
             alertOnly: false,
+            processing: false,
             pendingForm: null,
             pendingAction: null,
-            pendingTarget: null,
+            pendingDisposeUrl: null,
+            pendingDisposeUnitCode: null,
             show(detail) {
                 this.title = detail.title || 'Confirm Action';
                 this.message = detail.message || 'Are you sure you want to proceed?';
                 this.type = detail.type || 'warning';
                 this.confirmLabel = detail.confirmLabel || '';
                 this.alertOnly = detail.alertOnly === true;
+                this.processing = false;
                 this.pendingForm = detail.form || null;
                 this.pendingAction = detail.action || null;
-                this.pendingTarget = detail.target || null;
+                this.pendingDisposeUrl = detail.disposeUrl || null;
+                this.pendingDisposeUnitCode = detail.unitCode || null;
                 this.open = true;
             },
             confirmButtonLabel() {
@@ -448,26 +452,80 @@
                 }
                 return 'Confirm';
             },
-            proceed() {
+            async proceed() {
+                if (this.processing) {
+                    return;
+                }
                 if (this.alertOnly) {
                     this.reset();
                     return;
                 }
                 if (this.pendingForm) {
                     this.pendingForm.submit();
-                } else if (this.pendingAction === 'dispose-unit' && this.pendingTarget) {
-                    if (typeof window.disposeCriticalUnitConfirmed === 'function') {
-                        window.disposeCriticalUnitConfirmed(this.pendingTarget);
-                    }
+                    this.reset();
+                    return;
+                }
+                if (this.pendingAction === 'dispose-unit') {
+                    await this.disposeUnit();
+                    return;
                 }
                 this.reset();
+            },
+            async disposeUnit() {
+                const url = this.pendingDisposeUrl;
+                const unitCode = this.pendingDisposeUnitCode || 'this unit';
+
+                if (!url) {
+                    this.showError('Unable to dispose', 'Dispose action is not available for this unit.');
+                    return;
+                }
+
+                this.processing = true;
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || '',
+                        },
+                        body: JSON.stringify({}),
+                    });
+
+                    const data = await response.json().catch(() => ({}));
+
+                    if (!response.ok) {
+                        this.showError('Unable to dispose', data.message || ('Could not dispose unit ' + unitCode + '.'));
+                        return;
+                    }
+
+                    window.location.reload();
+                } catch (e) {
+                    this.showError('Unable to dispose', 'Could not dispose unit ' + unitCode + '. Please try again.');
+                }
+            },
+            showError(title, message) {
+                this.title = title;
+                this.message = message;
+                this.type = 'warning';
+                this.confirmLabel = 'OK';
+                this.alertOnly = true;
+                this.processing = false;
+                this.pendingForm = null;
+                this.pendingAction = null;
+                this.pendingDisposeUrl = null;
+                this.pendingDisposeUnitCode = null;
+                this.open = true;
             },
             reset() {
                 this.open = false;
                 this.pendingForm = null;
                 this.pendingAction = null;
-                this.pendingTarget = null;
+                this.pendingDisposeUrl = null;
+                this.pendingDisposeUnitCode = null;
                 this.alertOnly = false;
+                this.processing = false;
             },
             cancel() {
                 this.reset();
@@ -521,18 +579,19 @@
                 <p class="text-sm text-gray-500 mb-6 leading-relaxed" x-text="message"></p>
 
                 <div class="flex gap-3 w-full" :class="alertOnly ? 'justify-center' : ''">
-                    <button x-show="!alertOnly" @click="cancel()" class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    <button x-show="!alertOnly" @click="cancel()" :disabled="processing" class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:opacity-60 disabled:cursor-not-allowed">
                         Cancel
                     </button>
                     <button @click="proceed()"
-                            class="px-4 py-2.5 text-white text-sm font-semibold rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
+                            :disabled="processing"
+                            class="px-4 py-2.5 text-white text-sm font-semibold rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed"
                             :class="[
                                 alertOnly ? 'min-w-[8rem]' : 'flex-1',
                                 type === 'success' ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500' : '',
                                 type === 'danger' ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500' : '',
                                 type === 'warning' ? 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500' : '',
                             ]">
-                        <span x-text="confirmButtonLabel()"></span>
+                        <span x-text="processing ? 'Processing...' : confirmButtonLabel()"></span>
                     </button>
                 </div>
             </div>
