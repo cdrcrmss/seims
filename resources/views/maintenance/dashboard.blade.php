@@ -4,172 +4,149 @@
 
 @section('content')
 <div class="space-y-8">
-    <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in-up">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 font-poppins">Maintenance Dashboard</h1>
-            <p class="text-gray-600">Predictive maintenance analytics & condition monitoring</p>
-        </div>
-        <div class="flex space-x-3">
-            <a href="{{ route('maintenance.index') }}" class="inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                View All Records
-            </a>
-        </div>
-    </div>
+            <h1 class="text-3xl font-bold text-slate-900 font-poppins">Maintenance Dashboard</h1>
+            <p class="text-slate-500">Unified maintenance queue and condition monitoring</p>
+        </div
+        <a href="{{ route('maintenance.index') }}" class="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-semibold ring-1 ring-slate-200 transition-all duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+            View All Records
+        </a>
+    </div
 
-    <!-- Summary Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up stagger-1">
-        <a href="{{ route('maintenance.index') }}" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-yellow-500 hover:ring-yellow-300 transition-all cursor-pointer block">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Upcoming</p>
-                    <p class="text-3xl font-bold text-yellow-600 mt-1 font-poppins">{{ $upcomingMaintenance->count() }}</p>
-                </div>
-                <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-            </div>
+    {{-- Summary stats --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-in-up stagger-1">
+        <a href="{{ route('maintenance.index', ['status' => 'upcoming']) }}" class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-6 shadow-sm hover:ring-slate-300 transition-all block">
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Upcoming</p>
+            <p class="text-3xl font-bold text-slate-900 mt-1 font-poppins">{{ $upcomingMaintenance->count() }}</p>
+            <p class="text-xs text-slate-400 mt-1">Next 30 days</p>
         </a>
-        <a href="{{ route('maintenance.index') }}" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-red-500 hover:ring-red-300 transition-all cursor-pointer block">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Overdue</p>
-                    <p class="text-3xl font-bold text-red-600 mt-1 font-poppins">{{ $overdueMaintenance->count() }}</p>
-                </div>
-                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                </div>
-            </div>
+        <a href="{{ route('maintenance.index', ['status' => 'overdue']) }}" class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-6 shadow-sm hover:ring-rose-200 transition-all block relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-0.5 h-full bg-rose-400 rounded-r-full"></div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Overdue</p>
+            <p class="text-3xl font-bold text-rose-700 mt-1 font-poppins">{{ $overdueMaintenance->count() }}</p>
+            <p class="text-xs text-rose-600/80 mt-1">Requires attention</p>
         </a>
-        <a href="{{ route('analytics.maintenance-predictions', ['urgency' => 'critical']) }}" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-orange-500 hover:ring-orange-300 transition-all cursor-pointer block">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Critical Items</p>
-                    <p class="text-3xl font-bold text-orange-600 mt-1 font-poppins">{{ $criticalCount }}</p>
-                    <p class="text-xs text-gray-500 mt-1">Damaged units + high wear</p>
-                </div>
-                <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                </div>
-            </div>
+        <a href="{{ route('analytics.maintenance-predictions', ['urgency' => 'critical']) }}" class="bg-white rounded-2xl ring-1 ring-slate-200/80 p-6 shadow-sm hover:ring-slate-300 transition-all block">
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Critical Items</p>
+            <p class="text-3xl font-bold text-slate-900 mt-1 font-poppins">{{ $criticalCount }}</p>
+            <p class="text-xs text-slate-400 mt-1">Damaged units + high wear</p>
         </a>
-    </div>
+    </div
 
     @include('maintenance.partials.report-export', ['class' => 'animate-fade-in-up stagger-2'])
 
-    @if($criticalUnits->count() > 0)
-    <div class="bg-white rounded-2xl ring-1 ring-red-200 shadow-sm p-6 animate-fade-in-up stagger-2">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-            <h2 class="text-lg font-semibold text-red-700 flex items-center space-x-2">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                <span>Units Needing Immediate Attention</span>
-            </h2>
-            <a href="{{ route('analytics.maintenance-predictions', ['urgency' => 'critical']) }}" class="text-sm font-semibold text-red-600 hover:text-red-700 shrink-0">View all critical</a>
-        </div>
-        <div class="space-y-2">
-            @foreach($criticalUnits as $unit)
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 bg-red-50 rounded-xl ring-1 ring-red-100">
-                <div class="min-w-0 flex-1">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <p class="font-medium text-gray-900">{{ $unit->item?->name ?? 'Unknown item' }}</p>
-                        <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-red-100 text-red-700">{{ $unit->status }}</span>
-                    </div>
-                    <p class="text-xs text-gray-500 mt-1">{{ $unit->item?->category }} &middot; <span class="font-mono text-red-700">{{ $unit->unit_code }}</span></p>
-                </div>
-                @include('partials.critical-unit-actions', ['unit' => $unit])
-            </div>
-            @endforeach
-        </div>
-    </div>
-    @endif
+    {{-- Unified maintenance table --}}
+    <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 shadow-sm overflow-hidden animate-fade-in-up stagger-2">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 py-5 border-b border-slate-100">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-900 font-poppins">Maintenance Management</h2>
+                <p class="text-sm text-slate-500 mt-0.5">Critical units first, then overdue and scheduled work</p>
+            </div
+            <a href="{{ route('analytics.maintenance-predictions', ['urgency' => 'critical']) }}" class="text-sm font-semibold text-slate-600 hover:text-slate-900 shrink-0">View analytics &rarr;</a>
+        </div
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-slate-50/80 border-b border-slate-100">
+                        <th class="text-left px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Item Name</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Category</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Asset Code</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Scheduled</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Priority</th>
+                        <th class="text-right px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse($managementRows as $row)
+                    <tr class="hover:bg-slate-50/50 transition-colors {{ $row['priority'] === 'critical' ? 'bg-rose-50/30' : '' }}">
+                        <td class="px-6 py-4 font-medium text-slate-900">{{ $row['item_name'] }}</td>
+                        <td class="px-4 py-4 text-slate-600">{{ $row['category'] }}</td>
+                        <td class="px-4 py-4 font-mono text-xs text-slate-700">{{ $row['asset_code'] }}</td>
+                        <td class="px-4 py-4 text-slate-600">{{ $row['maintenance_type'] }}</td>
+                        <td class="px-4 py-4 text-slate-600 whitespace-nowrap">
+                            @if($row['scheduled_date'])
+                                {{ $row['scheduled_date']->format('M d, Y') }}
+                            @else
+                                <span class="text-slate-400">—</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-4">
+                            @if($row['priority'] === 'critical')
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-rose-100 text-rose-800 ring-1 ring-rose-200/60">Critical</span>
+                            @elseif($row['priority'] === 'overdue')
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-rose-50 text-rose-700 ring-1 ring-rose-200/50">Overdue</span>
+                            @else
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-slate-100 text-slate-600">Scheduled</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-wrap items-center justify-end gap-2">
+                                @if(!empty($row['unit']))
+                                    @include('partials.critical-unit-actions', ['unit' => $row['unit']])
+                                @else
+                                    <a href="{{ route('maintenance.index') }}"
+                                       class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-slate-700 hover:bg-slate-50 ring-1 ring-slate-200 transition-colors whitespace-nowrap">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                                        Maintenance list
+                                    </a>
+                                @endif
+                            </div
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="7" class="px-6 py-12 text-center text-slate-400">
+                            No maintenance tasks in queue. All equipment is in good standing.
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div
+    </div
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-        <!-- Overdue Maintenance -->
-        @if($overdueMaintenance->count() > 0)
-        <div class="bg-white rounded-2xl ring-1 ring-red-200 shadow-sm p-6 animate-fade-in-up stagger-2">
-            <h2 class="text-lg font-semibold text-red-700 mb-4 flex items-center space-x-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                <span>Overdue Maintenance</span>
-            </h2>
-            <div class="space-y-2">
-                @foreach($overdueMaintenance as $record)
-                <div class="flex items-center justify-between p-3 bg-red-50 rounded-xl">
-                    <div>
-                        <p class="font-medium text-gray-900">{{ $record->item?->name ?? 'Unknown' }}</p>
-                        <p class="text-xs text-red-600">Due: {{ $record->scheduled_date->format('M d, Y') }} ({{ $record->scheduled_date->diffForHumans() }})</p>
-                    </div>
-                    <span class="text-xs font-semibold px-2.5 py-1 bg-red-100 text-red-700 rounded-lg">{{ ucfirst($record->maintenance_type) }}</span>
-                </div>
-                @endforeach
-            </div>
-        </div>
-        @endif
-
-        <!-- Upcoming Maintenance -->
-        <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-6 animate-fade-in-up stagger-2 flex flex-col {{ $overdueMaintenance->count() === 0 ? 'lg:col-span-2' : '' }}">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <span>Upcoming Maintenance (Next 30 Days)</span>
-            </h2>
-            <div class="space-y-2 flex-1">
-            @forelse($upcomingMaintenance as $record)
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                <div>
-                    <p class="font-medium text-gray-900">{{ $record->item?->name ?? 'Unknown' }}</p>
-                    <p class="text-xs text-gray-500">{{ $record->scheduled_date->format('M d, Y') }} &middot; {{ ucfirst($record->maintenance_type) }}</p>
-                </div>
-                <span class="text-xs text-gray-500">{{ $record->scheduled_date->diffForHumans() }}</span>
-            </div>
-                @empty
-                <p class="text-gray-400 text-sm text-center py-8">No upcoming maintenance scheduled</p>
-                @endforelse
-            </div>
-        </div>
-
-        <!-- Critical Items (High Wear) -->
-        <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-6 animate-fade-in-up stagger-3">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                <span>High Wear Only (&ge;70%)</span>
-            </h2>
+        {{-- High wear --}}
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 shadow-sm p-6 animate-fade-in-up stagger-3">
+            <h2 class="text-lg font-semibold text-slate-900 mb-4">High Wear Only (&ge;70%)</h2>
             @forelse($criticalItems as $item)
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+            <div class="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
                 <div>
-                    <p class="font-medium text-gray-900">{{ $item->name }}</p>
-                    <p class="text-xs text-gray-500">{{ $item->category }}</p>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <div class="w-20 bg-gray-200 rounded-full h-2">
-                        <div class="h-2 rounded-full bg-red-500" style="width: {{ $item->wear_level }}%"></div>
-                    </div>
-                    <span class="text-sm font-bold text-red-600">{{ $item->wear_level }}%</span>
-                </div>
-            </div>
+                    <p class="font-medium text-slate-900">{{ $item->name }}</p>
+                    <p class="text-xs text-slate-500">{{ $item->category }}</p>
+                </div
+                <div class="flex items-center gap-3">
+                    <div class="w-20 bg-slate-100 rounded-full h-1.5">
+                        <div class="h-1.5 rounded-full bg-slate-600" style="width: {{ $item->wear_level }}%"></div
+                    </div
+                    <span class="text-sm font-semibold text-slate-700 w-10 text-right">{{ $item->wear_level }}%</span>
+                </div
+            </div
             @empty
-            <p class="text-gray-400 text-sm text-center py-8">No critical items. All equipment in good condition!</p>
+            <p class="text-slate-400 text-sm text-center py-8">No high-wear catalog items.</p>
             @endforelse
-        </div>
+        </div
 
-        <!-- Recently Completed -->
-        <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-6 animate-fade-in-up stagger-3">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                <span>Recently Completed</span>
-            </h2>
+        {{-- Recently completed --}}
+        <div class="bg-white rounded-2xl ring-1 ring-slate-200/80 shadow-sm p-6 animate-fade-in-up stagger-3">
+            <h2 class="text-lg font-semibold text-slate-900 mb-4">Recently Completed</h2>
             @forelse($recentlyCompleted as $record)
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+            <div class="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
                 <div>
-                    <p class="font-medium text-gray-900">{{ $record->item?->name ?? 'Unknown' }}</p>
-                    <p class="text-xs text-gray-500">{{ $record->completed_date ? $record->completed_date->format('M d, Y') : 'N/A' }} &middot; {{ ucfirst($record->maintenance_type) }}</p>
-                </div>
-                <span class="text-xs font-semibold px-2.5 py-1 bg-green-100 text-green-700 rounded-lg">Completed</span>
-            </div>
+                    <p class="font-medium text-slate-900">{{ $record->item?->name ?? 'Unknown' }}</p>
+                    <p class="text-xs text-slate-500">{{ $record->completed_date ? $record->completed_date->format('M d, Y') : 'N/A' }} &middot; {{ ucfirst($record->maintenance_type) }}</p>
+                </div
+                <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg">Done</span>
+            </div
             @empty
-            <p class="text-gray-400 text-sm text-center py-8">No recently completed maintenance</p>
+            <p class="text-slate-400 text-sm text-center py-8">No recently completed maintenance.</p>
             @endforelse
-        </div>
-    </div>
-</div>
+        </div
+    </div
+</div
 @include('partials.dispose-critical-unit-script')
 @endsection

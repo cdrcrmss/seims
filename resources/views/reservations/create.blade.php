@@ -44,6 +44,39 @@
                 @csrf
                 <input type="hidden" name="reservation_type" value="room">
 
+
+                <!-- Schedule (set first — drives live availability) -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Schedule</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="start_datetime" class="block text-xs font-medium text-gray-500 mb-1.5">Start Date &amp; Time</label>
+                            <input type="datetime-local" name="start_datetime" id="start_datetime" x-model="startDatetime"
+                                   @input="refreshRoomAvailability()" @change="refreshRoomAvailability()"
+                                   value="{{ old('start_datetime') }}" min="{{ now()->format('Y-m-d\TH:i') }}"
+                                   class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-all" required>
+                            @error('start_datetime') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label for="end_datetime" class="block text-xs font-medium text-gray-500 mb-1.5">End Date &amp; Time</label>
+                            <input type="datetime-local" name="end_datetime" id="end_datetime" x-model="endDatetime"
+                                   @input="refreshRoomAvailability()" @change="refreshRoomAvailability()"
+                                   value="{{ old('end_datetime') }}" :min="startDatetime || '{{ now()->format('Y-m-d\TH:i') }}'"
+                                   class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-all" required>
+                            @error('end_datetime') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+                    <div x-show="startDatetime && endDatetime" x-transition class="text-xs text-gray-500 mt-2">
+                        Duration: <span x-text="computeDuration()" class="font-medium text-gray-700"></span>
+                    </div>
+                    <div x-show="checkingRooms" class="mt-2 flex items-center gap-2 text-xs text-slate-500">
+                        <svg class="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                        Checking room availability…
+                    </div>
+                    <p x-show="scheduleReady && !checkingRooms" x-transition class="text-xs text-slate-600 mt-2">
+                        Room status updated for your selected time window.
+                    </p>
+                </div>
                 <!-- Room Selection -->
                 <div>
                     <label for="room_id" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Select Room</label>
@@ -52,7 +85,8 @@
                             No rooms are currently available. Please contact the lab staff.
                         </div>
                     @else
-                    <p class="text-xs text-gray-500 mb-3">Choose your schedule below first — booked rooms will be locked.</p>
+                    <p class="text-xs text-gray-500 mb-3" x-show="!scheduleReady">Enter start and end times above to see which rooms are available.</p>
+                    <p class="text-xs text-gray-500 mb-3" x-show="scheduleReady" x-cloak>Reserved rooms are locked for your selected schedule.</p>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         @foreach($rooms as $room)
                         <label class="block" :class="roomIsBooked({{ $room->id }}) ? 'cursor-not-allowed' : 'cursor-pointer'">
@@ -63,14 +97,14 @@
                             <div class="rounded-xl p-5 transition-all h-full flex flex-col items-center justify-center text-center gap-2 border"
                                  :class="roomCardClass({{ $room->id }})">
                                 <div class="w-12 h-12 rounded-xl flex items-center justify-center"
-                                     :class="roomIsBooked({{ $room->id }}) ? 'bg-red-100' : 'bg-purple-100'">
-                                    <svg class="w-6 h-6" :class="roomIsBooked({{ $room->id }}) ? 'text-red-600' : 'text-purple-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                     :class="roomIsBooked({{ $room->id }}) ? 'bg-rose-100/80' : 'bg-slate-100'">
+                                    <svg class="w-6 h-6" :class="roomIsBooked({{ $room->id }}) ? 'text-rose-700' : 'text-slate-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                                 </div>
                                 <p class="text-sm font-bold leading-tight" :class="roomIsBooked({{ $room->id }}) ? 'text-gray-500' : 'text-gray-900'">{{ $room->name }}</p>
                                 <span x-show="!scheduleReady" class="text-[10px] font-medium text-gray-400 uppercase tracking-wide">Set schedule</span>
-                                <span x-show="scheduleReady && !roomIsBooked({{ $room->id }})" class="text-[10px] font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Available</span>
-                                <span x-show="scheduleReady && roomIsBooked({{ $room->id }})" class="text-[10px] font-semibold text-red-700 bg-red-100 px-2 py-0.5 rounded-full">Already reserved</span>
-                                <p x-show="scheduleReady && roomIsBooked({{ $room->id }})" class="text-[10px] text-red-600 leading-snug px-1" x-text="roomConflictHint({{ $room->id }})"></p>
+                                <span x-show="scheduleReady && !roomIsBooked({{ $room->id }})" class="text-[10px] font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full ring-1 ring-slate-200">Available</span>
+                                <span x-show="scheduleReady && roomIsBooked({{ $room->id }})" class="text-[10px] font-semibold text-rose-800 bg-rose-100/90 px-2 py-0.5 rounded-full ring-1 ring-rose-200/80">Already Reserved</span>
+                                <p x-show="scheduleReady && roomIsBooked({{ $room->id }})" class="text-[10px] text-rose-700 leading-snug px-1" x-text="roomConflictHint({{ $room->id }})"></p>
                             </div>
                         </label>
                         @endforeach
@@ -79,28 +113,10 @@
                     @error('room_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
-                <!-- Schedule -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label for="start_datetime" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Start Date & Time</label>
-                        <input type="datetime-local" name="start_datetime" id="start_datetime" x-model="startDatetime" @change="refreshRoomAvailability()" value="{{ old('start_datetime') }}" min="{{ now()->format('Y-m-d\TH:i') }}" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
-                        @error('start_datetime') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-                    <div>
-                        <label for="end_datetime" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">End Date & Time</label>
-                        <input type="datetime-local" name="end_datetime" id="end_datetime" x-model="endDatetime" @change="refreshRoomAvailability()" value="{{ old('end_datetime') }}" :min="startDatetime || '{{ now()->format('Y-m-d\TH:i') }}'" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
-                        @error('end_datetime') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-                </div>
-
-                <!-- Duration indicator -->
-                <div x-show="startDatetime && endDatetime" x-transition class="text-xs text-gray-500 -mt-2">
-                    Duration: <span x-text="computeDuration()" class="font-medium text-gray-700"></span>
-                </div>
 
                 <!-- Availability Check Result -->
                 <div x-show="availabilityChecked" x-transition>
-                    <div :class="available ? 'bg-green-50 ring-1 ring-green-200 text-green-700' : 'bg-red-50 ring-1 ring-red-200 text-red-700'" class="rounded-xl p-4 text-sm flex items-center space-x-3">
+                    <div :class="available ? 'bg-slate-50 ring-1 ring-slate-200 text-slate-700' : 'bg-rose-50 ring-1 ring-rose-200 text-rose-800'" class="rounded-xl p-4 text-sm flex items-center space-x-3">
                         <template x-if="available">
                             <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         </template>
@@ -111,13 +127,6 @@
                     </div>
                 </div>
 
-                <!-- Check Availability Button -->
-                <button type="button" @click="checkAvailability()" :disabled="!canCheckAvailability()" 
-                        :class="canCheckAvailability() ? 'bg-gray-100 hover:bg-gray-200 text-gray-700' : 'bg-gray-50 text-gray-400 cursor-not-allowed'"
-                        class="w-full px-4 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center space-x-2 text-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <span>Check Availability</span>
-                </button>
 
                 <!-- Purpose -->
                 <div>
@@ -292,15 +301,15 @@ function reservationForm() {
 
         roomCardClass(roomId) {
             if (!this.scheduleReady) {
-                return 'bg-gray-50 border-gray-200 hover:bg-gray-100 peer-checked:ring-2 peer-checked:ring-green-500 peer-checked:bg-green-50';
+                return 'bg-slate-50 border-slate-200 hover:bg-slate-100 peer-checked:ring-2 peer-checked:ring-slate-400 peer-checked:bg-slate-50';
             }
             if (this.roomIsBooked(roomId)) {
-                return 'bg-red-50 border-red-200 opacity-75';
+                return 'bg-rose-50/90 border-rose-200/90 opacity-90';
             }
             if (String(this.selectedRoomId) === String(roomId)) {
-                return 'bg-green-50 border-green-400 ring-2 ring-green-500';
+                return 'bg-slate-50 border-slate-400 ring-2 ring-slate-500';
             }
-            return 'bg-gray-50 border-gray-200 hover:border-green-300 hover:bg-green-50/50 peer-checked:ring-2 peer-checked:ring-green-500 peer-checked:bg-green-50';
+            return 'bg-slate-50 border-slate-200 hover:border-slate-300 peer-checked:ring-2 peer-checked:ring-slate-500 peer-checked:bg-slate-50';
         },
 
         roomConflictHint(roomId) {
@@ -330,7 +339,7 @@ function reservationForm() {
                 return;
             }
             if (this.canCheckAvailability()) {
-                this.checkAvailability();
+                const st = this.roomStatuses[this.selectedRoomId]; this.available = st ? st.available : false; this.availabilityChecked = true;
             }
         },
 
@@ -403,7 +412,7 @@ function reservationForm() {
                 }
 
                 if (this.selectedRoomId) {
-                    await this.checkAvailability();
+                    const st = this.roomStatuses[this.selectedRoomId]; this.available = st ? st.available : false; this.availabilityChecked = true;
                 }
             } catch (e) {
                 console.error('Room availability check failed:', e);
