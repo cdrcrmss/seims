@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\DirectBorrowRequest;
+use App\Http\Requests\StudentBorrowRequest;
 use App\Models\Item;
 use App\Models\Borrowing;
 use App\Http\Controllers\AdminController;
@@ -120,12 +120,12 @@ class StudentController extends Controller
     /**
      * Submit a borrow request (with strict validation & rate limiting).
      */
-    public function borrowItem(DirectBorrowRequest $request)
+    public function borrowItem(StudentBorrowRequest $request)
     {
         try {
-            $notes = $request->filled('purpose') ? 'Purpose: ' . $request->input('purpose') : null;
+            $notes = 'Purpose: ' . $request->input('purpose');
 
-            $borrowings = $this->borrowingService->createMultipleDirectBorrows(
+            $borrowings = $this->borrowingService->createMultipleBorrowRequests(
                 $request->validated('items'),
                 (int) $request->validated('return_hours'),
                 $notes
@@ -133,8 +133,8 @@ class StudentController extends Controller
 
             $count = count($borrowings);
             $message = $count === 1
-                ? 'Item borrowed successfully! Return it within ' . $request->return_hours . ' hours.'
-                : "{$count} items borrowed successfully! Return them within " . $request->return_hours . ' hours.';
+                ? 'Borrow request submitted! You will be notified once it is approved.'
+                : "{$count} borrow requests submitted! You will be notified once they are approved.";
 
             return redirect()
                 ->route('student.borrowings.index')

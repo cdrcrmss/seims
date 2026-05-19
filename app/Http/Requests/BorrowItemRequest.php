@@ -123,19 +123,6 @@ class BorrowItemRequest extends FormRequest
                 return;
             }
 
-            // Check max active borrowings per user
-            $settings = AdminController::loadSettings();
-            $maxItems = $settings['max_items_per_user'] ?? 5;
-
-            $activeBorrowings = Borrowing::where('user_id', $userId)
-                ->whereIn('status', ['pending', 'approved', 'issued'])
-                ->count();
-
-            if ($activeBorrowings >= $maxItems) {
-                $validator->errors()->add('item_id', "You have reached the maximum of {$maxItems} active borrowing requests. Please wait until existing requests are completed.");
-                return;
-            }
-
             // Check for overdue items - block borrowing if student has overdue
             $hasOverdue = Borrowing::where('user_id', $userId)
                 ->where('status', 'issued')

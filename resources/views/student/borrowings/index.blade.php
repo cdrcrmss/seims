@@ -8,14 +8,14 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <h1 class="text-3xl font-bold text-gray-900 font-poppins">My Borrowings</h1>
-            <p class="text-gray-600">View and manage your borrowed items</p>
+            <p class="text-gray-600">View and manage your borrowing requests</p>
         </div>
         <div class="flex items-center space-x-4">
             <a href="{{ route('student.borrow.form') }}" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
-                Borrow Items
+                New Request
             </a>
         </div>
     </div>
@@ -24,26 +24,29 @@
     @php
         $allMyBorrowings = \App\Models\Borrowing::where('user_id', auth()->id())->get();
         $cardStats = [
+            ['label' => 'Pending', 'count' => $allMyBorrowings->where('status', 'pending')->count(), 'filter' => 'pending', 'color' => 'amber'],
+            ['label' => 'Approved', 'count' => $allMyBorrowings->where('status', 'approved')->count(), 'filter' => 'approved', 'color' => 'teal'],
             ['label' => 'Active', 'count' => $allMyBorrowings->where('status', 'issued')->count(), 'filter' => 'issued', 'color' => 'green'],
             ['label' => 'Returned', 'count' => $allMyBorrowings->where('status', 'returned')->count(), 'filter' => 'returned', 'color' => 'emerald'],
-            ['label' => 'All', 'count' => $allMyBorrowings->count(), 'filter' => '', 'color' => 'gray'],
         ];
     @endphp
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         @foreach($cardStats as $card)
-        <a href="{{ $card['filter'] ? route('student.borrowings.index', ['status' => $card['filter']]) : route('student.borrowings.index') }}" class="bg-white rounded-2xl p-6 ring-1 {{ ($status ?? '') === $card['filter'] ? 'ring-2 ring-' . $card['color'] . '-400' : 'ring-gray-100' }} shadow-sm card-hover cursor-pointer hover:ring-{{ $card['color'] }}-200 transition-all">
+        <a href="{{ route('student.borrowings.index', ['status' => $card['filter']]) }}" class="bg-white rounded-2xl p-6 ring-1 {{ ($status ?? '') === $card['filter'] ? 'ring-2 ring-' . $card['color'] . '-400' : 'ring-gray-100' }} shadow-sm card-hover cursor-pointer hover:ring-{{ $card['color'] }}-200 transition-all">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">{{ $card['label'] }}</p>
                     <p class="text-3xl font-bold text-{{ $card['color'] }}-600 font-poppins">{{ $card['count'] }}</p>
                 </div>
                 <div class="w-12 h-12 bg-{{ $card['color'] }}-500/20 rounded-xl flex items-center justify-center">
-                    @if($card['filter'] === 'issued')
+                    @if($card['filter'] === 'pending')
+                        <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    @elseif($card['filter'] === 'approved')
+                        <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    @elseif($card['filter'] === 'issued')
                         <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     @elseif($card['filter'] === 'returned')
                         <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
-                    @else
-                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
                     @endif
                 </div>
             </div>

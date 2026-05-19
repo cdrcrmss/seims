@@ -87,6 +87,82 @@ class BorrowingService
     }
 
     /**
+     * Create multiple pending borrow requests (students).
+     *
+     * @param  array<int, array{item_id: int, quantity: int}>  $lines
+     * @return Borrowing[]
+     */
+    public function createMultipleBorrowRequests(array $lines, int $returnHours, ?string $notes = null, ?int $userId = null): array
+    {
+        if ($returnHours < 3 || $returnHours > 8) {
+            throw new \Exception('Return time must be between 3 and 8 hours.');
+        }
+
+        $userId = $userId ?? Auth::id();
+        $expectedReturn = now()->addHours($returnHours);
+        $borrowings = [];
+
+        DB::transaction(function () use ($lines, $userId, $expectedReturn, $notes, &$borrowings) {
+            foreach ($lines as $line) {
+                $borrowings[] = $this->createBorrowRequestRecord(
+                    (int) $line['item_id'],
+                    (int) $line['quantity'],
+                    $expectedReturn,
+                    $userId,
+                    $notes
+                );
+            }
+        });
+
+        return $borrowings;
+    }
+
+    protected function createBorrowRequestRecord(int $itemId, int $quantity, \Carbon\Carbon $expectedReturn, int $userId, ?string $notes): Borrowing
+    {
+        $item = Item::lockForUpdate()->findOrFail($itemId);
+
+        if ($item->available_stock < $quantity) {
+            throw new \Exception('Not enough stock available for ' . $item->name . '.');
+        }
+
+        $existingRequest = Borrowing::where('user_id', $userId)
+            ->where('item_id', $item->id)
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($existingRequest) {
+            throw new \Exception('You already have a pending request for ' . $item->name . '.');
+        }
+
+        $item->decrement('available_stock', $quantity);
+
+        $borrowing = Borrowing::create([
+            'user_id' => $userId,
+            'item_id' => $item->id,
+            'quantity' => $quantity,
+            'status' => 'pending',
+            'requested_date' => now(),
+            'expected_return_date' => $expectedReturn,
+            'notes' => $notes,
+        ]);
+
+        $staffUsers = User::whereIn('role', ['staff', 'admin'])->get();
+        $student = User::find($userId);
+        foreach ($staffUsers as $staff) {
+            Notification::create([
+                'user_id' => $staff->id,
+                'type' => 'info',
+                'title' => 'New Borrow Request',
+                'message' => ($student->name ?? 'A student') . ' requested to borrow ' . $quantity . 'x ' . $item->name,
+                'action_url' => route('staff.borrowings.index', ['status' => 'pending']),
+                'priority' => 'medium',
+            ]);
+        }
+
+        return $borrowing;
+    }
+
+    /**
      * Cancel a borrowing request.
      *
      * @param  Borrowing  $borrowing

@@ -29,6 +29,7 @@ function borrowForm() {
         requirePurpose: @json($requirePurpose ?? false),
         searchApiUrl: @json($searchApiUrl),
         filterBaseUrl: @json($filterBaseUrl),
+        submitLabel: @json($submitLabel ?? 'Submit'),
 
         init() {
             if (this.hasOverdue) {
@@ -76,6 +77,15 @@ function borrowForm() {
             if (line && line.quantity > 1) {
                 line.quantity--;
             }
+        },
+
+        setQuantity(itemId, value) {
+            const line = this.cart.find(l => l.id === itemId);
+            if (!line) return;
+            let qty = parseInt(value, 10);
+            if (isNaN(qty) || qty < 1) qty = 1;
+            if (qty > line.stock) qty = line.stock;
+            line.quantity = qty;
         },
 
         get canSubmit() {

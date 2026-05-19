@@ -58,6 +58,7 @@
     'category' => $category,
     'hasOverdue' => false,
     'requirePurpose' => false,
+    'submitLabel' => 'Borrow Items',
     'searchApiUrl' => route('staff.api.search-items'),
     'filterBaseUrl' => route('staff.borrow.form'),
 ])
