@@ -3,25 +3,14 @@
 @section('title', 'Item Management')
 
 @section('content')
-<div class="space-y-8" x-data="{ showAddItemModal: @json($errors->any() && old('name') !== null), showImportModal: false, showQrModal: false, qrItem: null, showUnitsModal: false, unitsData: { item_id: null, item_name: '', units: [], total: 0 }, unitsLoading: false, async loadUnits(itemId) { this.unitsLoading = true; this.showUnitsModal = true; try { const res = await fetch('/staff/items/' + itemId + '/units'); this.unitsData = await res.json(); } catch(e) { this.unitsData = { item_id: itemId, item_name: 'Error', units: [], total: 0 }; } this.unitsLoading = false; this.$nextTick(() => { setTimeout(() => { this.unitsData.units.forEach(unit => { generateUnitQr(unit.id, unit.qr_code); }); }, 150); }); }, openDisposeModal(unit) {
-            const code = unit.unit_code || ('Unit #' + unit.id);
-            this.$dispatch('open-confirm-modal', {
-                title: 'Dispose Unit',
-                message: 'Mark unit ' + code + ' as disposed? It cannot be borrowed. Any scheduled maintenance for this unit will be cancelled.',
-                type: 'danger',
-                confirmLabel: 'Dispose',
-                action: 'dispose-unit',
-                disposeUrl: @json(url('/maintenance/units')) + '/' + unit.id + '/dispose',
-                unitCode: code
-            });
-        } }">
+<div class="space-y-8 relative z-0" x-data="itemsManagement({ showAddItemModal: @json($errors->any() && old('name') !== null), disposeUnitUrlBase: @json(url('/maintenance/units')) })">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <h1 class="text-3xl font-bold text-gray-900 font-poppins">Item Management</h1>
             <p class="text-gray-600">Manage laboratory equipment and inventory</p>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3 relative z-10">
             <a href="{{ route('staff.items.trash') }}" class="inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 Trash
@@ -33,14 +22,14 @@
                     Generate All QR
                 </button>
             </form>
-            <button @click="showImportModal = true" 
+            <button type="button" @click="showImportModal = true"
                     class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                 </svg>
                 Import Items
             </button>
-            <button @click="showAddItemModal = true" 
+            <button type="button" @click="showAddItemModal = true"
                     class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -342,7 +331,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex items-center gap-1">
-                                    <button type="button" @click="loadUnits({{ $item->id }})" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200" title="View Units & QR Codes ({{ $item->total_stock }})">
+                                    <button type="button" @click.stop="loadUnits({{ $item->id }})" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200" title="View Units & QR Codes ({{ $item->total_stock }})">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
                                     </button>
                                     <a href="{{ route('staff.items.edit', $item) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200" title="Edit item">
@@ -724,6 +713,8 @@
         </div>
     </div>
 </div>
+
+@include('partials.items-management-alpine')
 
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>

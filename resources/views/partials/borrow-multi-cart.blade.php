@@ -11,10 +11,7 @@
     <form method="POST" action="{{ $formAction }}" @submit="handleSubmit($event)" class="p-6 space-y-5">
         @csrf
 
-        <template x-for="(line, index) in cart" :key="line.id">
-            <input type="hidden" :name="'items[' + index + '][item_id]'" :value="line.id">
-            <input type="hidden" :name="'items[' + index + '][quantity]'" :value="line.quantity">
-        </template>
+        <div id="cart-hidden-fields"></div>
 
         <div>
             <div class="flex items-center justify-between gap-2 mb-2">
@@ -49,10 +46,12 @@
                                 <p class="text-xs text-green-700" x-text="line.category"></p>
                                 <p class="text-xs font-semibold text-emerald-800 mt-0.5" x-show="line.laboratory" x-text="'Lab: ' + line.laboratory"></p>
                             </div>
-                            <div class="flex items-center gap-1.5 flex-shrink-0">
+                            <div class="flex flex-col items-end gap-0.5 flex-shrink-0">
+                                <div class="flex items-center gap-1.5">
                                 <div class="flex items-stretch border border-green-200 rounded-md bg-white overflow-hidden">
                                     <input type="number"
                                            :value="line.quantity"
+                                           @input="setQuantity(line.id, $event.target.value)"
                                            @change="setQuantity(line.id, $event.target.value)"
                                            @blur="setQuantity(line.id, $event.target.value)"
                                            min="1"
@@ -72,6 +71,8 @@
                                 <button type="button" @click="removeFromCart(line.id)" class="p-1 text-green-400 hover:text-red-500 hover:bg-red-50 rounded-lg" aria-label="Remove item">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                 </button>
+                                </div>
+                                <span class="text-[10px] font-medium text-emerald-700" x-text="line.stock + ' available'"></span>
                             </div>
                         </div>
                     </div>

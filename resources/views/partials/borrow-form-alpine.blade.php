@@ -153,6 +153,27 @@ function borrowForm() {
             this.persistCart();
         },
 
+        syncCartHiddenFields(form) {
+            const container = form.querySelector('#cart-hidden-fields') || form;
+            container.querySelectorAll('[data-cart-field]').forEach(el => el.remove());
+
+            this.cart.forEach((line, index) => {
+                const itemIdInput = document.createElement('input');
+                itemIdInput.type = 'hidden';
+                itemIdInput.name = `items[${index}][item_id]`;
+                itemIdInput.value = String(line.id);
+                itemIdInput.setAttribute('data-cart-field', '1');
+                container.appendChild(itemIdInput);
+
+                const qtyInput = document.createElement('input');
+                qtyInput.type = 'hidden';
+                qtyInput.name = `items[${index}][quantity]`;
+                qtyInput.value = String(line.quantity);
+                qtyInput.setAttribute('data-cart-field', '1');
+                container.appendChild(qtyInput);
+            });
+        },
+
         get canSubmit() {
             if (this.cart.length === 0 || this.hasOverdue) return false;
             if (this.requirePurpose && this.purpose.length < 10) return false;
@@ -246,12 +267,21 @@ function borrowForm() {
         },
 
         handleSubmit(event) {
+            event.preventDefault();
             if (this.isSubmitting || !this.canSubmit) {
-                event.preventDefault();
                 return;
             }
+
+            this.cart.forEach(line => {
+                if (line.quantity > line.stock) {
+                    line.quantity = line.stock;
+                }
+            });
+
+            this.syncCartHiddenFields(event.target);
             this.isSubmitting = true;
             this.persistCart();
+            event.target.submit();
         },
     };
 }

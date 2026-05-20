@@ -555,7 +555,7 @@
         </div>
     @endif
 
-    @if($errors->any())
+    @if($errors->any() && !request()->routeIs('student.borrow.form', 'student.borrow', 'staff.borrow.form', 'staff.borrow'))
         <div x-data="{ show: true }" x-show="show" x-cloak
              class="fixed inset-0 z-[90] flex items-center justify-center p-4 pointer-events-none">
             <div class="fixed inset-0 bg-gray-900/30 backdrop-blur-sm pointer-events-auto" @click="show = false"></div>

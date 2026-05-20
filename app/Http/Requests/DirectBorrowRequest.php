@@ -19,7 +19,7 @@ class DirectBorrowRequest extends FormRequest
         $rules = [
             'items' => 'required|array|min:1|max:10',
             'items.*.item_id' => 'required|integer|exists:items,id',
-            'items.*.quantity' => 'required|integer|min:1|max:10',
+            'items.*.quantity' => 'required|integer|min:1',
             'return_hours' => 'required|integer|in:3,4,5,6,7,8',
         ];
 
