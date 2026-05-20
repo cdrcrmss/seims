@@ -176,17 +176,62 @@
             flex-shrink: 0;
         }
 
-        @media (max-width: 1024px) {
-            .brand-panel { display: none; }
+        /* Responsive — no inline display on .brand-panel (it overrides display:none) */
+        .register-shell {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        @media (min-width: 1024px) {
+            .register-shell { flex-direction: row; }
+        }
+
+        .brand-panel { display: none; }
+
+        @media (min-width: 1024px) {
+            .brand-panel {
+                display: flex;
+                flex: 1;
+                flex-direction: column;
+                justify-content: center;
+                padding: 48px;
+                position: relative;
+            }
+        }
+
+        .register-form-panel {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 100vh;
+            padding: 24px 16px;
+            background: #f8fafc;
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 1024px) {
+            .register-form-panel { min-height: auto; padding: 48px; }
+        }
+
+        .register-form-inner { width: 100%; max-width: 420px; }
+
+        @media (max-width: 1023px) {
             .mobile-logo { display: block !important; }
+            .form-input { font-size: 16px; }
+            .register-form-panel { align-items: flex-start; padding-top: 32px; padding-bottom: 32px; }
         }
     </style>
 </head>
 
 <body>
-    <div style="display: flex; min-height: 100vh;">
-        <!-- Left Brand Panel -->
-        <div class="brand-panel" style="flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 48px; position: relative;">
+    <div class="register-shell">
+        <!-- Left Brand Panel (desktop only) -->
+        <div class="brand-panel">
             <div class="circle-decoration circle-1"></div>
             <div class="circle-decoration circle-2"></div>
             <div class="circle-decoration circle-3"></div>
@@ -256,9 +301,9 @@
             </div>
         </div>
 
-        <!-- Right Registration Form Panel -->
-        <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px; background: #f8fafc;">
-            <div style="width: 100%; max-width: 420px;" class="animate-fade-in-up">
+        <!-- Registration Form Panel -->
+        <div class="register-form-panel">
+            <div class="register-form-inner animate-fade-in-up">
                 <!-- Mobile Logo -->
                 <div style="display: none; text-align: center; margin-bottom: 32px;" class="mobile-logo">
                     <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #16a34a, #22c55e); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
