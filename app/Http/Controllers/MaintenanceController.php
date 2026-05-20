@@ -131,27 +131,28 @@ class MaintenanceController extends Controller
     {
         $request->validate([
             'completed_date' => 'required|date',
-            'condition_after' => 'required|string',
-            'wear_level' => 'required|integer|min:0|max:100',
+            'condition_after' => 'required|in:excellent,good,fair,poor',
             'issues_found' => 'nullable|string',
             'actions_taken' => 'required|string',
             'cost' => 'nullable|numeric|min:0',
         ]);
 
+        $wearLevel = MaintenanceRecord::predictiveWearForCondition($request->condition_after);
+
         $maintenance->update([
             'status' => 'completed',
             'completed_date' => $request->completed_date,
             'condition_after' => $request->condition_after,
-            'wear_level' => $request->wear_level,
+            'wear_level' => $wearLevel,
             'issues_found' => $request->issues_found,
             'actions_taken' => $request->actions_taken,
             'cost' => $request->cost,
             'next_maintenance_date' => MaintenanceRecord::predictNextMaintenance($maintenance->item),
         ]);
 
-        // Update item wear level
+        // Update item wear level from predictive condition mapping
         $maintenance->item->update([
-            'wear_level' => $request->wear_level,
+            'wear_level' => $wearLevel,
             'last_maintenance_date' => $request->completed_date,
             'next_maintenance_date' => $maintenance->next_maintenance_date,
         ]);

@@ -9,6 +9,14 @@ class MaintenanceRecord extends Model
 {
     use HasFactory;
 
+    /** Predictive wear % applied when maintenance is completed (matches item condition bands). */
+    public const WEAR_BY_CONDITION_AFTER = [
+        'excellent' => 10,
+        'good' => 25,
+        'fair' => 45,
+        'poor' => 65,
+    ];
+
     /**
      * The attributes that are mass assignable.
      *
@@ -113,6 +121,14 @@ class MaintenanceRecord extends Model
     /**
      * Human-readable label for maintenance_type (DB value unchanged).
      */
+    /**
+     * Wear level predicted from post-maintenance condition (excellent → low wear, poor → high).
+     */
+    public static function predictiveWearForCondition(string $conditionAfter): int
+    {
+        return self::WEAR_BY_CONDITION_AFTER[$conditionAfter] ?? self::WEAR_BY_CONDITION_AFTER['good'];
+    }
+
     /**
      * Issues found text enriched with return notes from the borrowing that triggered repair.
      */
