@@ -168,6 +168,7 @@ class StudentController extends Controller
             'approved' => (int) ($counts['approved'] ?? 0),
             'issued' => (int) ($counts['issued'] ?? 0),
             'returned' => (int) ($counts['returned'] ?? 0),
+            'rejected' => (int) ($counts['rejected'] ?? 0),
         ];
 
         return view('student.borrowings.index', compact('borrowings', 'status', 'statusCounts'));

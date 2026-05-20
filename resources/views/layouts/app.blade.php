@@ -428,7 +428,9 @@
         <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" @click="cancel()"></div>
 
         {{-- Modal Panel --}}
-        <div class="relative z-10 bg-white rounded-2xl shadow-2xl p-6 transform transition-all" style="width: 360px; max-width: 90vw;"
+        <div class="relative z-10 bg-white rounded-2xl shadow-2xl p-6 transform transition-all w-full"
+             :class="requireReason ? 'max-w-md' : 'max-w-[360px]'"
+             :style="requireReason ? '' : 'max-width: 90vw; width: 360px;'"
              x-transition:enter="ease-out duration-300"
              x-transition:enter-start="opacity-0 scale-90 translate-y-4"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0"
@@ -436,28 +438,37 @@
              x-transition:leave-start="opacity-100 scale-100 translate-y-0"
              x-transition:leave-end="opacity-0 scale-90 translate-y-4"
              @click.stop>
-            <div class="flex flex-col items-center text-center">
+            <div class="flex flex-col" :class="requireReason ? 'text-left' : 'items-center text-center'">
                 {{-- Success Icon --}}
                 <template x-if="type === 'success'">
-                    <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mb-4 ring-4 ring-green-50">
+                    <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mb-4 ring-4 ring-green-50" :class="requireReason ? 'self-center' : ''">
                         <svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                     </div>
                 </template>
                 {{-- Danger Icon --}}
                 <template x-if="type === 'danger'">
-                    <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mb-4 ring-4 ring-red-50">
+                    <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mb-4 ring-4 ring-red-50" :class="requireReason ? 'self-center' : ''">
                         <svg class="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </div>
                 </template>
                 {{-- Warning Icon --}}
                 <template x-if="type === 'warning'">
-                    <div class="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mb-4 ring-4 ring-amber-50">
+                    <div class="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mb-4 ring-4 ring-amber-50" :class="requireReason ? 'self-center' : ''">
                         <svg class="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
                 </template>
 
-                <h3 class="text-lg font-bold text-gray-900 font-poppins mb-1" x-text="title"></h3>
-                <p class="text-sm text-gray-500 mb-6 leading-relaxed" x-text="message"></p>
+                <h3 class="text-lg font-bold text-gray-900 font-poppins mb-1" :class="requireReason ? '' : 'text-center w-full'" x-text="title"></h3>
+                <p class="text-sm text-gray-500 leading-relaxed" :class="requireReason ? 'mb-4' : 'mb-6 text-center w-full'" x-text="message"></p>
+
+                <div x-show="requireReason && !alertOnly" x-cloak class="w-full mb-4">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5" x-text="reasonLabel"></label>
+                    <textarea x-model="reasonText"
+                              :placeholder="reasonPlaceholder"
+                              rows="3"
+                              class="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 outline-none resize-none"></textarea>
+                    <p x-show="reasonError" x-text="reasonError" class="mt-1.5 text-xs font-medium text-red-600"></p>
+                </div>
 
                 <div class="flex gap-3 w-full" :class="alertOnly ? 'justify-center' : ''">
                     <button x-show="!alertOnly" @click="cancel()" :disabled="processing" class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:opacity-60 disabled:cursor-not-allowed">

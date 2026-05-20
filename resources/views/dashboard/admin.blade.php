@@ -116,7 +116,7 @@
                                 Approve
                             </button>
                         </form>
-                        <form method="POST" action="{{ route('staff.borrowings.reject', $activity) }}" class="inline" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Reject Request', message: 'Are you sure you want to reject this borrow request?', type: 'danger' })">
+                        <form method="POST" action="{{ route('staff.borrowings.reject', $activity) }}" class="inline" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Reject Request', message: 'Provide a reason so the student knows why this request was rejected.', type: 'danger', requireReason: true, reasonLabel: 'Rejection reason', reasonPlaceholder: 'e.g. Item reserved for class, unavailable stock, etc.' })">
                             @csrf @method('PATCH')
                             <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-50 text-red-700 hover:bg-red-100 ring-1 ring-red-200/60 transition-all duration-200">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>

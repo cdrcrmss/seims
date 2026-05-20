@@ -12,6 +12,12 @@ document.addEventListener('alpine:init', () => {
         pendingAction: null,
         pendingDisposeUrl: null,
         pendingDisposeUnitCode: null,
+        requireReason: false,
+        reasonField: 'rejection_reason',
+        reasonLabel: 'Reason',
+        reasonPlaceholder: '',
+        reasonText: '',
+        reasonError: '',
 
         show(detail) {
             this.title = detail.title || 'Confirm Action';
@@ -24,6 +30,12 @@ document.addEventListener('alpine:init', () => {
             this.pendingAction = detail.action || null;
             this.pendingDisposeUrl = detail.disposeUrl || null;
             this.pendingDisposeUnitCode = detail.unitCode || null;
+            this.requireReason = detail.requireReason === true;
+            this.reasonField = detail.reasonField || 'rejection_reason';
+            this.reasonLabel = detail.reasonLabel || 'Reason';
+            this.reasonPlaceholder = detail.reasonPlaceholder || 'Enter a reason...';
+            this.reasonText = '';
+            this.reasonError = '';
             this.open = true;
         },
 
@@ -56,6 +68,22 @@ document.addEventListener('alpine:init', () => {
                 return;
             }
             if (this.pendingForm) {
+                if (this.requireReason) {
+                    const reason = (this.reasonText || '').trim();
+                    if (!reason) {
+                        this.reasonError = 'Please enter a reason before continuing.';
+                        return;
+                    }
+                    const fieldName = this.reasonField || 'rejection_reason';
+                    let input = this.pendingForm.querySelector(`[name="${fieldName}"]`);
+                    if (!input) {
+                        input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = fieldName;
+                        this.pendingForm.appendChild(input);
+                    }
+                    input.value = reason;
+                }
                 const form = this.pendingForm;
                 this.reset();
                 form.submit();
@@ -133,6 +161,9 @@ document.addEventListener('alpine:init', () => {
             this.pendingDisposeUnitCode = null;
             this.alertOnly = false;
             this.processing = false;
+            this.requireReason = false;
+            this.reasonText = '';
+            this.reasonError = '';
         },
 
         cancel() {

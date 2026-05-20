@@ -199,7 +199,7 @@
                                             Approve
                                         </button>
                                     </form>
-                                    <form method="POST" action="{{ route('staff.borrowings.reject', $borrowing) }}" class="inline" onsubmit="return confirm('Are you sure you want to reject this request?')">
+                                    <form method="POST" action="{{ route('staff.borrowings.reject', $borrowing) }}" class="inline" x-data @submit.prevent="$dispatch('open-confirm-modal', { form: $el, title: 'Reject Request', message: 'Provide a reason so the student knows why this request was rejected.', type: 'danger', requireReason: true, reasonLabel: 'Rejection reason', reasonPlaceholder: 'e.g. Item reserved for class, unavailable stock, etc.' })">
                                         @csrf
                                         @method('PATCH')
                                         <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg text-red-700 bg-red-50 hover:bg-red-100 ring-1 ring-red-200/60 transition-colors">

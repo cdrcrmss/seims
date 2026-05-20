@@ -688,6 +688,10 @@ class StaffController extends Controller
             return back()->withErrors(['error' => 'Only pending requests can be rejected.']);
         }
 
+        $request->validate([
+            'rejection_reason' => ['required', 'string', 'min:3', 'max:500'],
+        ]);
+
         try {
             // Use transaction to ensure consistency
             \DB::transaction(function () use ($request, $borrowing) {
@@ -696,7 +700,7 @@ class StaffController extends Controller
 
                 $borrowing->update([
                     'status' => 'rejected',
-                    'rejection_reason' => $request->rejection_reason ?? 'Request rejected by staff',
+                    'rejection_reason' => $request->rejection_reason,
                     'rejected_by' => auth()->id(),
                     'rejected_date' => now(),
                 ]);
@@ -706,7 +710,7 @@ class StaffController extends Controller
                     'user_id' => $borrowing->user_id,
                     'type' => 'danger',
                     'title' => 'Borrow Request Rejected',
-                    'message' => 'Your request to borrow "' . $borrowing->item->name . '" has been rejected. Reason: ' . ($request->rejection_reason ?? 'No reason provided.'),
+                    'message' => 'Your request to borrow "' . $borrowing->item->name . '" has been rejected. Reason: ' . $request->rejection_reason,
                     'action_url' => route('student.borrowings.index'),
                     'priority' => 'medium',
                 ]);

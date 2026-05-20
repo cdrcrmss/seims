@@ -5,13 +5,6 @@
 @section('content')
 @php
     $currentFilter = $status ?? '';
-    $filterTabs = [
-        ['label' => 'All', 'value' => '', 'count' => array_sum($statusCounts)],
-        ['label' => 'Pending', 'value' => 'pending', 'count' => $statusCounts['pending']],
-        ['label' => 'Approved', 'value' => 'approved', 'count' => $statusCounts['approved']],
-        ['label' => 'Active', 'value' => 'issued', 'count' => $statusCounts['issued']],
-        ['label' => 'Returned', 'value' => 'returned', 'count' => $statusCounts['returned']],
-    ];
     $statusStyles = [
         'pending' => 'bg-amber-50 text-amber-800 ring-amber-200/80',
         'approved' => 'bg-sky-50 text-sky-800 ring-sky-200/80',
@@ -44,7 +37,7 @@
         </a>
     </div>
 
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         <x-stat-card label="Pending" :value="$statusCounts['pending']" color="yellow"
             :href="route('student.borrowings.index', ['status' => 'pending'])"
             icon="<svg class='w-6 h-6 text-yellow-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'/></svg>" />
@@ -57,20 +50,9 @@
         <x-stat-card label="Returned" :value="$statusCounts['returned']" color="purple"
             :href="route('student.borrowings.index', ['status' => 'returned'])"
             icon="<svg class='w-6 h-6 text-purple-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6'/></svg>" />
-    </div>
-
-    <div class="flex flex-wrap gap-2" role="tablist" aria-label="Filter by status">
-        @foreach($filterTabs as $tab)
-        <a href="{{ $tab['value'] ? route('student.borrowings.index', ['status' => $tab['value']]) : route('student.borrowings.index') }}"
-           class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium transition-all
-                  {{ $currentFilter === $tab['value'] ? 'bg-green-600 text-white shadow-sm' : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:ring-green-200 hover:text-green-700' }}">
-            {{ $tab['label'] }}
-            <span class="text-xs font-semibold px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center
-                         {{ $currentFilter === $tab['value'] ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600' }}">
-                {{ $tab['count'] }}
-            </span>
-        </a>
-        @endforeach
+        <x-stat-card label="Rejected" :value="$statusCounts['rejected']" color="red"
+            :href="route('student.borrowings.index', ['status' => 'rejected'])"
+            icon="<svg class='w-6 h-6 text-red-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/></svg>" />
     </div>
 
     <div class="space-y-3">
@@ -119,6 +101,14 @@
                         </div>
 
                         <div class="flex flex-wrap gap-2 text-xs">
+                            @if($borrowing->item?->laboratory)
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-green-50 text-green-800 ring-1 ring-green-100">
+                                <svg class="w-3.5 h-3.5 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                                {{ $borrowing->item->laboratory }}
+                            </span>
+                            @endif
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-50 text-gray-700 ring-1 ring-gray-100">
                                 <span class="text-gray-400">Qty</span> {{ $borrowing->quantity }}
                             </span>
@@ -140,13 +130,17 @@
                     </div>
                 </div>
 
-                @if($borrowing->status === 'rejected' && $borrowing->rejection_reason)
+                @if($borrowing->status === 'rejected')
                 <div class="mt-3 flex items-start gap-2 text-xs text-red-700 bg-red-50 rounded-lg px-3 py-2 ring-1 ring-red-100">
                     <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <span><span class="font-semibold">Rejected:</span> {{ $borrowing->rejection_reason }}
-                        @if($borrowing->rejector) &middot; {{ $borrowing->rejector->name }}@endif
+                    <span>
+                        <span class="font-semibold">Reason:</span>
+                        {{ $borrowing->rejection_reason ?: 'No reason provided.' }}
+                        @if($borrowing->rejector)
+                            <span class="text-red-600/80"> &middot; by {{ $borrowing->rejector->name }}</span>
+                        @endif
                     </span>
                 </div>
                 @endif
