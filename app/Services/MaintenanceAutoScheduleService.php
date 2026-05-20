@@ -213,11 +213,17 @@ class MaintenanceAutoScheduleService
 
         $unitCode = $unit->unit_code ?: ('UNIT-' . $unit->id);
 
-        $issues = $context['issues_found']
-            ?? "Unit {$unitCode} reported as damaged"
-            . (isset($context['return_condition']) ? ' on return (' . $context['return_condition'] . ').' : '.');
+        $returnNotes = trim((string) ($context['notes'] ?? ''));
+        $issues = $context['issues_found'] ?? null;
+        if ($issues === null) {
+            $issues = match ($context['return_condition'] ?? null) {
+                'damaged' => 'Returned damaged' . ($returnNotes !== '' ? ': ' . $returnNotes : '.'),
+                'needs_repair' => 'Returned — needs repair' . ($returnNotes !== '' ? ': ' . $returnNotes : '.'),
+                default => "Unit {$unitCode} reported as damaged.",
+            };
+        }
 
-        $notes = trim(($context['notes'] ?? '') . " Auto-scheduled for unit {$unitCode} (ID #{$unit->id}).");
+        $notes = trim("Auto-scheduled for unit {$unitCode} (ID #{$unit->id}).");
 
         $record = $this->createScheduledCorrectiveRecord($item, $unit, $issues, $notes);
 

@@ -113,6 +113,36 @@ class MaintenanceRecord extends Model
     /**
      * Human-readable label for maintenance_type (DB value unchanged).
      */
+    /**
+     * Issues found text enriched with return notes from the borrowing that triggered repair.
+     */
+    public function issuesFoundDisplay(?Borrowing $returnBorrowing = null): string
+    {
+        $text = trim((string) $this->issues_found);
+        $returnNotes = trim((string) ($returnBorrowing?->return_notes ?? ''));
+
+        if ($returnNotes === '') {
+            return $text;
+        }
+
+        if ($returnNotes !== '' && str_contains($text, $returnNotes)) {
+            return $text;
+        }
+
+        if ($text !== '') {
+            return rtrim($text, '.') . '. Return notes: ' . $returnNotes;
+        }
+
+        $condition = $returnBorrowing?->return_condition;
+        $prefix = match ($condition) {
+            'damaged' => 'Returned damaged',
+            'needs_repair' => 'Returned — needs repair',
+            default => 'Returned',
+        };
+
+        return $prefix . ': ' . $returnNotes;
+    }
+
     public function typeLabel(): string
     {
         return match ($this->maintenance_type) {

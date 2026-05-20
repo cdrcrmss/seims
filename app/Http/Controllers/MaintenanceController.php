@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Borrowing;
 use App\Models\ItemUnit;
 use App\Models\MaintenanceRecord;
 use App\Services\MaintenanceAutoScheduleService;
@@ -98,7 +99,19 @@ class MaintenanceController extends Controller
      */
     public function show(Request $request, MaintenanceRecord $maintenance)
     {
-        $maintenance->load(['item', 'itemUnit', 'technician']);
+        $maintenance->load(['item', 'itemUnit']);
+
+        $returnBorrowing = null;
+        if ($maintenance->item_unit_id) {
+            $returnBorrowing = Borrowing::query()
+                ->where('item_unit_id', $maintenance->item_unit_id)
+                ->whereIn('return_condition', ['damaged', 'needs_repair'])
+                ->whereNotNull('returned_date')
+                ->orderByDesc('returned_date')
+                ->first();
+        }
+
+        $issuesFoundDisplay = $maintenance->issuesFoundDisplay($returnBorrowing);
 
         $backUrl = match ($request->query('from')) {
             'dashboard' => route('maintenance.dashboard'),
@@ -108,7 +121,7 @@ class MaintenanceController extends Controller
                 : route('maintenance.dashboard'),
         };
 
-        return view('maintenance.show', compact('maintenance', 'backUrl'));
+        return view('maintenance.show', compact('maintenance', 'backUrl', 'returnBorrowing', 'issuesFoundDisplay'));
     }
 
     /**

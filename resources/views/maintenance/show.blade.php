@@ -93,6 +93,16 @@
                         <dt class="text-gray-500">Category</dt>
                         <dd class="font-medium text-gray-900 mt-0.5">{{ $item?->category ?? '—' }}</dd>
                     </div>
+                    <div>
+                        <dt class="text-gray-500">Laboratory</dt>
+                        <dd class="mt-0.5">
+                            @if($item?->laboratory)
+                                @include('partials.laboratory-badge', ['laboratory' => $item->laboratory, 'size' => 'sm'])
+                            @else
+                                <span class="text-gray-400">—</span>
+                            @endif
+                        </dd>
+                    </div>
                     @if($unit)
                     <div>
                         <dt class="text-gray-500">Unit ID</dt>
@@ -172,10 +182,19 @@
             <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-6 animate-fade-in-up stagger-3">
                 <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Work details</h2>
                 <div class="space-y-4 text-sm">
-                    @if($maintenance->issues_found)
+                    @if($issuesFoundDisplay)
                     <div>
                         <p class="text-gray-500 font-medium">Issues found</p>
-                        <p class="text-gray-900 mt-1 whitespace-pre-wrap">{{ $maintenance->issues_found }}</p>
+                        <p class="text-gray-900 mt-1 whitespace-pre-wrap">{{ $issuesFoundDisplay }}</p>
+                        @if($returnBorrowing?->return_condition)
+                        <p class="text-xs text-gray-500 mt-2">
+                            Return condition:
+                            <span class="font-semibold capitalize">{{ str_replace('_', ' ', $returnBorrowing->return_condition) }}</span>
+                            @if($returnBorrowing->returned_date)
+                                · {{ $returnBorrowing->returned_date->format('M d, Y') }}
+                            @endif
+                        </p>
+                        @endif
                     </div>
                     @endif
                     @if($maintenance->notes)
@@ -210,7 +229,7 @@
                     </div>
                     @endif
                     @endif
-                    @if(!$maintenance->issues_found && !$maintenance->notes && !$maintenance->condition_before && $maintenance->status !== 'completed')
+                    @if(!$issuesFoundDisplay && !$maintenance->notes && !$maintenance->condition_before && $maintenance->status !== 'completed')
                     <p class="text-gray-400">No additional work details recorded yet.</p>
                     @endif
                 </div>
@@ -234,12 +253,6 @@
                         <dt class="text-gray-500">Last updated</dt>
                         <dd class="font-medium text-gray-900">{{ $maintenance->updated_at->format('M d, Y g:i A') }}</dd>
                     </div>
-                    @if($maintenance->technician?->name)
-                    <div>
-                        <dt class="text-gray-500">Technician</dt>
-                        <dd class="font-medium text-gray-900">{{ $maintenance->technician->name }}</dd>
-                    </div>
-                    @endif
                 </dl>
             </div>
 
