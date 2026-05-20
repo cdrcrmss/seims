@@ -44,7 +44,7 @@
     @endif
 
     <!-- Records Table -->
-    <div x-data="{ completeModal: false, completeId: null }">
+    <div x-data="{ completeModal: false, completeId: null }" @open-complete-maintenance.window="completeModal = true; completeId = $event.detail.id">
     <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm overflow-hidden animate-fade-in-up stagger-3">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -142,47 +142,7 @@
         </div>
     </div>
 
-    <!-- Complete Modal -->
-    <div x-show="completeModal" x-transition x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-        <div @click.away="completeModal = false" class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <h3 class="text-lg font-bold text-gray-900 mb-4">Complete Maintenance</h3>
-            <form :action="'/maintenance/' + completeId + '/complete'" method="POST" class="space-y-4">
-                @csrf @method('PATCH')
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Completed Date</label>
-                    <input type="date" name="completed_date" value="{{ now()->format('Y-m-d') }}" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Condition After</label>
-                    <select name="condition_after" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
-                        <option value="excellent">Excellent</option>
-                        <option value="good" selected>Good</option>
-                        <option value="fair">Fair</option>
-                        <option value="poor">Poor</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Wear Level (0-100)</label>
-                    <input type="number" name="wear_level" min="0" max="100" value="20" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Actions Taken</label>
-                    <textarea name="actions_taken" rows="2" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" required></textarea>
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Issues Found (optional)</label>
-                    <textarea name="issues_found" rows="2" class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"></textarea>
-                </div>
-                <div class="flex space-x-3 pt-2">
-                    <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        Mark Complete
-                    </button>
-                    <button type="button" @click="completeModal = false" class="flex-1 inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-200">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    @include('partials.maintenance-complete-modal')
     </div>
 </div>
 @endsection

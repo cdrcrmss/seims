@@ -461,8 +461,9 @@
                     return;
                 }
                 if (this.pendingForm) {
-                    this.pendingForm.submit();
+                    const form = this.pendingForm;
                     this.reset();
+                    form.submit();
                     return;
                 }
                 if (this.pendingAction === 'dispose-unit') {
@@ -540,9 +541,11 @@
             }
          }"
          @open-confirm-modal.window="show($event.detail)"
+         @keydown.escape.window="if (open) cancel()"
          x-show="open"
          x-cloak
          class="fixed inset-0 z-[100] flex items-center justify-center p-4"
+         style="display: none;"
          x-transition:enter="ease-out duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
@@ -551,11 +554,10 @@
          x-transition:leave-end="opacity-0">
 
         {{-- Backdrop --}}
-        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" @click="cancel()"></div>
+        <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" @click="cancel()"></div>
 
         {{-- Modal Panel --}}
-        <div class="relative bg-white rounded-2xl shadow-2xl p-6 transform transition-all" style="width: 360px; max-width: 90vw;"
-             x-show="open"
+        <div class="relative z-10 bg-white rounded-2xl shadow-2xl p-6 transform transition-all" style="width: 360px; max-width: 90vw;"
              x-transition:enter="ease-out duration-300"
              x-transition:enter-start="opacity-0 scale-90 translate-y-4"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0"
