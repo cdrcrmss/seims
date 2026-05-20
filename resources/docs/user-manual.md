@@ -19,10 +19,10 @@ View your borrowing summary, recent activity, and quick links.
 
 ### Borrow equipment
 1. Go to **Borrow Equipment** in the sidebar.
-2. Search for an item and select the quantity and expected return date.
+2. Search for items and add them to your cart (quantity and return window: **3–8 hours**).
 3. Submit the request and wait for staff approval.
 4. Pick up equipment when status becomes **Issued**.
-5. Return items on or before the due date.
+5. Return items on or before the due time.
 
 ### My borrowings
 - Track request status: Pending, Approved, Issued, Returned, or Rejected.

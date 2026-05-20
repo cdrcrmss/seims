@@ -280,8 +280,24 @@ class DashboardController extends Controller
         $path = resource_path('docs/user-manual.md');
         $markdown = file_exists($path) ? file_get_contents($path) : "# User Guide\n\nThe user manual is not available yet.";
 
+        $parts = preg_split('/\r?\n---\r?\n/', trim($markdown));
+        $introMarkdown = array_shift($parts) ?: '';
+
+        $sections = collect($parts)->map(function (string $chunk) {
+            $chunk = trim($chunk);
+            preg_match('/^##\s+(.+)$/m', $chunk, $matches);
+            $title = trim($matches[1] ?? 'Section');
+
+            return [
+                'id' => Str::slug($title),
+                'title' => $title,
+                'html' => Str::markdown($chunk),
+            ];
+        })->values()->all();
+
         return view('user-manual', [
-            'content' => Str::markdown($markdown),
+            'introHtml' => Str::markdown(trim($introMarkdown)),
+            'sections' => $sections,
         ]);
     }
 
