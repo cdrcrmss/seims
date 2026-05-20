@@ -2,6 +2,11 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* Full-page modal overlay: blurs sidebar, header, and content behind dialogs */
+.seims-modal-backdrop {
+    @apply fixed inset-0 bg-gray-900/50 backdrop-blur-md;
+}
+
 /* ============================================= */
 
 

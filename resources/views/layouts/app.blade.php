@@ -425,7 +425,7 @@
          x-transition:leave-end="opacity-0">
 
         {{-- Backdrop --}}
-        <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" @click="cancel()"></div>
+        <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-md" @click="cancel()"></div>
 
         {{-- Modal Panel --}}
         <div class="relative z-10 bg-white rounded-2xl shadow-2xl p-6 transform transition-all w-full"
