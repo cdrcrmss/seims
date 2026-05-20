@@ -3,7 +3,9 @@
 @section('title', 'Item Management')
 
 @section('content')
-<div class="space-y-8 relative z-0" x-data="itemsManagement({ showAddItemModal: @json($errors->any() && old('name') !== null), disposeUnitUrlBase: @json(url('/maintenance/units')) })">
+@include('partials.items-management-alpine', ['openAddItemModal' => $errors->any() && old('name') !== null])
+
+<div class="space-y-8 relative z-0" x-data="itemsManagement()">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -714,8 +716,7 @@
     </div>
 </div>
 
-@include('partials.items-management-alpine')
-
+@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
     let currentQrInstance = null;
@@ -972,6 +973,7 @@
         };
     }
 </script>
+@endpush
 
 <style>
     [x-cloak] { display: none !important; }

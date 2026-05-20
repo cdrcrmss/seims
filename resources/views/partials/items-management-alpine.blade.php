@@ -1,14 +1,14 @@
 <script>
 document.addEventListener('alpine:init', () => {
-    Alpine.data('itemsManagement', (config = {}) => ({
-        showAddItemModal: config.showAddItemModal ?? false,
+    Alpine.data('itemsManagement', () => ({
+        showAddItemModal: @json($openAddItemModal ?? false),
         showImportModal: false,
         showQrModal: false,
         qrItem: null,
         showUnitsModal: false,
         unitsData: { item_id: null, item_name: '', units: [], total: 0 },
         unitsLoading: false,
-        disposeUnitUrlBase: config.disposeUnitUrlBase ?? '',
+        disposeUnitUrlBase: @json(url('/maintenance/units')),
 
         async loadUnits(itemId) {
             this.unitsLoading = true;
