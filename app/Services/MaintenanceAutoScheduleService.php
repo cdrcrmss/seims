@@ -15,8 +15,44 @@ class MaintenanceAutoScheduleService
      */
     public static function syncAllScheduledMaintenance(): void
     {
+        static::healUnitsStuckAfterCompletedMaintenance();
         static::ensureCorrectiveRecordsForCriticalUnits();
         static::ensurePredictiveRecordsForHighWearItems();
+    }
+
+    /**
+     * Units left in damaged/maintenance after maintenance was marked completed (legacy data).
+     */
+    public static function healUnitsStuckAfterCompletedMaintenance(): int
+    {
+        $service = new self();
+        $healed = 0;
+
+        $units = ItemUnit::query()
+            ->whereIn('status', ['maintenance', 'damaged', 'needs_repair'])
+            ->whereDoesntHave('maintenanceRecords', fn ($q) => $q->where('status', 'scheduled'))
+            ->whereHas('maintenanceRecords', fn ($q) => $q->where('status', 'completed'))
+            ->with(['item'])
+            ->get();
+
+        foreach ($units as $unit) {
+            $latest = $unit->maintenanceRecords()
+                ->where('status', 'completed')
+                ->orderByDesc('completed_date')
+                ->first();
+
+            if (! $latest) {
+                continue;
+            }
+
+            $service->restoreUnitAfterCompletedMaintenance(
+                $unit,
+                $latest->condition_after ?? 'good'
+            );
+            $healed++;
+        }
+
+        return $healed;
     }
 
     /**
