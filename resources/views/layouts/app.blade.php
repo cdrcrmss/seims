@@ -481,6 +481,7 @@
                 }
 
                 this.processing = true;
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
                 try {
                     const response = await fetch(url, {
@@ -488,8 +489,10 @@
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || '',
+                            'X-CSRF-TOKEN': csrf,
+                            'X-Requested-With': 'XMLHttpRequest',
                         },
+                        credentials: 'same-origin',
                         body: JSON.stringify({}),
                     });
 
@@ -500,9 +503,14 @@
                         return;
                     }
 
+                    this.reset();
                     window.location.reload();
                 } catch (e) {
                     this.showError('Unable to dispose', 'Could not dispose unit ' + unitCode + '. Please try again.');
+                } finally {
+                    if (!this.alertOnly) {
+                        this.processing = false;
+                    }
                 }
             },
             showError(title, message) {

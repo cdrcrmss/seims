@@ -3,7 +3,18 @@
 @section('title', 'Item Management')
 
 @section('content')
-<div class="space-y-8" x-data="{ showAddItemModal: @json($errors->any() && old('name') !== null), showImportModal: false, showQrModal: false, qrItem: null, showUnitsModal: false, unitsData: { item_id: null, item_name: '', units: [], total: 0 }, unitsLoading: false, async loadUnits(itemId) { this.unitsLoading = true; this.showUnitsModal = true; try { const res = await fetch('/staff/items/' + itemId + '/units'); this.unitsData = await res.json(); } catch(e) { this.unitsData = { item_id: itemId, item_name: 'Error', units: [], total: 0 }; } this.unitsLoading = false; this.$nextTick(() => { setTimeout(() => { this.unitsData.units.forEach(unit => { generateUnitQr(unit.id, unit.qr_code); }); }, 150); }); }, async disposeUnit(unit) { if (!confirm('Mark this unit as disposed? It cannot be borrowed.')) return; try { const res = await fetch('/staff/items/' + this.unitsData.item_id + '/units/' + unit.id, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }, body: JSON.stringify({ status: 'disposed' }) }); const data = await res.json(); if (!res.ok) { alert(data.message || 'Could not dispose unit.'); return; } const idx = this.unitsData.units.findIndex(u => u.id === unit.id); if (idx !== -1) { this.unitsData.units[idx] = data.unit; } } catch (e) { alert('Could not dispose unit.'); } } }">
+<div class="space-y-8" x-data="{ showAddItemModal: @json($errors->any() && old('name') !== null), showImportModal: false, showQrModal: false, qrItem: null, showUnitsModal: false, unitsData: { item_id: null, item_name: '', units: [], total: 0 }, unitsLoading: false, async loadUnits(itemId) { this.unitsLoading = true; this.showUnitsModal = true; try { const res = await fetch('/staff/items/' + itemId + '/units'); this.unitsData = await res.json(); } catch(e) { this.unitsData = { item_id: itemId, item_name: 'Error', units: [], total: 0 }; } this.unitsLoading = false; this.$nextTick(() => { setTimeout(() => { this.unitsData.units.forEach(unit => { generateUnitQr(unit.id, unit.qr_code); }); }, 150); }); }, openDisposeModal(unit) {
+            const code = unit.unit_code || ('Unit #' + unit.id);
+            this.$dispatch('open-confirm-modal', {
+                title: 'Dispose Unit',
+                message: 'Mark unit ' + code + ' as disposed? It cannot be borrowed. Any scheduled maintenance for this unit will be cancelled.',
+                type: 'danger',
+                confirmLabel: 'Dispose',
+                action: 'dispose-unit',
+                disposeUrl: @json(url('/maintenance/units')) + '/' + unit.id + '/dispose',
+                unitCode: code
+            });
+        } }">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -613,7 +624,7 @@
                                 </p>
                                 <button type="button"
                                         x-show="unit.status !== 'disposed' && unit.status !== 'retired' && unit.status !== 'borrowed'"
-                                        @click="disposeUnit(unit)"
+                                        @click="openDisposeModal(unit)"
                                         class="mt-2 text-[10px] font-semibold text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-lg transition-colors">
                                     Mark disposed
                                 </button>

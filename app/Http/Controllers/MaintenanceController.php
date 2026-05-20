@@ -237,12 +237,15 @@ class MaintenanceController extends Controller
     /**
      * Mark a critical unit as disposed (removes from circulation, cancels scheduled work).
      */
-    public function disposeUnit(ItemUnit $unit)
+    public function disposeUnit(Request $request, ItemUnit $unit)
     {
         if ($unit->status === 'borrowed') {
-            return response()->json([
-                'message' => 'Return this unit before marking it as disposed.',
-            ], 422);
+            return $this->disposeUnitResponse(
+                $request,
+                'Return this unit before marking it as disposed.',
+                null,
+                422
+            );
         }
 
         app(MaintenanceAutoScheduleService::class)
@@ -266,9 +269,31 @@ class MaintenanceController extends Controller
             }
         }
 
-        return response()->json([
-            'message' => 'Unit marked as disposed.',
-            'unit' => $unit->fresh(),
-        ]);
+        $message = 'Unit ' . $unit->unit_code . ' marked as disposed.';
+
+        return $this->disposeUnitResponse($request, $message, $unit->fresh());
+    }
+
+    /**
+     * @param  int  $errorStatus  HTTP status when $success is false (JSON/AJAX only).
+     */
+    protected function disposeUnitResponse(Request $request, string $message, ?ItemUnit $unit = null, int $errorStatus = 200): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $success = $unit !== null;
+
+        if ($request->expectsJson() || $request->ajax()) {
+            if (! $success) {
+                return response()->json(['message' => $message], $errorStatus);
+            }
+
+            return response()->json([
+                'message' => $message,
+                'unit' => $unit,
+            ]);
+        }
+
+        return redirect()
+            ->back()
+            ->with($success ? 'success' : 'error', $message);
     }
 }
