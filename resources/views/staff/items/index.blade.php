@@ -373,9 +373,10 @@
         </div>
         @endif
     </div>
-    <div x-show="showAddItemModal" 
+    <template x-teleport="body">
+    <div x-show="showAddItemModal"
          x-cloak
-         class="fixed inset-0 z-[100] overflow-y-auto"
+         class="fixed inset-0 z-[110] overflow-y-auto"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
@@ -454,9 +455,11 @@
             </div>
         </div>
     </div>
+    </template>
 
     <!-- QR Code Modal -->
-    <div x-show="showQrModal" x-cloak class="fixed inset-0 z-[100] overflow-y-auto"
+    <template x-teleport="body">
+    <div x-show="showQrModal" x-cloak class="fixed inset-0 z-[110] overflow-y-auto"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
@@ -533,9 +536,11 @@
             </div>
         </div>
     </div>
+    </template>
 
     <!-- View Units Modal -->
-    <div x-show="showUnitsModal" x-cloak class="fixed inset-0 z-[100] overflow-y-auto"
+    <template x-teleport="body">
+    <div x-show="showUnitsModal" x-cloak class="fixed inset-0 z-[110] overflow-y-auto"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
@@ -632,9 +637,11 @@
             </div>
         </div>
     </div>
+    </template>
 
     <!-- Import Items Modal -->
-    <div x-show="showImportModal" x-cloak class="fixed inset-0 z-[100] overflow-y-auto"
+    <template x-teleport="body">
+    <div x-show="showImportModal" x-cloak class="fixed inset-0 z-[110] overflow-y-auto"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
@@ -708,6 +715,7 @@
             </div>
         </div>
     </div>
+    </template>
 </div>
 
 @push('scripts')
