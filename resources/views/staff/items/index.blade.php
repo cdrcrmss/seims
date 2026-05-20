@@ -613,12 +613,6 @@
                                 <p x-show="unit.current_borrower" class="text-[10px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full mt-1">
                                     <span x-text="'Held by: ' + unit.current_borrower"></span>
                                 </p>
-                                <button type="button"
-                                        x-show="unit.status !== 'disposed' && unit.status !== 'retired' && unit.status !== 'borrowed'"
-                                        @click="openDisposeModal(unit)"
-                                        class="mt-2 text-[10px] font-semibold text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-lg transition-colors">
-                                    Mark disposed
-                                </button>
                             </div>
                         </template>
                     </div>

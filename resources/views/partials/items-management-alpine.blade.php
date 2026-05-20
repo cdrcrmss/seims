@@ -8,7 +8,6 @@ document.addEventListener('alpine:init', () => {
         showUnitsModal: false,
         unitsData: { item_id: null, item_name: '', units: [], total: 0 },
         unitsLoading: false,
-        disposeUnitUrlBase: @json(url('/maintenance/units')),
 
         async loadUnits(itemId) {
             this.unitsLoading = true;
@@ -28,19 +27,6 @@ document.addEventListener('alpine:init', () => {
                         });
                     }
                 }, 150);
-            });
-        },
-
-        openDisposeModal(unit) {
-            const code = unit.unit_code || ('Unit #' + unit.id);
-            this.$dispatch('open-confirm-modal', {
-                title: 'Dispose Unit',
-                message: 'Mark unit ' + code + ' as disposed? It cannot be borrowed. Any scheduled maintenance for this unit will be cancelled.',
-                type: 'danger',
-                confirmLabel: 'Dispose',
-                action: 'dispose-unit',
-                disposeUrl: this.disposeUnitUrlBase + '/' + unit.id + '/dispose',
-                unitCode: code,
             });
         },
     }));
