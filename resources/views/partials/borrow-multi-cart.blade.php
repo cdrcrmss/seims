@@ -17,7 +17,16 @@
         </template>
 
         <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Selected Items</label>
+            <div class="flex items-center justify-between gap-2 mb-2">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Selected Items</label>
+                <button type="button"
+                        x-show="cart.length > 0"
+                        x-cloak
+                        @click="clearCart()"
+                        class="text-xs font-semibold text-red-600 hover:text-red-700 hover:underline transition-colors">
+                    Clear all
+                </button>
+            </div>
 
             <div x-show="cart.length === 0" class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center">
                 <svg class="w-10 h-10 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>

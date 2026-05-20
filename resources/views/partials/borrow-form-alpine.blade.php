@@ -122,6 +122,11 @@ function borrowForm() {
             this.persistCart();
         },
 
+        clearCart() {
+            this.cart = [];
+            this.persistCart();
+        },
+
         incrementQty(itemId) {
             const line = this.cart.find(l => l.id === itemId);
             if (line && line.quantity < line.stock) {
