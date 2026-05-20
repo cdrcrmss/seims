@@ -125,7 +125,15 @@ class MaintenanceController extends Controller
             'next_maintenance_date' => $maintenance->next_maintenance_date,
         ]);
 
-        return redirect()->route('maintenance.index')
+        if ($maintenance->item_unit_id) {
+            $unit = ItemUnit::find($maintenance->item_unit_id);
+            if ($unit) {
+                app(MaintenanceAutoScheduleService::class)
+                    ->restoreUnitAfterCompletedMaintenance($unit, $request->condition_after);
+            }
+        }
+
+        return redirect()->back()
             ->with('success', 'Maintenance record completed successfully!');
     }
 

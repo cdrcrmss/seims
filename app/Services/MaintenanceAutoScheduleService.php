@@ -141,6 +141,29 @@ class MaintenanceAutoScheduleService
     }
 
     /**
+     * Return a repaired unit to circulation and refresh parent item availability.
+     */
+    public function restoreUnitAfterCompletedMaintenance(ItemUnit $unit, string $conditionAfter): void
+    {
+        if (! in_array($unit->status, ['maintenance', 'damaged', 'needs_repair'], true)) {
+            return;
+        }
+
+        $unit->update([
+            'status' => 'available',
+            'condition' => $conditionAfter,
+        ]);
+
+        $item = $unit->item;
+        if (! $item) {
+            return;
+        }
+
+        $item->syncStockFromUnits();
+        $this->syncItemMaintenanceState($item);
+    }
+
+    /**
      * When a unit is marked damaged, queue corrective maintenance for that unit only.
      */
     public function scheduleForDamagedUnit(ItemUnit $unit, array $context = []): ?MaintenanceRecord
