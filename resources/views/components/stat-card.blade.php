@@ -15,6 +15,7 @@
         'red'    => ['border' => 'bg-red-500',    'text' => 'text-red-600',    'bg' => 'bg-red-50',    'ring' => 'hover:ring-red-200'],
         'purple' => ['border' => 'bg-purple-500',  'text' => 'text-purple-600',  'bg' => 'bg-purple-50',  'ring' => 'hover:ring-purple-200'],
         'yellow' => ['border' => 'bg-yellow-500',  'text' => 'text-yellow-600',  'bg' => 'bg-yellow-50',  'ring' => 'hover:ring-yellow-200'],
+        'gray'   => ['border' => 'bg-gray-500',   'text' => 'text-gray-700',   'bg' => 'bg-gray-50',   'ring' => 'hover:ring-gray-200'],
     ];
     $c = $colorMap[$color] ?? $colorMap['green'];
     $tag = $href ? 'a' : 'div';

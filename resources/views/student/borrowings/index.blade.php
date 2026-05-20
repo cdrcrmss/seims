@@ -19,6 +19,7 @@
         'returned' => 'Returned',
         'rejected' => 'Rejected',
     ];
+    $totalCount = array_sum($statusCounts);
 @endphp
 
 <div class="space-y-6">
@@ -37,7 +38,10 @@
         </a>
     </div>
 
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        <x-stat-card label="All" :value="$totalCount" color="gray"
+            :href="route('student.borrowings.index')"
+            icon="<svg class='w-6 h-6 text-gray-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 6h16M4 10h16M4 14h16M4 18h16'/></svg>" />
         <x-stat-card label="Pending" :value="$statusCounts['pending']" color="yellow"
             :href="route('student.borrowings.index', ['status' => 'pending'])"
             icon="<svg class='w-6 h-6 text-yellow-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'/></svg>" />
