@@ -55,7 +55,7 @@ class Room extends Model
     public function activeReservations()
     {
         return $this->reservations()
-            ->whereIn('status', ['pending', 'approved'])
+            ->whereIn('status', Reservation::BLOCKING_STATUSES)
             ->where('end_datetime', '>=', now());
     }
 
@@ -65,7 +65,7 @@ class Room extends Model
     public function overlappingReservations($startDateTime, $endDateTime, ?int $excludeReservationId = null)
     {
         return $this->reservations()
-            ->whereIn('status', ['pending', 'approved'])
+            ->whereIn('status', Reservation::BLOCKING_STATUSES)
             ->when($excludeReservationId, fn ($q) => $q->where('id', '!=', $excludeReservationId))
             ->where('start_datetime', '<', $endDateTime)
             ->where('end_datetime', '>', $startDateTime);

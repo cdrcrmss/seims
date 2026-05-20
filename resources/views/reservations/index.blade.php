@@ -14,10 +14,18 @@
         'title' => $r->room?->name ?? 'Room',
         'start' => $r->start_datetime,
         'end' => $r->end_datetime,
-        'status' => $r->status,
+        'status' => in_array($r->status, ['approved', 'ongoing'], true) ? 'ongoing' : $r->status,
+        'status_label' => $r->statusLabel(),
         'purpose' => $r->purpose,
         'user' => $r->user?->name ?? 'N/A',
     ])) }},
+    statusStyle(status) {
+        const s = status === 'approved' ? 'ongoing' : status;
+        if (s === 'pending') return { chip: 'background: #fffbeb; color: #b45309; border-left: 2px solid #f59e0b;', border: '#f59e0b', badge: 'background: #fffbeb; color: #b45309;' };
+        if (s === 'ongoing') return { chip: 'background: #f0fdf4; color: #15803d; border-left: 2px solid #22c55e;', border: '#22c55e', badge: 'background: #f0fdf4; color: #15803d;' };
+        if (s === 'cancelled') return { chip: 'background: #fef2f2; color: #dc2626; border-left: 2px solid #ef4444;', border: '#ef4444', badge: 'background: #fef2f2; color: #dc2626;' };
+        return { chip: 'background: #f9fafb; color: #6b7280; border-left: 2px solid #9ca3af;', border: '#9ca3af', badge: 'background: #f3f4f6; color: #6b7280;' };
+    },
     get currentMonth() { return this.currentDate.getMonth(); },
     get currentYear() { return this.currentDate.getFullYear(); },
     get monthName() { return this.currentDate.toLocaleString('default', { month: 'long', year: 'numeric' }); },
@@ -152,12 +160,7 @@
                             <div x-show="cell.date" class="space-y-[3px]">
                                 <template x-for="res in getReservationsForDate(cell.date).slice(0, 2)" :key="res.id">
                                     <div class="text-[10px] leading-tight px-1.5 py-1 rounded-md truncate font-semibold"
-                                         :style="
-                                             res.status === 'pending' ? 'background: #fffbeb; color: #b45309; border-left: 2px solid #f59e0b;' :
-                                             res.status === 'approved' ? 'background: #f0fdf4; color: #15803d; border-left: 2px solid #22c55e;' :
-                                             res.status === 'cancelled' ? 'background: #fef2f2; color: #dc2626; border-left: 2px solid #ef4444;' :
-                                             'background: #f9fafb; color: #6b7280; border-left: 2px solid #9ca3af;'
-                                         "
+                                         :style="statusStyle(res.status).chip"
                                          x-text="res.title">
                                     </div>
                                 </template>
@@ -172,13 +175,15 @@
                 <!-- Legend -->
                 <div class="px-6 py-3.5" style="background: #f9fafb; border-top: 1px solid #e5e7eb;">
                     <div class="flex flex-wrap items-center gap-3">
+                        @if(in_array(auth()->user()->role, ['staff', 'admin']))
                         <div class="flex items-center space-x-2 px-3 py-1.5 rounded-full" style="background: #fffbeb; border: 1px solid #fde68a;">
                             <span class="w-2 h-2 rounded-full" style="background: #f59e0b;"></span>
-                            <span class="text-[11px] font-semibold" style="color: #92400e;">Pending</span>
+                            <span class="text-[11px] font-semibold" style="color: #92400e;">Pending (students)</span>
                         </div>
+                        @endif
                         <div class="flex items-center space-x-2 px-3 py-1.5 rounded-full" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
                             <span class="w-2 h-2 rounded-full" style="background: #22c55e;"></span>
-                            <span class="text-[11px] font-semibold" style="color: #166534;">Approved</span>
+                            <span class="text-[11px] font-semibold" style="color: #166534;">Ongoing</span>
                         </div>
                         <div class="flex items-center space-x-2 px-3 py-1.5 rounded-full" style="background: #fef2f2; border: 1px solid #fecaca;">
                             <span class="w-2 h-2 rounded-full" style="background: #ef4444;"></span>
@@ -227,24 +232,14 @@
                         <div x-show="selectedDate && getReservationsForDate(selectedDate).length > 0" class="space-y-3">
                             <template x-for="res in getReservationsForDate(selectedDate)" :key="res.id">
                                 <div class="rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-200 border-l-[3px]"
-                                     :style="
-                                         res.status === 'pending' ? 'border-left-color: #f59e0b;' :
-                                         res.status === 'approved' ? 'border-left-color: #22c55e;' :
-                                         res.status === 'cancelled' ? 'border-left-color: #ef4444;' :
-                                         'border-left-color: #9ca3af;'
-                                     ">
+                                     :style="'border-left-color: ' + statusStyle(res.status).border">
                                     <div class="p-4 space-y-2">
                                         <!-- Room & Status -->
                                         <div class="flex items-start justify-between gap-3">
                                             <h4 class="text-sm font-bold text-gray-900 leading-tight" x-text="res.title"></h4>
                                             <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md whitespace-nowrap"
-                                                  :style="
-                                                      res.status === 'pending' ? 'background: #fffbeb; color: #b45309;' :
-                                                      res.status === 'approved' ? 'background: #f0fdf4; color: #15803d;' :
-                                                      res.status === 'cancelled' ? 'background: #fef2f2; color: #dc2626;' :
-                                                      'background: #f3f4f6; color: #6b7280;'
-                                                  "
-                                                  x-text="res.status"></span>
+                                                  :style="statusStyle(res.status).badge"
+                                                  x-text="res.status_label || res.status"></span>
                                         </div>
 
                                         <!-- Details -->
@@ -315,6 +310,7 @@
                             @php
                                 $statusColors = [
                                     'pending' => 'bg-yellow-50 text-yellow-700',
+                                    'ongoing' => 'bg-green-50 text-green-700',
                                     'approved' => 'bg-green-50 text-green-700',
                                     'cancelled' => 'bg-red-50 text-red-700',
                                     'completed' => 'bg-gray-100 text-gray-700',
@@ -324,7 +320,7 @@
                                 @if($reservation->conflict_detected)
                                     <span class="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5 animate-pulse"></span>
                                 @endif
-                                {{ ucfirst($reservation->status) }}
+                                {{ $reservation->statusLabel() }}
                             </span>
                         </td>
                         <td class="px-6 py-4 text-gray-700">{{ $reservation->user?->name ?? 'N/A' }}</td>
@@ -347,7 +343,7 @@
                                 </form>
                                 @endif
 
-                                @if($reservation->status === 'pending' || ($reservation->status === 'approved' && (auth()->id() === $reservation->user_id || in_array(auth()->user()->role, ['staff', 'admin']))))
+                                @if(in_array($reservation->status, ['pending', 'ongoing', 'approved']) && (auth()->id() === $reservation->user_id || in_array(auth()->user()->role, ['staff', 'admin'])))
                                 <button @click="showCancelModal = true; cancelId = {{ $reservation->id }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-50 text-red-700 hover:bg-red-100 ring-1 ring-red-200/60 transition-all duration-200">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                     Cancel

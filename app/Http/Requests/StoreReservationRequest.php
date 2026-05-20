@@ -10,22 +10,19 @@ use Illuminate\Validation\Validator;
 
 class StoreReservationRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return Auth::check();
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
     public function rules(): array
     {
+        $user = Auth::user();
+        $isStaffOrAdmin = in_array($user->role, ['staff', 'admin'], true);
+
         return [
             'reservation_type' => 'required|in:room',
-            'start_datetime'   => 'required|date|after_or_equal:now',
+            'start_datetime'   => $isStaffOrAdmin ? 'required|date' : 'required|date|after_or_equal:now',
             'end_datetime'     => 'required|date|after:start_datetime',
             'purpose'          => 'required|string|min:10|max:100',
             'room_id'          => 'required|exists:rooms,id',
@@ -33,9 +30,6 @@ class StoreReservationRequest extends FormRequest
         ];
     }
 
-    /**
-     * Custom validation messages.
-     */
     public function messages(): array
     {
         return [
@@ -48,9 +42,6 @@ class StoreReservationRequest extends FormRequest
         ];
     }
 
-    /**
-     * Configure the validator instance with additional checks.
-     */
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
@@ -59,69 +50,61 @@ class StoreReservationRequest extends FormRequest
             }
 
             $user = Auth::user();
+            $isStaffOrAdmin = in_array($user->role, ['staff', 'admin'], true);
+            $start = $this->start_datetime;
+            $end = $this->end_datetime;
 
-            // 1. No reservations more than 30 days in advance
-            $start = \Carbon\Carbon::parse($this->start_datetime);
-            $end   = \Carbon\Carbon::parse($this->end_datetime);
-            if ($start->diffInDays(now()) > 30) {
+            if (\Carbon\Carbon::parse($start)->diffInDays(now()) > 30) {
                 $validator->errors()->add('start_datetime', 'Reservations cannot be made more than 30 days in advance.');
+
                 return;
             }
 
-            // 2. Maximum active (pending/approved) reservations per user: 5
-            $activeCount = Reservation::where('user_id', $user->id)
-                ->whereIn('status', ['pending', 'approved'])
-                ->count();
+            // Slot limit applies to students only (staff/admin have no cap)
+            if (! $isStaffOrAdmin) {
+                $activeCount = Reservation::where('user_id', $user->id)
+                    ->whereIn('status', Reservation::STUDENT_ACTIVE_STATUSES)
+                    ->count();
 
-            if ($activeCount >= 5) {
-                $validator->errors()->add(
-                    'limit',
-                    'You already have 5 active reservations. Please wait for some to be completed or cancel existing ones.'
-                );
-                return;
+                if ($activeCount >= 5) {
+                    $validator->errors()->add(
+                        'limit',
+                        'You already have 5 active reservations. Please wait for some to be completed or cancel existing ones.'
+                    );
+
+                    return;
+                }
             }
 
-            // 3. Duplicate reservation check — same room in overlapping time for this user
+            $overlapFilter = function ($q) use ($start, $end) {
+                $q->where('start_datetime', '<', $end)
+                    ->where('end_datetime', '>', $start);
+            };
+
             $duplicateExists = Reservation::where('user_id', $user->id)
-                ->whereIn('status', ['pending', 'approved'])
+                ->whereIn('status', Reservation::BLOCKING_STATUSES)
                 ->where('room_id', $this->room_id)
-                ->where(function ($q) {
-                    $q->whereBetween('start_datetime', [$this->start_datetime, $this->end_datetime])
-                        ->orWhereBetween('end_datetime', [$this->start_datetime, $this->end_datetime])
-                        ->orWhere(function ($q2) {
-                            $q2->where('start_datetime', '<=', $this->start_datetime)
-                                ->where('end_datetime', '>=', $this->end_datetime);
-                        });
-                })->exists();
+                ->where($overlapFilter)
+                ->exists();
 
             if ($duplicateExists) {
                 $validator->errors()->add('room_id', 'You already have a reservation for this room during the selected time.');
+
                 return;
             }
 
-            // 4. Conflict detection — anyone's active reservation for this room
-            $roomConflict = Reservation::whereIn('status', ['pending', 'approved'])
+            $roomConflict = Reservation::whereIn('status', Reservation::BLOCKING_STATUSES)
                 ->where('user_id', '!=', $user->id)
                 ->where('room_id', $this->room_id)
-                ->where(function ($q) {
-                    $q->whereBetween('start_datetime', [$this->start_datetime, $this->end_datetime])
-                        ->orWhereBetween('end_datetime', [$this->start_datetime, $this->end_datetime])
-                        ->orWhere(function ($q2) {
-                            $q2->where('start_datetime', '<=', $this->start_datetime)
-                                ->where('end_datetime', '>=', $this->end_datetime);
-                        });
-                })->exists();
+                ->where($overlapFilter)
+                ->exists();
 
             if ($roomConflict) {
                 $validator->errors()->add('conflict', 'That room is already reserved for the time you selected. Choose another room or pick a different schedule.');
-                return;
             }
         });
     }
 
-    /**
-     * Handle a passed validation attempt — enforce rate limiting.
-     */
     protected function passedValidation(): void
     {
         $key = 'reservation-form:' . Auth::id();
@@ -133,6 +116,6 @@ class StoreReservationRequest extends FormRequest
             ]);
         }
 
-        RateLimiter::hit($key, 300); // 5 minute decay
+        RateLimiter::hit($key, 300);
     }
 }

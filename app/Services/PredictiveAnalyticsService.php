@@ -239,7 +239,7 @@ class PredictiveAnalyticsService
         $maintenanceDueItems = Item::maintenanceDue()->count();
         $totalItems = Item::count();
         $activeReservations = DB::table('reservations')
-            ->whereIn('status', ['pending', 'approved'])
+            ->whereIn('status', ['pending', 'ongoing', 'approved'])
             ->count();
 
         $topUtilizedItems = Item::whereHas('borrowings', function ($q) {

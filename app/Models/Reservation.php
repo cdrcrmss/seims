@@ -10,6 +10,12 @@ class Reservation extends Model
 {
     use HasFactory, SoftDeletes;
 
+    /** Statuses that block a room/time slot for other bookings. */
+    public const BLOCKING_STATUSES = ['pending', 'ongoing', 'approved'];
+
+    /** Active reservations counted toward student slot limits. */
+    public const STUDENT_ACTIVE_STATUSES = ['pending', 'ongoing', 'approved'];
+
     /**
      * The attributes that are mass assignable.
      *
@@ -82,11 +88,34 @@ class Reservation extends Model
     }
 
     /**
-     * Check for scheduling conflicts (checks both pending and approved reservations)
+     * Mark past ongoing reservations as completed.
+     */
+    public static function markExpiredAsCompleted(): void
+    {
+        self::query()
+            ->whereIn('status', ['ongoing', 'approved'])
+            ->where('end_datetime', '<', now())
+            ->update(['status' => 'completed']);
+    }
+
+    public function statusLabel(): string
+    {
+        return match ($this->status) {
+            'ongoing', 'approved' => 'Ongoing',
+            'pending' => 'Pending',
+            'cancelled' => 'Cancelled',
+            'completed' => 'Completed',
+            'rejected' => 'Rejected',
+            default => ucfirst((string) $this->status),
+        };
+    }
+
+    /**
+     * Check for scheduling conflicts (pending + ongoing reservations).
      */
     public function hasConflict()
     {
-        $query = self::whereIn('status', ['approved', 'pending'])
+        $query = self::whereIn('status', self::BLOCKING_STATUSES)
             ->where('id', '!=', $this->id ?? 0);
 
         // Build resource conflict conditions using OR logic
@@ -116,7 +145,7 @@ class Reservation extends Model
      */
     public function scopeActive($query)
     {
-        return $query->whereIn('status', ['pending', 'approved'])
+        return $query->whereIn('status', self::STUDENT_ACTIVE_STATUSES)
             ->where('end_datetime', '>=', now());
     }
 }

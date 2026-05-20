@@ -16,6 +16,8 @@ class ReservationController extends Controller
      */
     public function index()
     {
+        Reservation::markExpiredAsCompleted();
+
         $user = Auth::user();
         
         $reservations = Reservation::with(['user', 'item', 'room'])
@@ -24,7 +26,7 @@ class ReservationController extends Controller
                 
                 // Staff/admin can see others' active reservations
                 if (in_array($user->role, ['staff', 'admin'])) {
-                    $query->orWhereIn('status', ['pending', 'approved', 'checked_in']);
+                    $query->orWhereIn('status', ['pending', 'ongoing', 'approved', 'checked_in']);
                 }
             })
             ->orderBy('start_datetime', 'desc')
@@ -38,10 +40,10 @@ class ReservationController extends Controller
      */
     public function calendar()
     {
-        $user = Auth::user();
-        
+        Reservation::markExpiredAsCompleted();
+
         $reservations = Reservation::with(['user', 'room'])
-            ->whereIn('status', ['approved', 'checked_in'])
+            ->whereIn('status', ['ongoing', 'approved', 'checked_in'])
             ->orderBy('start_datetime', 'asc')
             ->get();
 
@@ -53,14 +55,19 @@ class ReservationController extends Controller
      */
     public function create()
     {
+        Reservation::markExpiredAsCompleted();
+
         $user = Auth::user();
         $rooms = Room::where('status', 'available')->get();
+        $isStaffOrAdmin = in_array($user->role, ['staff', 'admin'], true);
 
-        $activeReservationCount = Reservation::where('user_id', $user->id)
-            ->whereIn('status', ['pending', 'approved'])
-            ->count();
+        $activeReservationCount = $isStaffOrAdmin
+            ? 0
+            : Reservation::where('user_id', $user->id)
+                ->whereIn('status', Reservation::STUDENT_ACTIVE_STATUSES)
+                ->count();
 
-        return view('reservations.create', compact('rooms', 'activeReservationCount'));
+        return view('reservations.create', compact('rooms', 'activeReservationCount', 'isStaffOrAdmin'));
     }
 
     /**
@@ -75,8 +82,17 @@ class ReservationController extends Controller
             'purpose' => $request->input('purpose'),
             'room_id' => $request->input('room_id'),
         ]);
-        $reservation->user_id = Auth::id();
-        $reservation->status = in_array(Auth::user()->role, ['staff', 'admin']) ? 'approved' : 'pending';
+        $user = Auth::user();
+        $isStaffOrAdmin = in_array($user->role, ['staff', 'admin'], true);
+
+        $reservation->user_id = $user->id;
+        if ($isStaffOrAdmin) {
+            $reservation->status = 'ongoing';
+            $reservation->approved_by = $user->id;
+            $reservation->approved_at = now();
+        } else {
+            $reservation->status = 'pending';
+        }
 
         // Conflict Detective: Check for scheduling conflicts
         if ($reservation->hasConflict()) {
@@ -90,8 +106,8 @@ class ReservationController extends Controller
 
         $reservation->save();
 
-        $message = in_array(Auth::user()->role, ['staff', 'admin'])
-            ? 'Reservation confirmed successfully!'
+        $message = $isStaffOrAdmin
+            ? 'Reservation confirmed — room is now ongoing for your schedule.'
             : 'Reservation request submitted successfully! Please wait for staff approval.';
 
         return redirect()->route('reservations.index')
@@ -113,12 +129,12 @@ class ReservationController extends Controller
         }
 
         $reservation->update([
-            'status' => 'approved',
+            'status' => 'ongoing',
             'approved_by' => Auth::id(),
             'approved_at' => now(),
         ]);
 
-        return back()->with('success', 'Reservation approved successfully!');
+        return back()->with('success', 'Reservation is now ongoing.');
     }
 
     /**
@@ -188,7 +204,7 @@ class ReservationController extends Controller
         if ($request->item_id) {
             $item = Item::find($request->item_id);
 
-            $itemConflicts = Reservation::whereIn('status', ['pending', 'approved'])
+            $itemConflicts = Reservation::whereIn('status', Reservation::BLOCKING_STATUSES)
                 ->where('item_id', $request->item_id)
                 ->where('start_datetime', '<', $request->end_datetime)
                 ->where('end_datetime', '>', $request->start_datetime)

@@ -152,7 +152,8 @@
                         <template x-if="submitting">
                             <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                         </template>
-                        <span x-text="submitting ? 'Submitting Request...' : 'Submit Reservation Request'"></span>
+                        <span x-show="!submitting">{{ ($isStaffOrAdmin ?? false) ? 'Confirm Reservation' : 'Submit Reservation Request' }}</span>
+                        <span x-show="submitting">Submitting…</span>
                     </button>
                     <a href="{{ route('reservations.index') }}" class="inline-flex items-center justify-center px-6 py-4 text-sm font-semibold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all duration-200">
                         Cancel
@@ -161,14 +162,19 @@
 
                 <!-- Submission Note -->
                 <p class="text-xs text-gray-400 text-center -mt-2">
-                    Your reservation will be reviewed and approved by staff. You'll receive a notification once it's processed.
+                    @if($isStaffOrAdmin ?? false)
+                        Your reservation is confirmed immediately and shown as <strong>Ongoing</strong> on the calendar.
+                    @else
+                        Your reservation will be reviewed by staff. You'll receive a notification once it's approved.
+                    @endif
                 </p>
             </form>
         </div>
 
         <!-- Sidebar Info -->
         <div class="lg:col-span-1 space-y-4 animate-fade-in-up stagger-2">
-            <!-- Active Reservations -->
+            @if(!($isStaffOrAdmin ?? false))
+            <!-- Active Reservations (students only) -->
             <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
                     <div class="flex items-center gap-2.5">
@@ -191,6 +197,7 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             <!-- Guidelines -->
             <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm overflow-hidden">
@@ -226,7 +233,9 @@
                     <div class="pt-3 border-t border-gray-100 space-y-2">
                         <p class="text-xs font-semibold text-gray-500 uppercase">Rules</p>
                         <p class="text-xs text-gray-500">- Book up to 30 days in advance</p>
-                        <p class="text-xs text-gray-500">- Up to 5 active reservations</p>
+                        @if(!($isStaffOrAdmin ?? false))
+                        <p class="text-xs text-gray-500">- Up to 5 active reservations (students)</p>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -279,8 +288,11 @@ function reservationForm() {
         canSubmit() {
             if (!this.selectedRoomId || !this.startDatetime || !this.endDatetime) return false;
             if (this.purpose.length < 10) return false;
+            if (!this.scheduleReady || this.checkingRooms) return false;
             if (this.roomIsBooked(this.selectedRoomId)) return false;
-            return this.availabilityChecked ? this.available : !this.roomIsBooked(this.selectedRoomId);
+            const start = new Date(this.startDatetime);
+            const end = new Date(this.endDatetime);
+            return end > start;
         },
 
         roomStatus(roomId) {
@@ -345,8 +357,16 @@ function reservationForm() {
         handleSubmit(e) {
             if (this.submitting || !this.canSubmit()) {
                 e.preventDefault();
-                if (this.roomIsBooked(this.selectedRoomId)) {
+                if (!this.startDatetime || !this.endDatetime) {
+                    alert('Please set a start and end date/time.');
+                } else if (!this.scheduleReady || this.checkingRooms) {
+                    alert('Please wait while room availability is checked.');
+                } else if (this.roomIsBooked(this.selectedRoomId)) {
                     alert('That room is already reserved for your selected time. Please pick another room or change your schedule.');
+                } else if (this.purpose.length < 10) {
+                    alert('Please enter a purpose of at least 10 characters.');
+                } else if (!this.selectedRoomId) {
+                    alert('Please select an available room.');
                 }
                 return;
             }
