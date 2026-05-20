@@ -54,6 +54,7 @@ class QrCodeController extends Controller
             'id' => $item->id,
             'name' => $item->name,
             'category' => $item->category,
+            'image_url' => $item->image_url,
             'available_stock' => $item->available_stock,
             'status' => $item->status ?? 'available',
             'location' => $item->location ?? 'N/A',

@@ -76,10 +76,17 @@
                 <div class="space-y-4">
                     <!-- Item Header -->
                     <div class="flex items-center space-x-4 pb-4 border-b border-gray-100">
-                        <div class="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center">
-                            <svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <div class="w-14 h-14 rounded-xl overflow-hidden ring-1 ring-gray-200 bg-gray-100 shrink-0">
+                            <img x-show="scannedItem.image_url"
+                                 :src="scannedItem.image_url"
+                                 :alt="scannedItem.name"
+                                 class="w-full h-full object-cover">
+                            <div x-show="!scannedItem.image_url"
+                                 class="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                            </div>
                         </div>
-                        <div>
+                        <div class="min-w-0">
                             <h3 class="text-lg font-bold text-gray-900" x-text="scannedItem.name"></h3>
                             <p class="text-sm text-gray-500" x-text="scannedItem.category"></p>
                         </div>
