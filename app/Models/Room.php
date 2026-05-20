@@ -67,14 +67,8 @@ class Room extends Model
         return $this->reservations()
             ->whereIn('status', ['pending', 'approved'])
             ->when($excludeReservationId, fn ($q) => $q->where('id', '!=', $excludeReservationId))
-            ->where(function ($q) use ($startDateTime, $endDateTime) {
-                $q->whereBetween('start_datetime', [$startDateTime, $endDateTime])
-                    ->orWhereBetween('end_datetime', [$startDateTime, $endDateTime])
-                    ->orWhere(function ($q2) use ($startDateTime, $endDateTime) {
-                        $q2->where('start_datetime', '<=', $startDateTime)
-                            ->where('end_datetime', '>=', $endDateTime);
-                    });
-            });
+            ->where('start_datetime', '<', $endDateTime)
+            ->where('end_datetime', '>', $startDateTime);
     }
 
     /**

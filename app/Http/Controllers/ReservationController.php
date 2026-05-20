@@ -178,7 +178,7 @@ class ReservationController extends Controller
         $request->validate([
             'item_id' => 'nullable|exists:items,id',
             'room_id' => 'nullable|exists:rooms,id',
-            'start_datetime' => 'required|date|after_or_equal:now',
+            'start_datetime' => 'required|date',
             'end_datetime' => 'required|date|after:start_datetime',
         ]);
 
@@ -188,17 +188,10 @@ class ReservationController extends Controller
         if ($request->item_id) {
             $item = Item::find($request->item_id);
 
-            // Query overlapping active reservations (pending + approved) for this item and time window
             $itemConflicts = Reservation::whereIn('status', ['pending', 'approved'])
                 ->where('item_id', $request->item_id)
-                ->where(function ($q) use ($request) {
-                    $q->whereBetween('start_datetime', [$request->start_datetime, $request->end_datetime])
-                        ->orWhereBetween('end_datetime', [$request->start_datetime, $request->end_datetime])
-                        ->orWhere(function ($q2) use ($request) {
-                            $q2->where('start_datetime', '<=', $request->start_datetime)
-                                ->where('end_datetime', '>=', $request->end_datetime);
-                        });
-                })
+                ->where('start_datetime', '<', $request->end_datetime)
+                ->where('end_datetime', '>', $request->start_datetime)
                 ->get();
 
             if ($itemConflicts->isNotEmpty()) {
@@ -223,11 +216,20 @@ class ReservationController extends Controller
                 $roomStatuses[$room->id] = [
                     'available' => $overlaps->isEmpty(),
                     'room_name' => $room->name,
-                    'conflicts' => $overlaps->map(fn ($r) => [
-                        'start' => $r->start_datetime->format('M j, Y g:i A'),
-                        'end' => $r->end_datetime->format('M j, Y g:i A'),
-                        'status' => $r->status,
-                    ])->values()->all(),
+                    'conflicts' => $overlaps->map(function ($r) {
+                        $start = $r->start_datetime;
+                        $end = $r->end_datetime;
+                        $bookedLabel = $start->isSameDay($end)
+                            ? $start->format('M j, Y')
+                            : $start->format('M j') . ' – ' . $end->format('M j, Y');
+
+                        return [
+                            'start' => $start->format('M j, Y g:i A'),
+                            'end' => $end->format('M j, Y g:i A'),
+                            'booked_label' => $bookedLabel,
+                            'status' => $r->status,
+                        ];
+                    })->values()->all(),
                 ];
             }
 
@@ -245,13 +247,18 @@ class ReservationController extends Controller
                 $available = false;
 
                 foreach ($roomConflicts as $conflict) {
+                    $start = $conflict->start_datetime;
+                    $end = $conflict->end_datetime;
                     $conflicts[] = [
                         'type' => 'room',
                         'reservation_id' => $conflict->id,
-                        'start_datetime' => $conflict->start_datetime->toDateTimeString(),
-                        'end_datetime' => $conflict->end_datetime->toDateTimeString(),
-                        'start_label' => $conflict->start_datetime->format('M j, Y g:i A'),
-                        'end_label' => $conflict->end_datetime->format('M j, Y g:i A'),
+                        'start_datetime' => $start->toDateTimeString(),
+                        'end_datetime' => $end->toDateTimeString(),
+                        'start_label' => $start->format('M j, Y g:i A'),
+                        'end_label' => $end->format('M j, Y g:i A'),
+                        'booked_label' => $start->isSameDay($end)
+                            ? $start->format('M j, Y')
+                            : $start->format('M j') . ' – ' . $end->format('M j, Y'),
                         'status' => $conflict->status,
                     ];
                 }

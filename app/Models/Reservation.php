@@ -105,14 +105,10 @@ class Reservation extends Model
             }
         });
 
-        return $query->where(function ($q) {
-            $q->whereBetween('start_datetime', [$this->start_datetime, $this->end_datetime])
-                ->orWhereBetween('end_datetime', [$this->start_datetime, $this->end_datetime])
-                ->orWhere(function ($q2) {
-                    $q2->where('start_datetime', '<=', $this->start_datetime)
-                        ->where('end_datetime', '>=', $this->end_datetime);
-                });
-        })->exists();
+        return $query
+            ->where('start_datetime', '<', $this->end_datetime)
+            ->where('end_datetime', '>', $this->start_datetime)
+            ->exists();
     }
 
     /**
