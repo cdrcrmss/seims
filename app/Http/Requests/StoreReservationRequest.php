@@ -12,17 +12,14 @@ class StoreReservationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Auth::check();
+        return Auth::check() && in_array(Auth::user()->role, ['staff', 'admin'], true);
     }
 
     public function rules(): array
     {
-        $user = Auth::user();
-        $isStaffOrAdmin = in_array($user->role, ['staff', 'admin'], true);
-
         return [
             'reservation_type' => 'required|in:room',
-            'start_datetime'   => $isStaffOrAdmin ? 'required|date' : 'required|date|after_or_equal:now',
+            'start_datetime'   => 'required|date',
             'end_datetime'     => 'required|date|after:start_datetime',
             'purpose'          => 'required|string|min:10|max:100',
             'room_id'          => 'required|exists:rooms,id',

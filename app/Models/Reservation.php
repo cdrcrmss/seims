@@ -93,6 +93,14 @@ class Reservation extends Model
     public static function markExpiredAsCompleted(): void
     {
         self::query()
+            ->where('status', 'pending')
+            ->update([
+                'status' => 'cancelled',
+                'cancelled_at' => now(),
+                'cancellation_reason' => 'Room reservations are limited to staff and admin.',
+            ]);
+
+        self::query()
             ->whereIn('status', ['ongoing', 'approved'])
             ->where('end_datetime', '<', now())
             ->update(['status' => 'completed']);

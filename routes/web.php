@@ -131,23 +131,13 @@ Route::middleware(['auth', 'approved'])->group(function () {
             ->name('api.search-items');
     });
 
-    // Reservation & Scheduling Module (Conflict Detective)
-    Route::prefix('reservations')->name('reservations.')->group(function () {
-        Route::middleware(['staff_or_admin'])->group(function () {
-            Route::get('/', [ReservationController::class, 'index'])->name('index');
-        });
+    // Reservation & Scheduling Module (staff/admin only — students cannot reserve rooms)
+    Route::middleware(['staff_or_admin'])->prefix('reservations')->name('reservations.')->group(function () {
+        Route::get('/', [ReservationController::class, 'index'])->name('index');
         Route::get('/calendar', [ReservationController::class, 'calendar'])->name('calendar');
         Route::get('/create', [ReservationController::class, 'create'])->middleware('throttle:reservation-page')->name('create');
         Route::post('/', [ReservationController::class, 'store'])->middleware('throttle:reservation-submit')->name('store');
         Route::post('/check-availability', [ReservationController::class, 'checkAvailability'])->middleware('throttle:availability-check')->name('check-availability');
-        
-        // Staff/Admin actions
-        Route::middleware(['staff_or_admin'])->group(function () {
-            Route::patch('/{reservation}/approve', [ReservationController::class, 'approve'])->name('approve');
-            Route::patch('/{reservation}/reject', [ReservationController::class, 'reject'])->name('reject');
-        });
-        
-        // Cancel own reservation
         Route::patch('/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('cancel');
     });
 

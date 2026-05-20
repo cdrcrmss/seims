@@ -26,7 +26,7 @@ class ReservationController extends Controller
                 
                 // Staff/admin can see others' active reservations
                 if (in_array($user->role, ['staff', 'admin'])) {
-                    $query->orWhereIn('status', ['pending', 'ongoing', 'approved', 'checked_in']);
+                    $query->orWhereIn('status', ['ongoing', 'approved', 'checked_in']);
                 }
             })
             ->orderBy('start_datetime', 'desc')
@@ -57,17 +57,13 @@ class ReservationController extends Controller
     {
         Reservation::markExpiredAsCompleted();
 
-        $user = Auth::user();
         $rooms = Room::where('status', 'available')->get();
-        $isStaffOrAdmin = in_array($user->role, ['staff', 'admin'], true);
 
-        $activeReservationCount = $isStaffOrAdmin
-            ? 0
-            : Reservation::where('user_id', $user->id)
-                ->whereIn('status', Reservation::STUDENT_ACTIVE_STATUSES)
-                ->count();
-
-        return view('reservations.create', compact('rooms', 'activeReservationCount', 'isStaffOrAdmin'));
+        return view('reservations.create', [
+            'rooms' => $rooms,
+            'activeReservationCount' => 0,
+            'isStaffOrAdmin' => true,
+        ]);
     }
 
     /**
@@ -83,16 +79,12 @@ class ReservationController extends Controller
             'room_id' => $request->input('room_id'),
         ]);
         $user = Auth::user();
-        $isStaffOrAdmin = in_array($user->role, ['staff', 'admin'], true);
 
         $reservation->user_id = $user->id;
-        if ($isStaffOrAdmin) {
-            $reservation->status = 'ongoing';
-            $reservation->approved_by = $user->id;
-            $reservation->approved_at = now();
-        } else {
-            $reservation->status = 'pending';
-        }
+        $reservation->status = 'ongoing';
+        $reservation->approved_by = $user->id;
+        $reservation->approved_at = now();
+        $isStaffOrAdmin = true;
 
         // Conflict Detective: Check for scheduling conflicts
         if ($reservation->hasConflict()) {
