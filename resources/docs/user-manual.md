@@ -24,7 +24,7 @@ View your borrowing summary, recent activity, and quick links.
 4. Pick up equipment when status becomes **Issued**.
 5. Return items on or before the due time.
 
-### My borrowings
+### Borrowing history
 - Track request status: Pending, Approved, Issued, Returned, or Rejected.
 - Cancel a **pending** request if you no longer need the item.
 - Request an **extension** before the due date if you need more time (staff must approve).

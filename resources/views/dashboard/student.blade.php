@@ -68,8 +68,8 @@
     <!-- Active Borrowings -->
     <div class="bg-white rounded-xl ring-1 ring-gray-100 shadow-sm overflow-hidden">
         <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <h2 class="text-base font-bold text-gray-900 font-poppins">My Active Borrowings</h2>
-            <a href="{{ route('student.borrowings.index') }}" class="text-xs font-semibold text-green-600 hover:text-green-700">View All &rarr;</a>
+            <h2 class="text-base font-bold text-gray-900 font-poppins">Active Borrowings</h2>
+            <a href="{{ route('student.borrowings.index') }}" class="text-xs font-semibold text-green-600 hover:text-green-700">View history &rarr;</a>
         </div>
         <div class="divide-y divide-gray-50">
             @forelse($activeBorrowings as $borrowing)

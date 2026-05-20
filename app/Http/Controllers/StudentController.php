@@ -152,13 +152,25 @@ class StudentController extends Controller
 
         $borrowings = Borrowing::where('user_id', Auth::id())
             ->with(['item', 'approver', 'issuer', 'rejector', 'returnedToUser'])
-            ->when($status, function($query, $status) {
+            ->when($status, function ($query, $status) {
                 return $query->where('status', $status);
             })
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('student.borrowings.index', compact('borrowings', 'status'));
+        $counts = Borrowing::where('user_id', Auth::id())
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $statusCounts = [
+            'pending' => (int) ($counts['pending'] ?? 0),
+            'approved' => (int) ($counts['approved'] ?? 0),
+            'issued' => (int) ($counts['issued'] ?? 0),
+            'returned' => (int) ($counts['returned'] ?? 0),
+        ];
+
+        return view('student.borrowings.index', compact('borrowings', 'status', 'statusCounts'));
     }
 
     public function cancelRequest($id)
