@@ -406,6 +406,7 @@
     </div>
 
     @include('partials.confirm-modal-script')
+    @include('partials.maintenance-complete-modal-script')
 
     {{-- ============================================== --}}
     {{-- GLOBAL CONFIRM MODAL (replaces native confirm) --}}
@@ -489,6 +490,8 @@
             </div>
         </div>
     </div>
+
+    @include('partials.maintenance-complete-modal')
 
     @stack('scripts')
 

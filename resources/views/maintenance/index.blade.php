@@ -44,7 +44,7 @@
     @endif
 
     <!-- Records Table -->
-    <div x-data="{ completeModal: false, completeId: null }" @open-complete-maintenance.window="completeModal = true; completeId = $event.detail.id">
+    <div>
     <div class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm overflow-hidden animate-fade-in-up stagger-3">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -123,7 +123,7 @@
                                     View details
                                 </a>
                                 @if($record->status === 'scheduled')
-                                <button @click="completeModal = true; completeId = {{ $record->id }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-50 text-green-700 hover:bg-green-100 ring-1 ring-green-200/60 transition-all duration-200">
+                                <button type="button" @click="$dispatch('open-complete-maintenance', { id: {{ $record->id }} })" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-50 text-green-700 hover:bg-green-100 ring-1 ring-green-200/60 transition-all duration-200">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                     Complete
                                 </button>
@@ -148,7 +148,6 @@
         </div>
     </div>
 
-    @include('partials.maintenance-complete-modal')
     </div>
 </div>
 @endsection

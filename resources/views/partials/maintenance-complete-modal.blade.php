@@ -1,26 +1,30 @@
-{{-- Requires parent x-data with completeModal and completeId --}}
-@php
-    $wearByCondition = \App\Models\MaintenanceRecord::WEAR_BY_CONDITION_AFTER;
-@endphp
-<div x-show="completeModal" x-cloak
-     x-data="{
-         conditionAfter: 'good',
-         wearMap: @json($wearByCondition),
-         get predictedWear() { return this.wearMap[this.conditionAfter] ?? 25; },
-         wearBarColor() {
-             const w = this.predictedWear;
-             if (w >= 70) return 'bg-red-500';
-             if (w >= 40) return 'bg-yellow-500';
-             return 'bg-green-500';
-         }
-     }"
-     @keydown.escape.window="completeModal = false"
-     class="fixed inset-0 z-50 flex items-center justify-center p-4"
-     style="display: none;">
-    <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" @click="completeModal = false"></div>
-    <div @click.stop class="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto z-10">
+{{-- Global maintenance complete modal (listens for open-complete-maintenance window event) --}}
+<div x-data="maintenanceCompleteModal"
+     @open-complete-maintenance.window="show($event.detail)"
+     @keydown.escape.window="if (open) close()"
+     x-show="open"
+     x-cloak
+     class="fixed inset-0 z-[110] flex items-center justify-center p-4"
+     style="display: none;"
+     x-transition:enter="ease-out duration-200"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="ease-in duration-150"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0">
+
+    <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-md" @click="close()"></div>
+
+    <div @click.stop
+         class="relative z-10 bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto"
+         x-transition:enter="ease-out duration-300"
+         x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+         x-transition:leave="ease-in duration-200"
+         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+         x-transition:leave-end="opacity-0 scale-95 translate-y-2">
         <h3 class="text-lg font-bold text-gray-900 mb-4">Complete Maintenance</h3>
-        <form :action="'{{ url('/maintenance') }}/' + completeId + '/complete'" method="POST" class="space-y-4">
+        <form :action="completeUrl()" method="POST" class="space-y-4">
             @csrf
             @method('PATCH')
             <div>
@@ -66,7 +70,7 @@
                 <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold">
                     Mark Complete
                 </button>
-                <button type="button" @click="completeModal = false" class="flex-1 px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl">Cancel</button>
+                <button type="button" @click="close()" class="flex-1 px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl">Cancel</button>
             </div>
         </form>
     </div>

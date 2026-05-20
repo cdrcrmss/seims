@@ -3,9 +3,7 @@
 @section('title', 'Maintenance Dashboard')
 
 @section('content')
-<div class="space-y-8"
-     x-data="{ completeModal: false, completeId: null }"
-     @open-complete-maintenance.window="completeModal = true; completeId = $event.detail.id">
+<div class="space-y-8">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in-up">
         <div>
@@ -161,6 +159,5 @@
         </div>
     </div>
 
-    @include('partials.maintenance-complete-modal')
 </div>
 @endsection

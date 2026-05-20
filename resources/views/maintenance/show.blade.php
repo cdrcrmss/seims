@@ -21,9 +21,7 @@
     ];
 @endphp
 
-<div class="space-y-8"
-     x-data="{ completeModal: false, completeId: null }"
-     @open-complete-maintenance.window="completeModal = true; completeId = $event.detail.id">
+<div class="space-y-8">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 animate-fade-in-up">
         <div class="flex items-start gap-4 min-w-0">
@@ -46,7 +44,7 @@
         @if($maintenance->status === 'scheduled')
         <div class="flex flex-wrap items-center gap-2 shrink-0">
             <button type="button"
-                    @click="completeModal = true; completeId = {{ $maintenance->id }}"
+                    @click="$dispatch('open-complete-maintenance', { id: {{ $maintenance->id }} })"
                     class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl bg-green-600 hover:bg-green-700 text-white transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                 Mark complete
@@ -265,6 +263,5 @@
         </div>
     </div>
 
-    @include('partials.maintenance-complete-modal')
 </div>
 @endsection
