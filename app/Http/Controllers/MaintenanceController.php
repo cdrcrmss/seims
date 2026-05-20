@@ -94,6 +94,24 @@ class MaintenanceController extends Controller
     }
 
     /**
+     * Display a single maintenance record with equipment and unit context.
+     */
+    public function show(Request $request, MaintenanceRecord $maintenance)
+    {
+        $maintenance->load(['item', 'itemUnit', 'technician']);
+
+        $backUrl = match ($request->query('from')) {
+            'dashboard' => route('maintenance.dashboard'),
+            'index' => route('maintenance.index'),
+            default => url()->previous() && url()->previous() !== url()->current()
+                ? url()->previous()
+                : route('maintenance.dashboard'),
+        };
+
+        return view('maintenance.show', compact('maintenance', 'backUrl'));
+    }
+
+    /**
      * Update maintenance record as completed
      */
     public function complete(Request $request, MaintenanceRecord $maintenance)

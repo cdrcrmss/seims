@@ -117,12 +117,18 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 text-right">
-                            @if($record->status === 'scheduled')
-                            <button @click="completeModal = true; completeId = {{ $record->id }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-50 text-green-700 hover:bg-green-100 ring-1 ring-green-200/60 transition-all duration-200">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                Complete
-                            </button>
-                            @endif
+                            <div class="inline-flex flex-wrap items-center justify-end gap-2">
+                                <a href="{{ route('maintenance.show', ['maintenance' => $record, 'from' => 'index']) }}"
+                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 hover:bg-amber-100 ring-1 ring-amber-200 transition-all duration-200">
+                                    View details
+                                </a>
+                                @if($record->status === 'scheduled')
+                                <button @click="completeModal = true; completeId = {{ $record->id }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-50 text-green-700 hover:bg-green-100 ring-1 ring-green-200/60 transition-all duration-200">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    Complete
+                                </button>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                     @empty

@@ -157,6 +157,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::get('/dashboard', [MaintenanceController::class, 'dashboard'])->name('dashboard');
         Route::get('/create', [MaintenanceController::class, 'create'])->name('create');
         Route::post('/', [MaintenanceController::class, 'store'])->name('store');
+        Route::get('/{maintenance}', [MaintenanceController::class, 'show'])->name('show');
         Route::patch('/units/{unit}/dispose', [MaintenanceController::class, 'disposeUnit'])->name('units.dispose');
         Route::patch('/{maintenance}/complete', [MaintenanceController::class, 'complete'])->name('complete');
         Route::post('/export', [MaintenanceController::class, 'exportReport'])->name('export');

@@ -6,7 +6,7 @@
 @endphp
 
 <div class="flex flex-wrap items-center justify-end gap-2 shrink-0" x-data>
-    <a href="{{ route('maintenance.index', ['status' => $record->isScheduleOverdue() ? 'overdue' : 'upcoming']) }}"
+    <a href="{{ route('maintenance.show', ['maintenance' => $record, 'from' => 'dashboard']) }}"
        class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 hover:bg-amber-100 ring-1 ring-amber-200 transition-colors whitespace-nowrap">
         View details
     </a>
