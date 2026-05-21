@@ -252,45 +252,9 @@
                         Join the<br>
                         <span style="background: linear-gradient(135deg, #86efac, #4ade80); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">SEIMS Platform</span>
                     </h2>
-                    <p style="font-size: 18px; color: rgba(255,255,255,0.7); line-height: 1.7; margin: 0 0 48px 0;">
-                        Create your student account to start borrowing laboratory equipment and managing your reservations.
+                    <p style="font-size: 18px; color: rgba(255,255,255,0.7); line-height: 1.7; margin: 0;">
+                        Create your student account to start borrowing laboratory equipment.
                     </p>
-                </div>
-
-                <div class="animate-fade-in-up delay-200">
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <svg width="22" height="22" fill="none" stroke="#4ade80" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 style="font-size: 16px; font-weight: 600; color: white; margin: 0 0 4px 0;">Borrow Equipment</h3>
-                            <p style="font-size: 14px; color: rgba(255,255,255,0.6); margin: 0; line-height: 1.5;">Request and borrow lab equipment with ease</p>
-                        </div>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <svg width="22" height="22" fill="none" stroke="#86efac" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 style="font-size: 16px; font-weight: 600; color: white; margin: 0 0 4px 0;">Reserve Resources</h3>
-                            <p style="font-size: 14px; color: rgba(255,255,255,0.6); margin: 0; line-height: 1.5;">Book rooms and equipment ahead of time</p>
-                        </div>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <svg width="22" height="22" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 style="font-size: 16px; font-weight: 600; color: white; margin: 0 0 4px 0;">Track History</h3>
-                            <p style="font-size: 14px; color: rgba(255,255,255,0.6); margin: 0; line-height: 1.5;">View your borrowing history and active requests</p>
-                        </div>
-                    </div>
                 </div>
             </div>
 
