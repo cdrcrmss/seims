@@ -108,14 +108,18 @@ class ItemUnit extends Model
     }
 
     /**
-     * Mark unit as needs repair
+     * Mark unit as needs repair and auto-schedule corrective maintenance (same as damaged flow).
      */
-    public function markNeedsRepair(): void
+    public function markNeedsRepair(array $context = []): void
     {
         $this->update([
-            'status' => 'needs_repair',
             'current_borrower_id' => null,
             'borrowing_id' => null,
         ]);
+
+        app(\App\Services\MaintenanceAutoScheduleService::class)
+            ->scheduleForDamagedUnit($this->fresh(), array_merge([
+                'return_condition' => 'needs_repair',
+            ], $context));
     }
 }

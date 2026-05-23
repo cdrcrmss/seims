@@ -827,14 +827,17 @@ class StaffController extends Controller
                 if ($borrowing->item_unit_id) {
                     $unit = ItemUnit::find($borrowing->item_unit_id);
                     if ($unit) {
-                        if ($request->return_condition === 'damaged') {
+                        if (in_array($request->return_condition, ['damaged', 'needs_repair'], true)) {
+                            $returnNotes = $request->return_notes ? ': ' . $request->return_notes : '.';
+                            $issuesFound = $request->return_condition === 'damaged'
+                                ? 'Returned damaged' . $returnNotes
+                                : 'Returned — needs repair' . $returnNotes;
+
                             $unit->markDamaged([
                                 'return_condition' => $request->return_condition,
                                 'notes' => $request->return_notes,
-                                'issues_found' => 'Returned damaged' . ($request->return_notes ? ': ' . $request->return_notes : '.'),
+                                'issues_found' => $issuesFound,
                             ]);
-                        } elseif ($request->return_condition === 'needs_repair') {
-                            $unit->markNeedsRepair();
                         } else {
                             $unit->markReturned();
                         }
@@ -854,20 +857,6 @@ class StaffController extends Controller
                     'priority' => $isOverdue || in_array($request->return_condition, ['needs_repair', 'damaged']) ? 'high' : 'low',
                 ]);
 
-                // If item needs repair, notify staff/admin (damaged auto-schedules maintenance separately)
-                if ($request->return_condition === 'needs_repair') {
-                    $staffUsers = User::whereIn('role', ['staff', 'admin'])->where('id', '!=', auth()->id())->get();
-                    foreach ($staffUsers as $staff) {
-                        Notification::create([
-                            'user_id' => $staff->id,
-                            'type' => 'danger',
-                            'title' => 'Item Needs Attention',
-                            'message' => '"' . $item->name . '" was returned in ' . $conditionLabel . ' condition by ' . ($borrowing->user?->name ?? 'a student') . '. Wear level: ' . $item->wear_level . '%.',
-                            'action_url' => route('staff.items.edit', $item),
-                            'priority' => 'high',
-                        ]);
-                    }
-                }
             });
 
             $successMsg = 'Item returned successfully! Condition: ' . ucfirst(str_replace('_', ' ', $request->return_condition));

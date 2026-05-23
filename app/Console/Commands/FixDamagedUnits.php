@@ -40,9 +40,22 @@ class FixDamagedUnits extends Command
 
         foreach ($repairBorrowings as $borrowing) {
             $unit = ItemUnit::find($borrowing->item_unit_id);
-            if ($unit && !in_array($unit->status, ['damaged', 'needs_repair'])) {
-                $unit->update(['status' => 'needs_repair']);
-                $this->line("  Fixed unit {$unit->unit_code} → needs_repair");
+            if (! $unit) {
+                continue;
+            }
+
+            $hasScheduled = \App\Models\MaintenanceRecord::where('item_unit_id', $unit->id)
+                ->where('status', 'scheduled')
+                ->exists();
+
+            if (! $hasScheduled) {
+                $returnNotes = $borrowing->return_notes ? ': ' . $borrowing->return_notes : '.';
+                app(\App\Services\MaintenanceAutoScheduleService::class)
+                    ->scheduleForDamagedUnit($unit, [
+                        'return_condition' => 'needs_repair',
+                        'issues_found' => 'Returned — needs repair' . $returnNotes,
+                    ]);
+                $this->line("  Scheduled maintenance for unit {$unit->unit_code} (needs repair return)");
                 $fixed++;
             }
         }

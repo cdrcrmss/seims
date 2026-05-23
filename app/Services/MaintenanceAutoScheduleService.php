@@ -62,7 +62,7 @@ class MaintenanceAutoScheduleService
     {
         return ItemUnit::query()
             ->with(['item', 'activeMaintenanceRecord'])
-            ->whereIn('status', ['maintenance', 'damaged'])
+            ->whereIn('status', ['maintenance', 'damaged', 'needs_repair'])
             ->whereHas('item')
             ->orderBy('unit_code')
             ->get();
@@ -82,7 +82,13 @@ class MaintenanceAutoScheduleService
                 ->exists();
 
             if (! $hasScheduled) {
-                $service->ensureCorrectiveRecord($unit);
+                if (in_array($unit->status, ['damaged', 'needs_repair'], true)) {
+                    $service->scheduleForDamagedUnit($unit, [
+                        'return_condition' => $unit->status,
+                    ]);
+                } else {
+                    $service->ensureCorrectiveRecord($unit);
+                }
                 $created++;
             }
         }
