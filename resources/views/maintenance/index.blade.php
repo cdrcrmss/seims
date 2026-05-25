@@ -18,17 +18,17 @@
 
     <!-- Stats -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up stagger-1">
-        <a href="{{ route('maintenance.index', ['status' => 'upcoming']) }}" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-yellow-500 hover:ring-yellow-300 transition-all cursor-pointer block">
+        <a href="{{ route('maintenance.index', ['status' => 'upcoming']) }}" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-yellow-500 hover:ring-yellow-300 transition-all cursor-pointer block {{ $status === 'upcoming' ? 'ring-2 ring-yellow-400' : '' }}">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Upcoming</p>
             <p class="text-3xl font-bold text-yellow-600 mt-1 font-poppins">{{ $upcomingMaintenance }}</p>
         </a>
-        <a href="{{ route('maintenance.index', ['status' => 'overdue']) }}" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-red-500 hover:ring-red-300 transition-all cursor-pointer block">
+        <a href="{{ route('maintenance.index', ['status' => 'overdue']) }}" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-red-500 hover:ring-red-300 transition-all cursor-pointer block {{ $status === 'overdue' ? 'ring-2 ring-red-400' : '' }}">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Overdue</p>
             <p class="text-3xl font-bold text-red-600 mt-1 font-poppins">{{ $overdueMaintenance }}</p>
         </a>
-        <a href="{{ route('maintenance.index') }}" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-green-500 hover:ring-green-300 transition-all cursor-pointer block">
+        <a href="{{ route('maintenance.index') }}" class="bg-white rounded-2xl ring-1 ring-gray-200 p-6 border-l-4 border-green-500 hover:ring-green-300 transition-all cursor-pointer block {{ !$status ? 'ring-2 ring-green-400' : '' }}">
             <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Total Records</p>
-            <p class="text-3xl font-bold text-green-600 mt-1 font-poppins">{{ $maintenanceRecords->total() }}</p>
+            <p class="text-3xl font-bold text-green-600 mt-1 font-poppins">{{ $totalRecords }}</p>
         </a>
     </div>
 

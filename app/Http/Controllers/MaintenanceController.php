@@ -38,8 +38,15 @@ class MaintenanceController extends Controller
 
         $upcomingMaintenance = MaintenanceRecord::upcoming()->count();
         $overdueMaintenance = MaintenanceRecord::overdue()->count();
+        $totalRecords = MaintenanceRecord::count();
 
-        return view('maintenance.index', compact('maintenanceRecords', 'upcomingMaintenance', 'overdueMaintenance', 'status'));
+        return view('maintenance.index', compact(
+            'maintenanceRecords',
+            'upcomingMaintenance',
+            'overdueMaintenance',
+            'totalRecords',
+            'status'
+        ));
     }
 
     /**
