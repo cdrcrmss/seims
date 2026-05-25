@@ -35,7 +35,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Overdue</p>
-                    <p class="text-3xl font-bold text-red-600 mt-1 font-poppins">{{ $overdueMaintenance->count() }}</p>
+                    <p class="text-3xl font-bold text-red-600 mt-1 font-poppins">{{ $overdueCount }}</p>
                 </div>
                 <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
                     <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
@@ -69,14 +69,15 @@
         </div>
 
         <div class="space-y-2">
-            @foreach($criticalUnits as $unit)
+            @foreach($criticalUnitsOverdue as $unit)
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 bg-red-50 rounded-xl ring-1 ring-red-100">
                 <div class="min-w-0 flex-1">
                     <div class="flex flex-wrap items-center gap-2">
                         <p class="font-medium text-gray-900">{{ $unit->item?->name ?? 'Unknown item' }}</p>
-                        <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-red-100 text-red-700">{{ $unit->status }}</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-red-100 text-red-700">Overdue</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-red-100/80 text-red-600">{{ $unit->status }}</span>
                     </div>
-                    <p class="text-xs text-gray-500 mt-1">{{ $unit->item?->category }} &middot; <span class="font-mono text-red-700">{{ $unit->unit_code }}</span></p>
+                    <p class="text-xs text-red-600 mt-1">{{ $unit->item?->category }} &middot; <span class="font-mono text-red-700">{{ $unit->unit_code }}</span></p>
                 </div>
                 @include('partials.critical-unit-actions', ['unit' => $unit])
             </div>
@@ -96,6 +97,19 @@
             </div>
             @endforeach
 
+            @foreach($criticalUnitsUpcoming as $unit)
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-xl ring-1 ring-gray-100">
+                <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <p class="font-medium text-gray-900">{{ $unit->item?->name ?? 'Unknown item' }}</p>
+                        <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">{{ $unit->status }}</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">{{ $unit->item?->category }} &middot; <span class="font-mono text-gray-600">{{ $unit->unit_code }}</span></p>
+                </div>
+                @include('partials.critical-unit-actions', ['unit' => $unit])
+            </div>
+            @endforeach
+
             @foreach($upcomingMaintenance as $record)
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-xl ring-1 ring-gray-100">
                 <div class="min-w-0 flex-1">
@@ -108,7 +122,7 @@
             </div>
             @endforeach
 
-            @if($criticalUnits->isEmpty() && $overdueMaintenance->isEmpty() && $upcomingMaintenance->isEmpty())
+            @if($criticalUnitsOverdue->isEmpty() && $criticalUnitsUpcoming->isEmpty() && $overdueMaintenance->isEmpty() && $upcomingMaintenance->isEmpty())
             <p class="text-gray-400 text-sm text-center py-8">No scheduled maintenance. The system will add records automatically when wear or unit condition requires it.</p>
             @endif
         </div>

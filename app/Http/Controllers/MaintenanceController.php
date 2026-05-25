@@ -183,8 +183,11 @@ class MaintenanceController extends Controller
     {
         $buckets = MaintenanceAutoScheduleService::scheduledMaintenanceDashboardBuckets();
         $criticalUnits = $buckets['critical_units'];
+        $criticalUnitsOverdue = $buckets['critical_units_overdue'];
+        $criticalUnitsUpcoming = $buckets['critical_units_upcoming'];
         $upcomingMaintenance = $buckets['upcoming'];
         $overdueMaintenance = $buckets['overdue'];
+        $overdueCount = $buckets['overdue_count'];
         $scheduledDisplayCount = $buckets['display_count'];
 
         $recentlyCompleted = MaintenanceRecord::where('status', 'completed')
@@ -204,8 +207,11 @@ class MaintenanceController extends Controller
         return view('maintenance.dashboard', compact(
             'upcomingMaintenance',
             'overdueMaintenance',
+            'overdueCount',
             'recentlyCompleted',
             'criticalUnits',
+            'criticalUnitsOverdue',
+            'criticalUnitsUpcoming',
             'criticalItems',
             'criticalCount',
             'maintenanceCosts',

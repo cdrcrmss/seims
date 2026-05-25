@@ -6,9 +6,15 @@
 
 <div class="flex flex-wrap items-center justify-end gap-2 shrink-0 sm:ml-4" x-data>
     @if($record)
+        @if($record->isScheduleOverdue())
+        <span class="text-xs font-semibold text-red-700 bg-red-50 px-2.5 py-1 rounded-lg whitespace-nowrap">
+            Overdue · {{ $record->scheduled_date->format('M d, Y') }} ({{ $record->scheduled_date->diffForHumans() }})
+        </span>
+        @else
         <span class="text-xs font-semibold text-orange-700 bg-orange-50 px-2.5 py-1 rounded-lg whitespace-nowrap">
             Repair scheduled · {{ $record->scheduled_date->format('M d, Y') }}
         </span>
+        @endif
         <a href="{{ route('maintenance.show', ['maintenance' => $record, 'from' => 'dashboard']) }}"
            class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 hover:bg-amber-100 ring-1 ring-amber-200 transition-colors whitespace-nowrap">
             View details

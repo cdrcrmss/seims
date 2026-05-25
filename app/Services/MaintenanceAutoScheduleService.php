@@ -106,10 +106,21 @@ class MaintenanceAutoScheduleService
             fn ($record) => $record->isScheduleOverdue()
         )->values();
 
+        $criticalUnitsOverdue = $criticalUnits->filter(
+            fn ($unit) => $unit->activeMaintenanceRecord?->isScheduleOverdue()
+        )->values();
+
+        $criticalUnitsUpcoming = $criticalUnits->filter(
+            fn ($unit) => ! $unit->activeMaintenanceRecord?->isScheduleOverdue()
+        )->values();
+
         return [
             'critical_units' => $criticalUnits,
+            'critical_units_overdue' => $criticalUnitsOverdue,
+            'critical_units_upcoming' => $criticalUnitsUpcoming,
             'upcoming' => $upcoming,
             'overdue' => $overdue,
+            'overdue_count' => MaintenanceRecord::overdue()->count(),
             'display_count' => $criticalUnits->count() + $overdue->count() + $upcoming->count(),
         ];
     }
