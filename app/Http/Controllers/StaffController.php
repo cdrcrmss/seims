@@ -41,16 +41,16 @@ class StaffController extends Controller
             $status = null;
         }
         
-        // Stats counts (unfiltered)
+        // Stats counts (unfiltered, aligned with card filters below)
         $totalItemsCount = Item::count();
-        $availableItemsCount = Item::where('available_stock', '>', 0)->count();
-        $outOfStockCount = Item::where('available_stock', 0)->count();
+        $availableItemsCount = Item::hasAvailableStock()->count();
+        $outOfStockCount = Item::outOfStock()->count();
         $categoriesCount = Item::distinct('category')->count('category');
-        $damagedCount = \App\Models\ItemUnit::where('status', 'damaged')->count();
+        $damagedCount = ItemUnit::damagedOrUnderRepair()->count();
 
         $items = Item::query()
-            ->withCount(['units as damaged_units_count' => function($query) {
-                $query->where('status', 'damaged');
+            ->withCount(['units as damaged_units_count' => function ($query) {
+                $query->damagedOrUnderRepair();
             }])
             ->when($search, function ($query, $search) {
                 $term = '%' . $search . '%';
@@ -67,18 +67,35 @@ class StaffController extends Controller
             ->when($laboratory, function($query, $laboratory) {
                 return $query->where('laboratory', $laboratory);
             })
-            ->when($status, function($query, $status) {
+            ->when($status, function ($query, $status) {
                 if ($status === 'damaged') {
-                    return $query->whereHas('units', function($q) {
-                        $q->where('status', 'damaged');
+                    return $query->withUnitsUnderRepair();
+                }
+                if ($status === 'available') {
+                    return $query->hasAvailableStock();
+                }
+                if ($status === 'in_use') {
+                    return $query->inUse();
+                }
+                if ($status === 'maintenance') {
+                    return $query->where(function ($q) {
+                        $q->where('status', 'maintenance')
+                            ->orWhereHas('units', function ($unitQuery) {
+                                $unitQuery->damagedOrUnderRepair();
+                            });
                     });
                 }
                 if ($status === 'disposed') {
                     return $query->whereIn('status', ['disposed', 'retired']);
                 }
+
                 return $query->where('status', $status);
             })
             ->when($stockFilter, function ($query, $stockFilter) {
+                if ($stockFilter === 'has_available') {
+                    return $query->hasAvailableStock();
+                }
+
                 if ($stockFilter === 'in_stock') {
                     return $query->whereColumn('available_stock', '>', 'low_stock_threshold');
                 }

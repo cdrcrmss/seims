@@ -265,7 +265,37 @@ class Item extends Model
      */
     public function scopeOutOfStock($query)
     {
-        return $query->where('available_stock', '<=', 0);
+        return $query->where('available_stock', '<=', 0)
+            ->whereNotIn('status', ['disposed', 'retired']);
+    }
+
+    /**
+     * Items with at least one unit available to borrow.
+     */
+    public function scopeHasAvailableStock($query)
+    {
+        return $query->where('available_stock', '>', 0)
+            ->whereNotIn('status', ['disposed', 'retired']);
+    }
+
+    /**
+     * Items with at least one unit currently borrowed.
+     */
+    public function scopeInUse($query)
+    {
+        return $query->whereHas('units', function ($q) {
+            $q->where('status', 'borrowed');
+        });
+    }
+
+    /**
+     * Items with units in maintenance / repair.
+     */
+    public function scopeWithUnitsUnderRepair($query)
+    {
+        return $query->whereHas('units', function ($q) {
+            $q->damagedOrUnderRepair();
+        });
     }
 
     /**

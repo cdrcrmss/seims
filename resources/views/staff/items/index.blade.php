@@ -43,7 +43,7 @@
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <a href="{{ route('staff.items.index') }}" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden cursor-pointer hover:ring-green-200 transition-all">
+        <a href="{{ route('staff.items.index') }}" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden cursor-pointer hover:ring-green-200 transition-all {{ !request('status') && !request('stock_filter') && !request('category') && !request('laboratory') && !request('search') ? 'ring-2 ring-green-400' : '' }}">
             <div class="absolute top-0 left-0 w-1 h-full bg-green-500 rounded-r-full"></div>
             <div class="flex items-center justify-between">
                 <div>
@@ -58,7 +58,7 @@
             </div>
         </a>
 
-        <a href="{{ route('staff.items.index', ['status' => 'available']) }}" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden cursor-pointer hover:ring-emerald-200 transition-all">
+        <a href="{{ route('staff.items.index', ['stock_filter' => 'has_available']) }}" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden cursor-pointer hover:ring-emerald-200 transition-all {{ request('stock_filter') === 'has_available' ? 'ring-2 ring-emerald-400' : '' }}">
             <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500 rounded-r-full"></div>
             <div class="flex items-center justify-between">
                 <div>
@@ -73,7 +73,7 @@
             </div>
         </a>
 
-        <a href="{{ route('staff.items.index', ['stock_filter' => 'out_of_stock']) }}" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden cursor-pointer hover:ring-red-200 transition-all">
+        <a href="{{ route('staff.items.index', ['stock_filter' => 'out_of_stock']) }}" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden cursor-pointer hover:ring-red-200 transition-all {{ request('stock_filter') === 'out_of_stock' ? 'ring-2 ring-red-400' : '' }}">
             <div class="absolute top-0 left-0 w-1 h-full bg-red-500 rounded-r-full"></div>
             <div class="flex items-center justify-between">
                 <div>
@@ -88,7 +88,7 @@
             </div>
         </a>
 
-        <a href="{{ route('staff.items.index', ['status' => 'damaged']) }}" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden cursor-pointer hover:ring-orange-200 transition-all">
+        <a href="{{ route('staff.items.index', ['status' => 'damaged']) }}" class="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm card-hover relative overflow-hidden cursor-pointer hover:ring-orange-200 transition-all {{ request('status') === 'damaged' ? 'ring-2 ring-orange-400' : '' }}">
             <div class="absolute top-0 left-0 w-1 h-full bg-orange-500 rounded-r-full"></div>
             <div class="flex items-center justify-between">
                 <div>
@@ -179,6 +179,7 @@
                     <select name="stock_filter" onchange="this.form.submit()"
                             class="px-4 py-2 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-green-500">
                         <option value="">All Stock</option>
+                        <option value="has_available" {{ request('stock_filter') == 'has_available' ? 'selected' : '' }}>Has Available Units</option>
                         <option value="in_stock" {{ request('stock_filter') == 'in_stock' ? 'selected' : '' }}>In Stock</option>
                         <option value="low_stock" {{ request('stock_filter') == 'low_stock' ? 'selected' : '' }}>Low Stock</option>
                         <option value="out_of_stock" {{ request('stock_filter') == 'out_of_stock' ? 'selected' : '' }}>Out of Stock</option>
@@ -323,7 +324,7 @@
                                     {{-- Damaged Units Indicator --}}
                                     @if($item->damaged_units_count > 0)
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-50 text-orange-700">
-                                            {{ $item->damaged_units_count }} damaged unit{{ $item->damaged_units_count > 1 ? 's' : '' }}
+                                            {{ $item->damaged_units_count }} unit{{ $item->damaged_units_count > 1 ? 's' : '' }} under repair
                                         </span>
                                     @endif
                                 </div>

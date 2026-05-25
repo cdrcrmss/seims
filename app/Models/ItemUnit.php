@@ -56,6 +56,19 @@ class ItemUnit extends Model
     }
 
     /**
+     * Unit statuses that mean the item is damaged or queued for repair.
+     */
+    public static function damagedOrUnderRepairStatuses(): array
+    {
+        return ['damaged', 'needs_repair', 'maintenance'];
+    }
+
+    public function scopeDamagedOrUnderRepair($query)
+    {
+        return $query->whereIn('status', static::damagedOrUnderRepairStatuses());
+    }
+
+    /**
      * Check if this unit is available
      */
     public function isAvailable(): bool
