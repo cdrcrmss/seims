@@ -38,6 +38,7 @@
                     <option value="good">Good</option>
                     <option value="fair">Fair</option>
                     <option value="poor">Poor</option>
+                    <option value="critical">Critical</option>
                 </select>
             </div>
             <div>
@@ -54,7 +55,7 @@
                              :style="'width: ' + predictedWear + '%'"></div>
                     </div>
                     <p class="text-xs text-gray-500 mt-2">
-                        Excellent 10% · Good 25% · Fair 45% · Poor 65%
+                        Excellent 10% · Good 25% · Fair 45% · Poor 65% · Critical 80%
                     </p>
                 </div>
             </div>

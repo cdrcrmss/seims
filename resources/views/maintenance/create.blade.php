@@ -16,7 +16,9 @@
     </div>
 
     <div class="max-w-2xl">
-        <form method="POST" action="{{ route('maintenance.store') }}" class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-8 space-y-6 animate-fade-in-up stagger-1">
+        <form method="POST" action="{{ route('maintenance.store') }}"
+              x-data="scheduleMaintenanceForm(@js($wearByCondition), @js(old('condition_before', 'good')))"
+              class="bg-white rounded-2xl ring-1 ring-gray-200 shadow-sm p-8 space-y-6 animate-fade-in-up stagger-1">
             @csrf
 
             <!-- Equipment -->
@@ -25,8 +27,8 @@
                 <select name="item_id" id="item_id" class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" required>
                     <option value="">Select equipment...</option>
                     @foreach($items as $item)
-                        <option value="{{ $item->id }}" {{ old('item_id') == $item->id ? 'selected' : '' }}>
-                            {{ $item->name }} — {{ $item->category }} (Wear: {{ $item->wear_level ?? 0 }}%)
+                        <option value="{{ $item->id }}" {{ (int) old('item_id', $selectedItemId) === (int) $item->id ? 'selected' : '' }}>
+                            {{ $item->name }} — {{ $item->category }}
                         </option>
                     @endforeach
                 </select>
@@ -53,36 +55,36 @@
                 @error('scheduled_date') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 
-            <!-- Technician -->
-            <div>
-                <label for="performed_by" class="block text-sm font-semibold text-gray-700 mb-2">Assign Technician (optional)</label>
-                <select name="performed_by" id="performed_by" class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all">
-                    <option value="">Unassigned</option>
-                    @foreach($technicians as $tech)
-                        <option value="{{ $tech->id }}" {{ old('performed_by') == $tech->id ? 'selected' : '' }}>
-                            {{ $tech->name }} ({{ ucfirst($tech->role) }})
-                        </option>
-                    @endforeach
-                </select>
-                @error('performed_by') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-            </div>
-
             <!-- Condition Before -->
             <div>
                 <label for="condition_before" class="block text-sm font-semibold text-gray-700 mb-2">Current Condition</label>
-                <select name="condition_before" id="condition_before" class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all">
+                <select name="condition_before" id="condition_before" x-model="conditionBefore" class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all">
                     <option value="excellent">Excellent</option>
-                    <option value="good" selected>Good</option>
+                    <option value="good">Good</option>
                     <option value="fair">Fair</option>
                     <option value="poor">Poor</option>
                     <option value="critical">Critical</option>
                 </select>
             </div>
 
-            <!-- Current Wear Level -->
+            <!-- Predicted wear from condition -->
             <div>
-                <label for="wear_level" class="block text-sm font-semibold text-gray-700 mb-2">Current Wear Level (0-100)</label>
-                <input type="number" name="wear_level" id="wear_level" min="0" max="100" value="{{ old('wear_level', 0) }}" class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Current Wear Level</label>
+                <input type="hidden" name="wear_level" :value="predictedWear">
+                <div class="rounded-xl bg-gray-50 ring-1 ring-gray-200 px-4 py-3">
+                    <div class="flex items-center justify-between gap-3 mb-2">
+                        <span class="text-2xl font-bold text-gray-900" x-text="predictedWear + '%'"></span>
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Auto from condition</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="h-2.5 rounded-full transition-all duration-200"
+                             :class="wearBarColor()"
+                             :style="'width: ' + predictedWear + '%'"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">
+                        Excellent 10% · Good 25% · Fair 45% · Poor 65% · Critical 80%
+                    </p>
+                </div>
                 @error('wear_level') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 
@@ -106,3 +108,25 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('scheduleMaintenanceForm', (wearMap, initialCondition) => ({
+        wearMap: wearMap || {},
+        conditionBefore: initialCondition || 'good',
+
+        get predictedWear() {
+            return this.wearMap[this.conditionBefore] ?? 25;
+        },
+
+        wearBarColor() {
+            const w = this.predictedWear;
+            if (w >= 70) return 'bg-red-500';
+            if (w >= 40) return 'bg-yellow-500';
+            return 'bg-green-500';
+        },
+    }));
+});
+</script>
+@endpush

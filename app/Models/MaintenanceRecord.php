@@ -15,7 +15,14 @@ class MaintenanceRecord extends Model
         'good' => 25,
         'fair' => 45,
         'poor' => 65,
+        'critical' => 80,
     ];
+
+    /** Wear % for scheduling from current condition (same bands as completion). */
+    public static function wearForCondition(string $condition): int
+    {
+        return self::WEAR_BY_CONDITION_AFTER[$condition] ?? self::WEAR_BY_CONDITION_AFTER['good'];
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -126,7 +133,7 @@ class MaintenanceRecord extends Model
      */
     public static function predictiveWearForCondition(string $conditionAfter): int
     {
-        return self::WEAR_BY_CONDITION_AFTER[$conditionAfter] ?? self::WEAR_BY_CONDITION_AFTER['good'];
+        return self::wearForCondition($conditionAfter);
     }
 
     /**

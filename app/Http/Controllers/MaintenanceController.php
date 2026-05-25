@@ -52,12 +52,20 @@ class MaintenanceController extends Controller
     /**
      * Show the form for creating a new maintenance record
      */
-    public function create()
+    public function create(Request $request)
     {
-        $items = Item::all();
-        $technicians = User::where('role', 'staff')->orWhere('role', 'admin')->get();
+        $items = Item::query()
+            ->whereNotIn('status', ['disposed', 'retired'])
+            ->orderBy('name')
+            ->get();
 
-        return view('maintenance.create', compact('items', 'technicians'));
+        $selectedItemId = $request->integer('item_id') ?: (int) old('item_id', 0);
+
+        return view('maintenance.create', [
+            'items' => $items,
+            'selectedItemId' => $selectedItemId ?: null,
+            'wearByCondition' => MaintenanceRecord::WEAR_BY_CONDITION_AFTER,
+        ]);
     }
 
     /**
@@ -69,20 +77,22 @@ class MaintenanceController extends Controller
             'item_id' => 'required|exists:items,id',
             'maintenance_type' => 'required|in:preventive,corrective,predictive,routine,emergency',
             'scheduled_date' => 'required|date',
-            'performed_by' => 'nullable|exists:users,id',
-            'condition_before' => 'nullable|string',
+            'condition_before' => 'nullable|string|in:excellent,good,fair,poor,critical',
             'wear_level' => 'nullable|integer|min:0|max:100',
             'notes' => 'nullable|string',
         ]);
+
+        $conditionBefore = $validated['condition_before'] ?? 'good';
+        $wearLevel = MaintenanceRecord::wearForCondition($conditionBefore);
 
         // Create with only validated fields, set server-controlled defaults
         $maintenance = MaintenanceRecord::create([
             'item_id' => $validated['item_id'],
             'maintenance_type' => $validated['maintenance_type'],
             'scheduled_date' => $validated['scheduled_date'],
-            'performed_by' => $validated['performed_by'] ?? null,
-            'condition_before' => $validated['condition_before'] ?? null,
-            'wear_level' => $validated['wear_level'] ?? null,
+            'performed_by' => null,
+            'condition_before' => $conditionBefore,
+            'wear_level' => $wearLevel,
             'notes' => $validated['notes'] ?? null,
             'status' => 'scheduled', // Server-controlled
             'predictive_alert_sent' => false, // Server-controlled
