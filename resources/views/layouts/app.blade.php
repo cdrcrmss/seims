@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="{ sidebarOpen: false }">
 <head>
     <meta charset="utf-8">
@@ -500,7 +500,7 @@
     {{-- ============================================== --}}
     @if(session('success'))
         <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)" x-cloak
-             class="fixed inset-0 z-[90] flex items-center justify-center p-4 pointer-events-none" role="alert">
+             class="fixed inset-0 z-[120] flex items-center justify-center p-4 pointer-events-none" role="alert">
             <div class="pointer-events-auto bg-white rounded-2xl shadow-2xl ring-1 ring-gray-100 p-6 text-center transform" style="width: 360px; max-width: 90vw;"
                  x-transition:enter="ease-out duration-300"
                  x-transition:enter-start="opacity-0 scale-90 translate-y-4"
@@ -520,7 +520,7 @@
 
     @if(session('info'))
         <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)" x-cloak
-             class="fixed inset-0 z-[90] flex items-center justify-center p-4 pointer-events-none" role="alert">
+             class="fixed inset-0 z-[120] flex items-center justify-center p-4 pointer-events-none" role="alert">
             <div class="pointer-events-auto bg-white rounded-2xl shadow-2xl ring-1 ring-gray-100 p-6 text-center transform" style="width: 360px; max-width: 90vw;"
                  x-transition:enter="ease-out duration-300"
                  x-transition:enter-start="opacity-0 scale-90 translate-y-4"
@@ -540,7 +540,7 @@
 
     @if(session('error'))
         <div x-data="{ show: true }" x-show="show" x-cloak
-             class="fixed inset-0 z-[90] flex items-center justify-center p-4 pointer-events-none" role="alert">
+             class="fixed inset-0 z-[120] flex items-center justify-center p-4 pointer-events-none" role="alert">
             <div class="pointer-events-auto bg-white rounded-2xl shadow-2xl ring-1 ring-gray-100 p-6 text-center transform" style="width: 360px; max-width: 90vw;"
                  x-transition:enter="ease-out duration-300"
                  x-transition:enter-start="opacity-0 scale-90 translate-y-4"
@@ -560,7 +560,7 @@
 
     @if($errors->any() && !request()->routeIs('student.borrow.form', 'student.borrow', 'staff.borrow.form', 'staff.borrow'))
         <div x-data="{ show: true }" x-show="show" x-cloak
-             class="fixed inset-0 z-[90] flex items-center justify-center p-4 pointer-events-none">
+             class="fixed inset-0 z-[120] flex items-center justify-center p-4 pointer-events-none">
             <div class="fixed inset-0 bg-gray-900/30 backdrop-blur-sm pointer-events-auto" @click="show = false"></div>
             <div class="pointer-events-auto relative bg-white rounded-2xl shadow-2xl ring-1 ring-gray-100 p-6 text-center transform" style="width: 360px; max-width: 90vw;"
                  x-transition:enter="ease-out duration-300"

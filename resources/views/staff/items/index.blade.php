@@ -24,7 +24,7 @@
                     Generate All QR
                 </button>
             </form>
-            <button type="button" @click="showImportModal = true"
+            <button type="button" @click="openImportModal()"
                     class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
@@ -649,7 +649,7 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-            <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-md transition-opacity" @click="showImportModal = false"></div>
+            <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-md transition-opacity" @click="closeImportModal()"></div>
             
             <div class="relative z-10 w-full max-w-lg bg-white rounded-3xl shadow-2xl transform transition-all"
                  x-transition:enter="transition ease-out duration-300"
@@ -663,29 +663,45 @@
                         <h3 class="text-xl font-semibold text-gray-900">Import Items</h3>
                         <p class="text-sm text-gray-500 mt-1">Upload an Excel or CSV file to bulk add items</p>
                     </div>
-                    <button type="button" @click="showImportModal = false" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center">
+                    <button type="button" @click="closeImportModal()" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center">
                         <svg class="w-3 h-3" fill="none" viewBox="0 0 14 14">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                         </svg>
                     </button>
                 </div>
-                <form method="POST" action="{{ route('staff.items.bulk-import') }}" enctype="multipart/form-data" class="p-6">
+                <form x-ref="importForm" method="POST" action="{{ route('staff.items.bulk-import') }}" enctype="multipart/form-data" class="p-6"
+                      @submit="showImportModal = false">
                     @csrf
                     <div class="space-y-4">
-                        <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors">
-                            <svg class="mx-auto w-10 h-10 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                            </svg>
-                            <label for="import_file" class="cursor-pointer">
-                                <span class="text-sm font-medium text-blue-600 hover:text-blue-700">Click to upload</span>
-                                <span class="text-sm text-gray-500"> or drag and drop</span>
-                                <input type="file" id="import_file" name="import_file" accept=".xlsx,.xls,.csv" class="hidden" required>
-                            </label>
-                            <p class="text-xs text-gray-400 mt-2">Supports .xlsx, .xls, .csv (max 5MB)</p>
-                        </div>
-                        <div id="file-name-display" class="hidden text-sm text-gray-700 bg-gray-50 rounded-lg px-4 py-2 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span id="file-name-text"></span>
+                        <div class="border-2 border-dashed rounded-xl p-6 text-center transition-colors"
+                             :class="importFileName ? 'border-green-400 bg-green-50/50' : 'border-gray-300 hover:border-blue-400'"
+                             @dragover.prevent="$el.classList.add('border-blue-400', 'bg-blue-50/30')"
+                             @dragleave.prevent="$el.classList.remove('border-blue-400', 'bg-blue-50/30')"
+                             @drop.prevent="$el.classList.remove('border-blue-400', 'bg-blue-50/30'); const f = $event.dataTransfer?.files?.[0]; if (f && $refs.importFileInput) { const dt = new DataTransfer(); dt.items.add(f); $refs.importFileInput.files = dt.files; $refs.importFileInput.dispatchEvent(new Event('change', { bubbles: true })); }">
+                            <template x-if="!importFileName">
+                                <div>
+                                    <svg class="mx-auto w-10 h-10 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                    </svg>
+                                    <label for="import_file" class="cursor-pointer">
+                                        <span class="text-sm font-medium text-blue-600 hover:text-blue-700">Click to upload</span>
+                                        <span class="text-sm text-gray-500"> or drag and drop</span>
+                                    </label>
+                                    <p class="text-xs text-gray-400 mt-2">Supports .xlsx, .xls, .csv (max 5MB)</p>
+                                </div>
+                            </template>
+                            <template x-if="importFileName">
+                                <div class="flex flex-col items-center gap-2">
+                                    <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <p class="text-sm font-semibold text-gray-900 break-all" x-text="importFileName"></p>
+                                    <p class="text-xs text-gray-500" x-text="importFileSize"></p>
+                                    <button type="button" @click.stop="clearImportFile()" class="text-xs font-medium text-red-600 hover:text-red-700">Remove file</button>
+                                </div>
+                            </template>
+                            <input type="file" x-ref="importFileInput" id="import_file" name="import_file" accept=".xlsx,.xls,.csv" class="hidden" required
+                                   @change="onImportFileSelected($event)">
                         </div>
                         <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
                             <p class="text-sm font-medium text-blue-800 mb-2">Required columns:</p>
@@ -709,7 +725,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                             Import Items
                         </button>
-                        <button type="button" @click="showImportModal = false" class="inline-flex items-center px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-200">Cancel</button>
+                        <button type="button" @click="closeImportModal()" class="inline-flex items-center px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-200">Cancel</button>
                     </div>
                 </form>
             </div>
@@ -859,22 +875,6 @@
         `);
         printWindow.document.close();
     }
-</script>
-
-<script>
-    document.getElementById('import_file').addEventListener('change', function(e) {
-        const fileName = e.target.files[0]?.name;
-        const display = document.getElementById('file-name-display');
-        const text = document.getElementById('file-name-text');
-        if (fileName) {
-            text.textContent = fileName;
-            display.classList.remove('hidden');
-            display.classList.add('flex');
-        } else {
-            display.classList.add('hidden');
-            display.classList.remove('flex');
-        }
-    });
 </script>
 
 <script>
