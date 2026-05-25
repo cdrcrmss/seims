@@ -174,29 +174,11 @@ class MaintenanceController extends Controller
      */
     public function dashboard()
     {
-        MaintenanceAutoScheduleService::syncAllScheduledMaintenance();
-
-        $criticalUnits = MaintenanceAutoScheduleService::criticalUnits();
-        $criticalUnitIds = $criticalUnits->pluck('id');
-
-        $otherScheduled = MaintenanceRecord::where('status', 'scheduled')
-            ->with(['item', 'itemUnit'])
-            ->when($criticalUnitIds->isNotEmpty(), function ($query) use ($criticalUnitIds) {
-                $query->where(function ($q) use ($criticalUnitIds) {
-                    $q->whereNotIn('item_unit_id', $criticalUnitIds)
-                        ->orWhereNull('item_unit_id');
-                });
-            })
-            ->orderBy('scheduled_date')
-            ->get();
-
-        $upcomingMaintenance = $otherScheduled->filter(
-            fn ($record) => ! $record->isScheduleOverdue()
-        )->values();
-
-        $overdueMaintenance = $otherScheduled->filter(
-            fn ($record) => $record->isScheduleOverdue()
-        )->values();
+        $buckets = MaintenanceAutoScheduleService::scheduledMaintenanceDashboardBuckets();
+        $criticalUnits = $buckets['critical_units'];
+        $upcomingMaintenance = $buckets['upcoming'];
+        $overdueMaintenance = $buckets['overdue'];
+        $scheduledDisplayCount = $buckets['display_count'];
 
         $recentlyCompleted = MaintenanceRecord::where('status', 'completed')
             ->orderBy('completed_date', 'desc')
@@ -219,7 +201,8 @@ class MaintenanceController extends Controller
             'criticalUnits',
             'criticalItems',
             'criticalCount',
-            'maintenanceCosts'
+            'maintenanceCosts',
+            'scheduledDisplayCount'
         ));
     }
 

@@ -56,6 +56,58 @@ class MaintenanceAutoScheduleService
     }
 
     /**
+     * Buckets used by the maintenance dashboard (critical units + scheduled records, no duplicates).
+     *
+     * @return array{
+     *     critical_units: \Illuminate\Support\Collection,
+     *     upcoming: \Illuminate\Support\Collection,
+     *     overdue: \Illuminate\Support\Collection,
+     *     display_count: int
+     * }
+     */
+    public static function scheduledMaintenanceDashboardBuckets(): array
+    {
+        static::syncAllScheduledMaintenance();
+
+        $criticalUnits = static::criticalUnits();
+        $criticalUnitIds = $criticalUnits->pluck('id');
+
+        $otherScheduled = MaintenanceRecord::where('status', 'scheduled')
+            ->with(['item', 'itemUnit'])
+            ->when($criticalUnitIds->isNotEmpty(), function ($query) use ($criticalUnitIds) {
+                $query->where(function ($q) use ($criticalUnitIds) {
+                    $q->whereNotIn('item_unit_id', $criticalUnitIds)
+                        ->orWhereNull('item_unit_id');
+                });
+            })
+            ->orderBy('scheduled_date')
+            ->get();
+
+        $upcoming = $otherScheduled->filter(
+            fn ($record) => ! $record->isScheduleOverdue()
+        )->values();
+
+        $overdue = $otherScheduled->filter(
+            fn ($record) => $record->isScheduleOverdue()
+        )->values();
+
+        return [
+            'critical_units' => $criticalUnits,
+            'upcoming' => $upcoming,
+            'overdue' => $overdue,
+            'display_count' => $criticalUnits->count() + $overdue->count() + $upcoming->count(),
+        ];
+    }
+
+    /**
+     * Count shown on analytics / alerts — matches Scheduled Maintenance list rows.
+     */
+    public static function scheduledMaintenanceDisplayCount(): int
+    {
+        return static::scheduledMaintenanceDashboardBuckets()['display_count'];
+    }
+
+    /**
      * Units that need immediate attention (damaged or in corrective maintenance).
      */
     public static function criticalUnits()

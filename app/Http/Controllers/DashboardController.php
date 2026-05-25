@@ -123,8 +123,7 @@ class DashboardController extends Controller
             $overdueItems = Borrowing::where('status', 'issued')
                 ->where('expected_return_date', '<', now())->count();
             $lowStockItems = Item::lowStock()->count();
-            $maintenanceDue = MaintenanceRecord::where('status', 'scheduled')
-                ->where('scheduled_date', '<=', now())->count();
+            $maintenanceDue = \App\Services\MaintenanceAutoScheduleService::scheduledMaintenanceDisplayCount();
             $pendingReservations = Reservation::where('status', 'pending')->count();
 
             // System health score
@@ -199,8 +198,7 @@ class DashboardController extends Controller
 
             // Extended stats
             $activeBorrowings = Borrowing::whereIn('status', ['approved', 'issued'])->count();
-            $maintenanceDue = MaintenanceRecord::where('status', 'scheduled')
-                ->where('scheduled_date', '<=', now())->count();
+            $maintenanceDue = \App\Services\MaintenanceAutoScheduleService::scheduledMaintenanceDisplayCount();
             $upcomingMaintenance = MaintenanceRecord::with('item')
                 ->where('status', 'scheduled')
                 ->orderBy('scheduled_date')

@@ -24,7 +24,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Scheduled</p>
-                    <p class="text-3xl font-bold text-yellow-600 mt-1 font-poppins">{{ $upcomingMaintenance->count() + $criticalUnits->count() }}</p>
+                    <p class="text-3xl font-bold text-yellow-600 mt-1 font-poppins">{{ $scheduledDisplayCount }}</p>
                 </div>
                 <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
                     <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>

@@ -8,6 +8,7 @@ use App\Models\Borrowing;
 use App\Models\MaintenanceRecord;
 use App\Models\ProcurementRequest;
 use Illuminate\Support\Facades\DB;
+use App\Services\MaintenanceAutoScheduleService;
 
 class PredictiveAnalyticsService
 {
@@ -236,7 +237,7 @@ class PredictiveAnalyticsService
     public function getDashboardAnalytics(): array
     {
         $lowStockItems = Item::lowStock()->count();
-        $maintenanceDueItems = Item::maintenanceDue()->count();
+        $maintenanceDueItems = MaintenanceAutoScheduleService::scheduledMaintenanceDisplayCount();
         $totalItems = Item::count();
         $activeReservations = DB::table('reservations')
             ->whereIn('status', ['pending', 'ongoing', 'approved'])
