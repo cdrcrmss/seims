@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -52,7 +52,7 @@
             <p>If you have questions, please contact the equipment room staff.</p>
         </div>
         <div class="footer">
-            &copy; {{ date('Y') }} SEIMS — Supplies & Equipment Inventory Management System
+            &copy; {{ date('Y') }} SEIS — Supplies and Equipment Inventory System with Predictive Analytics
         </div>
     </div>
 </body>

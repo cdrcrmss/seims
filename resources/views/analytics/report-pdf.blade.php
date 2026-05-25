@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>SEIMS Analytics Report</title>
+    <title>SEIS Analytics Report</title>
     <style>
         body {
             font-family: 'DejaVu Sans', sans-serif;
@@ -133,8 +133,8 @@
 </head>
 <body>
     <div class="header">
-        <h1>SEIMS Analytics Report</h1>
-        <p>Science Equipment Inventory Management System</p>
+        <h1>SEIS Analytics Report</h1>
+        <p>Supplies and Equipment Inventory System with Predictive Analytics</p>
         <p>Generated: {{ $generated_at }}</p>
         @if(!empty($date_from) || !empty($date_to))
         <p>Period: {{ $date_from ? \Carbon\Carbon::parse($date_from)->format('M d, Y') : '—' }} — {{ $date_to ? \Carbon\Carbon::parse($date_to)->format('M d, Y') : '—' }}</p>
@@ -159,7 +159,7 @@
 
 
     <div class="footer">
-        SEIMS - Science Equipment Inventory Management System | Confidential Report | Page 1
+        SEIS - Supplies and Equipment Inventory System with Predictive Analytics | Confidential Report | Page 1
     </div>
 </body>
 </html>

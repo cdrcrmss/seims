@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Item;
+use App\Support\InventoryCodes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -30,7 +31,7 @@ class QrCodeController extends Controller
 
         // Assign QR code value to item if not set (use unique ID with random component)
         if (!$item->qr_code) {
-            $item->update(['qr_code' => 'SEIMS-' . str_pad($item->id, 6, '0', STR_PAD_LEFT) . '-' . strtoupper(Str::random(8))]);
+            $item->update(['qr_code' => InventoryCodes::itemQrCode($item->id)]);
             $item->refresh();
         }
 
@@ -191,7 +192,7 @@ class QrCodeController extends Controller
 
         foreach ($items as $item) {
             $item->update([
-                'qr_code' => 'SEIMS-' . str_pad($item->id, 6, '0', STR_PAD_LEFT) . '-' . strtoupper(Str::random(8))
+                'qr_code' => InventoryCodes::itemQrCode($item->id)
             ]);
             $count++;
         }

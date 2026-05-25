@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'QR Scanner')
 
@@ -43,7 +43,7 @@
             <div class="mt-6 pt-6 border-t border-gray-100">
                 <h3 class="text-sm font-semibold text-gray-700 mb-3">Or enter QR code manually</h3>
                 <div class="flex space-x-3">
-                    <input type="text" x-model="manualCode" @keydown.enter.prevent="lookupByCode()" placeholder="e.g., SEIMS-000001-ABCD1234" class="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all">
+                    <input type="text" x-model="manualCode" @keydown.enter.prevent="lookupByCode()" placeholder="e.g., SEIS-000001-ABCD1234" class="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all">
                     <button @click="lookupByCode()" class="bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl font-semibold transition-all duration-200">
                         Lookup
                     </button>
@@ -407,7 +407,7 @@ function qrScanner() {
             // Pause scanning while we process
             if (this.loading) return;
             
-            // The QR code might contain a URL (e.g., /qr/lookup/5) or a code string (e.g., SEIMS-000001-ABCDEF)
+            // The QR code might contain a URL (e.g., /qr/lookup/5) or a code string (e.g., SEIS-000001-ABCDEF)
             let code = decodedText;
             
             // If it's a URL, extract the item ID

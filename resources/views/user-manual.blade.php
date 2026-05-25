@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'User Guide')
 
@@ -20,7 +20,7 @@
         <div>
             <p class="text-xs font-semibold uppercase tracking-wider text-green-600 mb-1">Documentation</p>
             <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 font-poppins">User Guide</h1>
-            <p class="mt-1 text-sm text-gray-500 max-w-xl">Borrowing, inventory, reservations, and maintenance in SEIMS</p>
+            <p class="mt-1 text-sm text-gray-500 max-w-xl">Borrowing, inventory, reservations, and maintenance in SEIS</p>
         </div>
         <a href="{{ route('dashboard') }}"
            class="inline-flex items-center justify-center gap-2 bg-white ring-1 ring-gray-200 hover:ring-gray-300 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition-all shrink-0">

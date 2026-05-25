@@ -319,7 +319,7 @@ class AnalyticsController extends Controller
             };
         }
 
-        $filename = 'seims_' . $type . '_report_' . now()->format('Y-m-d') . '.pdf';
+        $filename = 'seis_' . $type . '_report_' . now()->format('Y-m-d') . '.pdf';
 
         $pdf = Pdf::loadView('analytics.report-pdf', [
             'data' => $data,

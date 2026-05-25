@@ -1,6 +1,6 @@
-# Network-Level DDoS Protection (Cloudflare + Nginx)
+﻿# Network-Level DDoS Protection (Cloudflare + Nginx)
 
-Application rate limiters in SEIMS reduce abusive login attempts and API spam, but **large volumetric attacks must be mitigated at the edge** before traffic reaches PHP/Laravel.
+Application rate limiters in SEIS reduce abusive login attempts and API spam, but **large volumetric attacks must be mitigated at the edge** before traffic reaches PHP/Laravel.
 
 ## Recommended architecture
 
@@ -24,19 +24,19 @@ Client → Cloudflare (WAF/CDN) → Nginx (reverse proxy) → Laravel (PHP-FPM)
 ## Nginx (origin)
 
 ```nginx
-# /etc/nginx/conf.d/seims.conf (example)
-limit_req_zone $binary_remote_addr zone=seims_general:10m rate=30r/s;
-limit_req_zone $binary_remote_addr zone=seims_login:10m rate=5r/m;
+# /etc/nginx/conf.d/SEIS.conf (example)
+limit_req_zone $binary_remote_addr zone=seis_general:10m rate=30r/s;
+limit_req_zone $binary_remote_addr zone=seis_login:10m rate=5r/m;
 
 server {
     listen 443 ssl http2;
-    server_name seims.example.edu;
+    server_name SEIS.example.edu;
 
     # Hide version banners
     server_tokens off;
 
     location / {
-        limit_req zone=seims_general burst=60 nodelay;
+        limit_req zone=seis_general burst=60 nodelay;
         proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -45,7 +45,7 @@ server {
     }
 
     location ~ ^/(login|register)$ {
-        limit_req zone=seims_login burst=3 nodelay;
+        limit_req zone=seis_login burst=3 nodelay;
         proxy_pass http://127.0.0.1:8000;
         include proxy_params;
     }

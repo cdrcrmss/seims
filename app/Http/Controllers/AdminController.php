@@ -260,7 +260,7 @@ class AdminController extends Controller
             'user_id' => $user->id,
             'type' => 'success',
             'title' => 'Account Approved',
-            'message' => 'Your account has been approved by an administrator. You can now log in and use SEIMS.',
+            'message' => 'Your account has been approved by an administrator. You can now log in and use SEIS.',
             'action_url' => route('dashboard'),
             'priority' => 'high',
         ]);
@@ -471,7 +471,7 @@ class AdminController extends Controller
         ]);
         $pdf->setPaper('a4', 'portrait');
 
-        $filename = 'seims_' . $type . '_' . $start->format('Y-m-d') . '_to_' . $end->format('Y-m-d') . '.pdf';
+        $filename = 'seis_' . $type . '_' . $start->format('Y-m-d') . '_to_' . $end->format('Y-m-d') . '.pdf';
 
         return $pdf->download($filename);
     }
@@ -491,7 +491,7 @@ class AdminController extends Controller
     public static function loadSettings(): array
     {
         $defaults = [
-            'system_name' => config('app.name', 'SEIMS'),
+            'system_name' => config('app.name', 'SEIS'),
             'max_borrow_days' => 7,
             'max_items_per_user' => 5,
         ];

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Request Items')
 
@@ -65,7 +65,7 @@
     'hasOverdue' => $hasOverdue,
     'requirePurpose' => true,
     'submitLabel' => 'Submit Request',
-    'cartStorageKey' => 'seims_borrow_cart_student',
+    'cartStorageKey' => 'seis_borrow_cart_student',
     'searchApiUrl' => route('student.api.search-items'),
     'filterBaseUrl' => route('student.borrow.form'),
 ])

@@ -1,10 +1,10 @@
-# SEIMS - Laboratory Equipment Inventory Management System
+﻿# SEIS - Supplies and Equipment Inventory System with Predictive Analytics
 
 A modern, feature-rich laboratory equipment inventory and borrowing management system built with Laravel and Tailwind CSS.
 
 ## Project Description
 
-SEIMS is a comprehensive inventory management system designed for educational institutions to track laboratory equipment, manage borrowing requests, and streamline the equipment lending process. The platform provides role-based access for administrators, staff, and students.
+SEIS is a comprehensive inventory management system designed for educational institutions to track laboratory equipment, manage borrowing requests, and streamline the equipment lending process. The platform provides role-based access for administrators, staff, and students.
 
 ## Features
 
@@ -62,7 +62,7 @@ SEIMS is a comprehensive inventory management system designed for educational in
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd SEIMS
+cd SEIS
 
 # Install PHP dependencies
 composer install

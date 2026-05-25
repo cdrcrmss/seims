@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -48,7 +48,7 @@
             <p>Please remember to return the item on or before the return date to avoid penalties.</p>
         </div>
         <div class="footer">
-            &copy; {{ date('Y') }} SEIMS — Supplies & Equipment Inventory Management System
+            &copy; {{ date('Y') }} SEIS — Supplies and Equipment Inventory System with Predictive Analytics
         </div>
     </div>
 </body>

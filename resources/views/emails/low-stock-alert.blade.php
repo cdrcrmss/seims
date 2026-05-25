@@ -1,4 +1,4 @@
-@component('mail::message')
+﻿@component('mail::message')
 # Low Stock Alert
 
 Hello {{ $recipient->name }},
@@ -22,5 +22,5 @@ Thanks,<br>
 {{ config('app.name') }}
 
 ---
-*This is an automated notification from the SEIMS (Supplies & Equipment Inventory Management System).*
+*This is an automated notification from the SEIS (Supplies and Equipment Inventory System with Predictive Analytics).*
 @endcomponent

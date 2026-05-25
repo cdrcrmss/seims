@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // ─── Clean all data except the three core accounts ────────────────
-        $keepEmails = ['admin@SEIMS.com', 'staff@SEIMS.com', 'student@SEIMS.com'];
+        $keepEmails = ['admin@SEIS.com', 'staff@SEIS.com', 'student@SEIS.com'];
 
         DB::table('notifications')->delete();
         DB::table('audit_logs')->delete();
@@ -45,7 +45,7 @@ class DatabaseSeeder extends Seeder
 
         // ─── Users ────────────────────────────────────────────────────────
         $admin = User::firstOrCreate(
-            ['email' => 'admin@SEIMS.com'],
+            ['email' => 'admin@SEIS.com'],
             [
                 'name'     => 'Admin User',
                 'password' => Hash::make('password123'),
@@ -54,7 +54,7 @@ class DatabaseSeeder extends Seeder
         );
 
         $staff = User::firstOrCreate(
-            ['email' => 'staff@SEIMS.com'],
+            ['email' => 'staff@SEIS.com'],
             [
                 'name'     => 'Staff Member',
                 'password' => Hash::make('password123'),
@@ -63,7 +63,7 @@ class DatabaseSeeder extends Seeder
         );
 
         User::firstOrCreate(
-            ['email' => 'student@SEIMS.com'],
+            ['email' => 'student@SEIS.com'],
             [
                 'name'     => 'Student User',
                 'password' => Hash::make('password123'),
@@ -90,10 +90,10 @@ class DatabaseSeeder extends Seeder
 
         $this->command->info('');
         $this->command->info('═══════════════════════════════════════');
-        $this->command->info('  SEIMS Database Seeded Successfully');
-        $this->command->info('  Login: admin@SEIMS.com  / password123');
-        $this->command->info('         staff@SEIMS.com  / password123');
-        $this->command->info('         student@SEIMS.com / password123');
+        $this->command->info('  SEIS Database Seeded Successfully');
+        $this->command->info('  Login: admin@SEIS.com  / password123');
+        $this->command->info('         staff@SEIS.com  / password123');
+        $this->command->info('         student@SEIS.com / password123');
         $this->command->info('═══════════════════════════════════════');
     }
 }

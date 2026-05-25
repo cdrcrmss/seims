@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'System Settings')
 
@@ -38,7 +38,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             System Name
                         </label>
-                        <input type="text" name="system_name" value="{{ $settings['system_name'] ?? config('app.name', 'SEIMS') }}"
+                        <input type="text" name="system_name" value="{{ $settings['system_name'] ?? config('app.name', 'SEIS') }}"
                                class="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors">
                     </div>
 

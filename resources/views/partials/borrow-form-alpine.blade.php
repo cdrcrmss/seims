@@ -1,4 +1,4 @@
-@php
+﻿@php
     $initialCart = [];
     if (!empty($selectedItem) && $selectedItem->available_stock > 0) {
         $initialCart[] = [
@@ -30,7 +30,7 @@ function borrowForm() {
         searchApiUrl: @json($searchApiUrl),
         filterBaseUrl: @json($filterBaseUrl),
         submitLabel: @json($submitLabel ?? 'Submit'),
-        cartStorageKey: @json($cartStorageKey ?? 'seims_borrow_cart'),
+        cartStorageKey: @json($cartStorageKey ?? 'seis_borrow_cart'),
 
         init() {
             if (this.hasOverdue) {

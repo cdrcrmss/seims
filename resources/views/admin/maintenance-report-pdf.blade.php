@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -26,7 +26,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>SEIMS – Maintenance Report</h1>
+        <h1>SEIS – Maintenance Report</h1>
         <p>Generated: {{ $generated }}</p>
     </div>
 
@@ -79,7 +79,7 @@
     @endif
 
     <div class="footer">
-        SEIMS – Science Equipment and Inventory Management System &nbsp;|&nbsp; {{ $generated }}
+        SEIS – Supplies and Equipment Inventory System with Predictive Analytics &nbsp;|&nbsp; {{ $generated }}
     </div>
 </body>
 </html>

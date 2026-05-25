@@ -244,7 +244,7 @@ class Item extends Model
     public function generateQRCode(): string
     {
         if (!$this->qr_code) {
-            $this->qr_code = 'SEIMS-' . str_pad($this->id, 6, '0', STR_PAD_LEFT) . '-' . strtoupper(Str::random(8));
+            $this->qr_code = \App\Support\InventoryCodes::itemQrCode($this->id);
             $this->save();
         }
 

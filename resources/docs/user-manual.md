@@ -1,12 +1,12 @@
-# SEIMS User Guide
+﻿# SEIS User Guide
 
-**Science Equipment and Inventory Management System** — laboratory equipment inventory, borrowing, reservations, and maintenance for SPUP.
+**Supplies and Equipment Inventory System with Predictive Analytics** — laboratory equipment inventory, borrowing, reservations, and maintenance for SPUP.
 
 ---
 
 ## Getting started
 
-1. Open the SEIMS login page and sign in with your school email and password.
+1. Open the SEIS login page and sign in with your school email and password.
 2. New accounts may need **admin approval** before you can use the system.
 3. Use **Profile** (top-right menu) to update your name, email, or password.
 
@@ -40,7 +40,7 @@ View your borrowing summary, recent activity, and quick links.
 
 ### Inventory
 - **Items**: add, edit, import, and manage equipment catalog and stock.
-- **Unit tracking**: each physical unit has a **Unit ID** (e.g. `SEIMS-000131-U001`).
+- **Unit tracking**: each physical unit has a **Unit ID** (e.g. `SEIS-000131-U001`).
 - Mark units as **damaged** when reported; corrective maintenance can be scheduled automatically.
 
 ### Borrowing workflow
