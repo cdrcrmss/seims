@@ -134,7 +134,7 @@
 <body>
     <div class="header">
         <h1>SEIMS Analytics Report</h1>
-        <p>Science Equipment Inventory Management System</p>
+        <p>Supplies and Equipment Inventory Management System</p>
         <p>Generated: {{ $generated_at }}</p>
         @if(!empty($date_from) || !empty($date_to))
         <p>Period: {{ $date_from ? \Carbon\Carbon::parse($date_from)->format('M d, Y') : '—' }} — {{ $date_to ? \Carbon\Carbon::parse($date_to)->format('M d, Y') : '—' }}</p>
@@ -159,7 +159,7 @@
 
 
     <div class="footer">
-        SEIMS - Science Equipment Inventory Management System | Confidential Report | Page 1
+        SEIMS - Supplies and Equipment Inventory Management System | Confidential Report | Page 1
     </div>
 </body>
 </html>

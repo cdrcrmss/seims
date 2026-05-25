@@ -54,6 +54,6 @@
         @include('admin.partials.system-report-pdf-section', ['type' => $type, 'rows' => $rows])
     @endif
 
-    <div class="footer">SEIMS – Science Equipment Inventory Management System</div>
+    <div class="footer">SEIMS – Supplies and Equipment Inventory Management System</div>
 </body>
 </html>

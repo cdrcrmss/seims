@@ -1,6 +1,6 @@
 # SEIMS User Guide
 
-**Science Equipment and Inventory Management System** — laboratory equipment inventory, borrowing, reservations, and maintenance for SPUP.
+**Supplies and Equipment Inventory Management System** — supplies and equipment inventory, borrowing, reservations, and maintenance for SPUP.
 
 ---
 

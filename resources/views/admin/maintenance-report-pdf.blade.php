@@ -79,7 +79,7 @@
     @endif
 
     <div class="footer">
-        SEIMS – Science Equipment and Inventory Management System &nbsp;|&nbsp; {{ $generated }}
+        SEIMS – Supplies and Equipment Inventory Management System &nbsp;|&nbsp; {{ $generated }}
     </div>
 </body>
 </html>
