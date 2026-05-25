@@ -17,6 +17,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Auto-Maintenance Schedule Grace (days)
+    |--------------------------------------------------------------------------
+    |
+    | When damage, needs repair, or high wear triggers auto-scheduling, the
+    | scheduled date is set this many days ahead (2–3). Overdue only after
+    | that date passes.
+    |
+    */
+
+    'maintenance_auto_schedule_grace_days' => (int) env('MAINTENANCE_AUTO_SCHEDULE_GRACE_DAYS', 3),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

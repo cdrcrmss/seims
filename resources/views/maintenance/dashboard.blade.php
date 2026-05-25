@@ -8,7 +8,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in-up">
         <div>
             <h1 class="text-3xl font-bold text-gray-900 font-poppins">Maintenance Dashboard</h1>
-            <p class="text-gray-600">Predictive maintenance is scheduled automatically from wear and unit condition</p>
+            <p class="text-gray-600">Auto-scheduling sets repair {{ \App\Services\MaintenanceAutoScheduleService::autoScheduleGraceDays() }} days ahead (damaged, needs repair, or high wear) — overdue only after that date</p>
         </div>
         <div class="flex space-x-3">
             <a href="{{ route('maintenance.index') }}" class="inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200">

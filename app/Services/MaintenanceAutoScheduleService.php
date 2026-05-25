@@ -11,6 +11,21 @@ use App\Models\User;
 class MaintenanceAutoScheduleService
 {
     /**
+     * Grace period (2–3 days) before auto-scheduled maintenance is due / overdue.
+     */
+    public static function autoScheduleGraceDays(): int
+    {
+        $days = (int) config('app.maintenance_auto_schedule_grace_days', 3);
+
+        return max(2, min(3, $days));
+    }
+
+    public static function defaultAutoScheduledDate(): \Illuminate\Support\Carbon
+    {
+        return now()->addDays(static::autoScheduleGraceDays())->startOfDay();
+    }
+
+    /**
      * Run all automatic maintenance scheduling (corrective + predictive).
      */
     public static function syncAllScheduledMaintenance(): void
@@ -179,9 +194,10 @@ class MaintenanceAutoScheduleService
                 continue;
             }
 
-            $scheduledDate = ($prediction['next_maintenance_date'] ?? now())->copy()->startOfDay();
-            if ($urgency === 'critical' || $scheduledDate->lt(now()->startOfDay())) {
-                $scheduledDate = now()->startOfDay();
+            $minScheduleDate = static::defaultAutoScheduledDate();
+            $scheduledDate = ($prediction['next_maintenance_date'] ?? $minScheduleDate)->copy()->startOfDay();
+            if ($scheduledDate->lt($minScheduleDate)) {
+                $scheduledDate = $minScheduleDate;
             }
 
             MaintenanceRecord::create([
@@ -313,7 +329,7 @@ class MaintenanceAutoScheduleService
             'item_id' => $item->id,
             'item_unit_id' => $unit->id,
             'maintenance_type' => 'corrective',
-            'scheduled_date' => now()->toDateString(),
+            'scheduled_date' => static::defaultAutoScheduledDate()->toDateString(),
             'status' => 'scheduled',
             'issues_found' => $issuesFound,
             'notes' => $notes,
@@ -349,7 +365,9 @@ class MaintenanceAutoScheduleService
                 'user_id' => $staff->id,
                 'type' => 'warning',
                 'title' => 'Unit Queued for Maintenance',
-                'message' => $item->name . ' — unit ' . $unitCode . ' is damaged and scheduled for maintenance today. Other units of this item are unaffected.',
+                'message' => $item->name . ' — unit ' . $unitCode . ' is queued for maintenance on '
+                    . $record->scheduled_date->format('M d, Y')
+                    . ' (' . static::autoScheduleGraceDays() . '-day schedule window). Other units of this item are unaffected.',
                 'action_url' => route('analytics.maintenance-predictions', ['urgency' => 'critical']),
                 'priority' => 'high',
             ]);
