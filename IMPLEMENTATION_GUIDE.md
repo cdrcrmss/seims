@@ -1,4 +1,4 @@
-﻿# SEIS - Implementation Guide
+# SEIMS - Implementation Guide
 ## Supplies and Equipment Inventory System with Predictive Analytics
 ### St. Paul University Philippines (SPUP) Branding
 

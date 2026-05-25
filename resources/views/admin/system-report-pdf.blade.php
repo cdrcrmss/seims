@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -26,7 +26,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>SEIS – {{ $report_title }}</h1>
+        <h1>SEIMS – {{ $report_title }}</h1>
         <p>Generated: {{ $generated }}</p>
     </div>
 
@@ -54,6 +54,6 @@
         @include('admin.partials.system-report-pdf-section', ['type' => $type, 'rows' => $rows])
     @endif
 
-    <div class="footer">SEIS – Supplies and Equipment Inventory System with Predictive Analytics</div>
+    <div class="footer">SEIMS – Science Equipment Inventory Management System</div>
 </body>
 </html>

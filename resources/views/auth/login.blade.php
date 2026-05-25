@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
@@ -7,7 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Sign In - {{ config('app.name', 'SEIS') }}</title>
+    <title>Sign In - {{ config('app.name', 'SEIMS') }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/spup_logo.png') }}">
     <link rel="shortcut icon" type="image/png" href="{{ asset('images/spup_logo.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/spup_logo.png') }}">
@@ -388,8 +388,8 @@
                         <img src="{{ asset('images/spup_logo.png') }}" alt="SPUP Logo" style="width: 48px; height: 48px; object-fit: contain;">
                     </div>
                     <div>
-                        <h1 style="font-size: 28px; font-weight: 700; color: white; margin: 0; letter-spacing: -0.5px;">{{ config('app.name', 'SEIS') }}</h1>
-                        <p style="font-size: 14px; color: rgba(255,255,255,0.6); margin: 4px 0 0 0;">{{ config('app.tagline') }}</p>
+                        <h1 style="font-size: 28px; font-weight: 700; color: white; margin: 0; letter-spacing: -0.5px;">SEIMS</h1>
+                        <p style="font-size: 14px; color: rgba(255,255,255,0.6); margin: 4px 0 0 0;">Laboratory Management System</p>
                     </div>
                 </div>
 
@@ -397,10 +397,10 @@
                 <div class="animate-fade-in-up delay-100">
                     <h2 style="font-size: 40px; font-weight: 700; color: white; line-height: 1.2; margin: 0 0 24px 0;">
                         Streamline Your<br>
-                        <span style="background: linear-gradient(135deg, #86efac, #4ade80); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Inventory Operations</span>
+                        <span style="background: linear-gradient(135deg, #86efac, #4ade80); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Laboratory Operations</span>
                     </h2>
                     <p style="font-size: 18px; color: rgba(255,255,255,0.7); line-height: 1.7; margin: 0 0 48px 0;">
-                        Manage supplies and equipment, track borrowing and reservations, and use predictive analytics to plan maintenance.
+                        Efficiently manage equipment, track resources, and optimize workflows with our comprehensive laboratory management platform.
                     </p>
                 </div>
 
@@ -409,7 +409,7 @@
             <!-- Footer -->
             <div class="animate-fade-in delay-400" style="position: absolute; bottom: 48px; left: 48px; right: 48px;">
                 <p style="font-size: 14px; color: rgba(255,255,255,0.4); margin: 0;">
-                    © {{ date('Y') }} {{ config('app.name', 'SEIS') }}. All rights reserved.
+                    © {{ date('Y') }} SEIMS. All rights reserved.
                 </p>
             </div>
         </div>
@@ -422,7 +422,7 @@
                     <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #16a34a, #22c55e); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
                         <img src="{{ asset('images/spup_logo.png') }}" alt="SPUP Logo" style="width: 56px; height: 56px; object-fit: contain;">
                     </div>
-                    <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0;">{{ config('app.name', 'SEIS') }}</h1>
+                    <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0;">SEIMS</h1>
                 </div>
 
                 <!-- Form Header -->

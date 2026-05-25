@@ -259,7 +259,7 @@ class MaintenanceController extends Controller
         $records = $query->orderBy('scheduled_date', 'desc')->get();
 
         $dateLabel = ($request->date_from ?? 'all') . '_to_' . ($request->date_to ?? 'all');
-        $filename  = 'seis_maintenance_' . $dateLabel;
+        $filename  = 'seims_maintenance_' . $dateLabel;
 
         $pdf = Pdf::loadView('admin.maintenance-report-pdf', [
             'records'    => $records,

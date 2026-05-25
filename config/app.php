@@ -13,29 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'SEIS'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Application Tagline
-    |--------------------------------------------------------------------------
-    |
-    | Shown under the SEIS logo on auth pages and in the sidebar.
-    |
-    */
-
-    'tagline' => env('APP_TAGLINE', 'Supplies and Equipment Inventory System with Predictive Analytics'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Inventory Code Prefix
-    |--------------------------------------------------------------------------
-    |
-    | Prefix for QR codes and unit IDs (e.g. SEIS-000001-U001).
-    |
-    */
-
-    'inventory_code_prefix' => env('APP_INVENTORY_CODE_PREFIX', 'SEIS'),
+    'name' => env('APP_NAME', 'Laravel'),
 
     /*
     |--------------------------------------------------------------------------

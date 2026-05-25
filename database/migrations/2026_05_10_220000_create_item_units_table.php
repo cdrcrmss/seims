@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('item_units', function (Blueprint $table) {
             $table->id();
             $table->foreignId('item_id')->constrained()->onDelete('cascade');
-            $table->string('unit_code')->unique(); // e.g. SEIS-000001-U001
+            $table->string('unit_code')->unique(); // e.g. SEIMS-000001-U001
             $table->string('qr_code')->unique()->nullable(); // unique QR for this specific unit
             $table->enum('status', ['available', 'borrowed', 'maintenance', 'lost', 'retired'])->default('available');
             $table->foreignId('current_borrower_id')->nullable()->constrained('users')->nullOnDelete();

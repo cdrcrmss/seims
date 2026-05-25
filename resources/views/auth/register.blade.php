@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Create Account - {{ config('app.name', 'SEIS') }}</title>
+    <title>Create Account - {{ config('app.name', 'SEIMS') }}</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -242,25 +242,25 @@
                         <img src="{{ asset('images/spup_logo.png') }}" alt="SPUP Logo" style="width: 48px; height: 48px; object-fit: contain;">
                     </div>
                     <div>
-                        <h1 style="font-size: 28px; font-weight: 700; color: white; margin: 0; letter-spacing: -0.5px;">{{ config('app.name', 'SEIS') }}</h1>
-                        <p style="font-size: 14px; color: rgba(255,255,255,0.6); margin: 4px 0 0 0;">{{ config('app.tagline') }}</p>
+                        <h1 style="font-size: 28px; font-weight: 700; color: white; margin: 0; letter-spacing: -0.5px;">SEIMS</h1>
+                        <p style="font-size: 14px; color: rgba(255,255,255,0.6); margin: 4px 0 0 0;">Laboratory Management System</p>
                     </div>
                 </div>
 
                 <div class="animate-fade-in-up delay-100">
                     <h2 style="font-size: 40px; font-weight: 700; color: white; line-height: 1.2; margin: 0 0 24px 0;">
                         Join the<br>
-                        <span style="background: linear-gradient(135deg, #86efac, #4ade80); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">{{ config('app.name', 'SEIS') }} Platform</span>
+                        <span style="background: linear-gradient(135deg, #86efac, #4ade80); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">SEIMS Platform</span>
                     </h2>
                     <p style="font-size: 18px; color: rgba(255,255,255,0.7); line-height: 1.7; margin: 0;">
-                        Create your student account to borrow supplies and equipment.
+                        Create your student account to start borrowing laboratory equipment.
                     </p>
                 </div>
             </div>
 
             <div class="animate-fade-in delay-400" style="position: absolute; bottom: 48px; left: 48px; right: 48px;">
                 <p style="font-size: 14px; color: rgba(255,255,255,0.4); margin: 0;">
-                    &copy; {{ date('Y') }} {{ config('app.name', 'SEIS') }}. All rights reserved.
+                    &copy; {{ date('Y') }} SEIMS. All rights reserved.
                 </p>
             </div>
         </div>
@@ -273,7 +273,7 @@
                     <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #16a34a, #22c55e); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
                         <img src="{{ asset('images/spup_logo.png') }}" alt="SPUP Logo" style="width: 56px; height: 56px; object-fit: contain;">
                     </div>
-                    <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0;">SEIS</h1>
+                    <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0;">SEIMS</h1>
                 </div>
 
                 <!-- Header -->

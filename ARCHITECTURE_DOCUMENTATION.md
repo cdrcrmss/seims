@@ -1,5 +1,5 @@
-﻿# System Architecture - Module Overview
-## SEIS: Supplies and Equipment Inventory System
+# System Architecture - Module Overview
+## SEIMS: Supplies and Equipment Inventory System
 
 ## 🏛️ ARCHITECTURAL LAYERS
 

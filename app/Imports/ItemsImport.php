@@ -4,7 +4,6 @@ namespace App\Imports;
 
 use App\Models\Item;
 use App\Models\ItemUnit;
-use App\Support\InventoryCodes;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
@@ -190,7 +189,7 @@ class ItemsImport
             $pad = str_pad($existing->id, 6, '0', STR_PAD_LEFT);
             for ($i = 1; $i <= $totalStock; $i++) {
                 $seq = $existingUnitCount + $i;
-                $unitCode = InventoryCodes::unitCode($existing->id, $seq);
+                $unitCode = "SEIMS-{$pad}-U" . str_pad($seq, 3, '0', STR_PAD_LEFT);
                 ItemUnit::create([
                     'item_id'   => $existing->id,
                     'unit_code' => $unitCode,
@@ -216,11 +215,12 @@ class ItemsImport
         ]);
 
         $item->update([
-            'qr_code' => InventoryCodes::itemQrCode($item->id),
+            'qr_code' => 'SEIMS-' . str_pad($item->id, 6, '0', STR_PAD_LEFT) . '-' . strtoupper(Str::random(8)),
         ]);
 
+        $pad = str_pad($item->id, 6, '0', STR_PAD_LEFT);
         for ($i = 1; $i <= $totalStock; $i++) {
-            $unitCode = InventoryCodes::unitCode($item->id, $i);
+            $unitCode = "SEIMS-{$pad}-U" . str_pad($i, 3, '0', STR_PAD_LEFT);
             ItemUnit::create([
                 'item_id'   => $item->id,
                 'unit_code' => $unitCode,

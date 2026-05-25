@@ -10,7 +10,6 @@ use App\Models\User;
 use App\Mail\BorrowingApproved;
 use App\Mail\BorrowingRejected;
 use App\Services\BorrowingService;
-use App\Support\InventoryCodes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -154,7 +153,7 @@ class StaffController extends Controller
         ]);
 
         // Auto-assign QR code for the item
-        $item->update(['qr_code' => InventoryCodes::itemQrCode($item->id)]);
+        $item->update(['qr_code' => 'SEIMS-' . str_pad($item->id, 6, '0', STR_PAD_LEFT) . '-' . strtoupper(\Illuminate\Support\Str::random(8))]);
 
         // Create individual units for tracking
         $this->createUnitsForItem($item);
@@ -1024,7 +1023,7 @@ class StaffController extends Controller
         $itemPad = str_pad($item->id, 6, '0', STR_PAD_LEFT);
 
         for ($i = 1; $i <= $item->total_stock; $i++) {
-            $unitCode = InventoryCodes::unitCode($item->id, $i);
+            $unitCode = "SEIMS-{$itemPad}-U" . str_pad($i, 3, '0', STR_PAD_LEFT);
             $qrCode = $unitCode . '-' . strtoupper(\Illuminate\Support\Str::random(6));
 
             \App\Models\ItemUnit::create([

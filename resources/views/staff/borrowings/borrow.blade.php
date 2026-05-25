@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Borrow Items')
 
@@ -59,7 +59,7 @@
     'hasOverdue' => false,
     'requirePurpose' => false,
     'submitLabel' => 'Borrow Items',
-    'cartStorageKey' => 'seis_borrow_cart_staff',
+    'cartStorageKey' => 'seims_borrow_cart_staff',
     'searchApiUrl' => route('staff.api.search-items'),
     'filterBaseUrl' => route('staff.borrow.form'),
 ])

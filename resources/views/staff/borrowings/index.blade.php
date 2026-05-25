@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Borrowing Requests')
 
@@ -799,5 +799,5 @@
     </div>
 </div>
 
-@include('partials.borrow-cart-clear-script', ['cartStorageKeys' => ['seis_borrow_cart_staff']])
+@include('partials.borrow-cart-clear-script', ['cartStorageKeys' => ['seims_borrow_cart_staff']])
 @endsection

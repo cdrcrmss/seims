@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use App\Models\Item;
-use App\Support\InventoryCodes;
 use App\Models\ItemUnit;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
@@ -28,7 +27,7 @@ class GenerateItemUnits extends Command
             $itemPad = str_pad($item->id, 6, '0', STR_PAD_LEFT);
 
             for ($i = 1; $i <= $item->total_stock; $i++) {
-                $unitCode = InventoryCodes::unitCode($item->id, $i);
+                $unitCode = "SEIMS-{$itemPad}-U" . str_pad($i, 3, '0', STR_PAD_LEFT);
                 $qrCode = $unitCode . '-' . strtoupper(Str::random(6));
 
                 ItemUnit::create([

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="{ sidebarOpen: false }">
 <head>
     <meta charset="utf-8">
@@ -9,7 +9,7 @@
     <meta http-equiv="Expires" content="0">
     <meta name="theme-color" content="#16a34a">
 
-    <title>{{ config('app.name', 'SEIS') }} - @yield('title', 'Dashboard')</title>
+    <title>{{ config('app.name', 'SEIMS') }} - @yield('title', 'Laboratory Management')</title>
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ asset('images/spup_logo.png') }}">
@@ -124,12 +124,9 @@
             {{-- Logo area --}}
             <div class="flex items-center justify-between px-5 py-5 border-b border-white/10">
                 <div class="min-w-0 flex-1 pr-2">
-                    <div class="flex items-start space-x-3">
-                        <img src="{{ asset('images/spup_logo.png') }}" alt="SPUP Logo" class="w-9 h-9 object-contain rounded-lg bg-white/10 p-0.5 shrink-0 mt-0.5">
-                        <div class="min-w-0">
-                            <h1 class="text-xl font-bold text-white font-poppins tracking-tight">{{ config('app.name', 'SEIS') }}</h1>
-                            <p class="text-[10px] leading-snug text-green-100/80 mt-0.5">{{ config('app.tagline') }}</p>
-                        </div>
+                    <div class="flex items-center space-x-3">
+                        <img src="{{ asset('images/spup_logo.png') }}" alt="SPUP Logo" class="w-9 h-9 object-contain rounded-lg bg-white/10 p-0.5">
+                        <h1 class="text-xl font-bold text-white font-poppins tracking-tight">SEIMS</h1>
                     </div>
                     <a href="{{ route('user-manual') }}"
                        class="mt-2 inline-flex items-center gap-1.5 rounded-lg px-2 py-1 -mx-0.5 text-xs font-medium text-green-100 hover:text-white hover:bg-white/10 transition-colors antialiased {{ request()->routeIs('user-manual') ? 'bg-white/15 text-white ring-1 ring-white/20' : '' }}">

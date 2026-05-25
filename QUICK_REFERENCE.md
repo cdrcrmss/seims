@@ -1,4 +1,4 @@
-﻿# SEIS - Quick Reference Guide
+# SEIMS - Quick Reference Guide
 ## API Routes & Features
 
 ---
