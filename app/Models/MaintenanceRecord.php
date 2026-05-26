@@ -172,10 +172,32 @@ class MaintenanceRecord extends Model
             'corrective' => 'Repair',
             'preventive' => 'Preventive',
             'predictive' => 'Predictive',
-            'routine' => 'Routine',
+            'routine' => 'Routine inspection',
             'emergency' => 'Emergency',
             default => ucfirst((string) $this->maintenance_type),
         };
+    }
+
+    /** Unit code, item QR, or synthetic item id for list display. */
+    public function equipmentCodeDisplay(): string
+    {
+        if ($this->itemUnit?->unit_code) {
+            return $this->itemUnit->unit_code;
+        }
+
+        if ($this->relationLoaded('item') || $this->item) {
+            $item = $this->item;
+            if ($item?->qr_code) {
+                return $item->qr_code;
+            }
+            if ($item?->asset_code) {
+                return $item->asset_code;
+            }
+        }
+
+        return $this->item_id
+            ? 'ITEM-' . str_pad((string) $this->item_id, 6, '0', STR_PAD_LEFT)
+            : '—';
     }
 
     /**

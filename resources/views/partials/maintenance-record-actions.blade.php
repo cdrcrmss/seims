@@ -2,14 +2,28 @@
 
 @php
     $unit = $record->itemUnit;
-    $canDispose = $unit && in_array($unit->status, ['damaged', 'maintenance', 'needs_repair'], true);
+    $canDisposeUnit = $unit && ! in_array($unit->status, ['disposed', 'borrowed'], true);
+    $canRemoveScheduled = $record->status === 'scheduled' && ! $canDisposeUnit;
 @endphp
 
-<div class="flex flex-wrap items-center justify-end gap-2 shrink-0" x-data>
-    <a href="{{ route('maintenance.show', ['maintenance' => $record, 'from' => 'dashboard']) }}"
+<div class="flex flex-wrap items-center justify-end gap-2 shrink-0 sm:ml-4" x-data>
+    @if($record->status === 'scheduled')
+        @if($record->isScheduleOverdue())
+        <span class="text-xs font-semibold text-red-700 bg-red-50 px-2.5 py-1 rounded-lg whitespace-nowrap">
+            Overdue · {{ $record->scheduled_date->format('M d, Y') }} ({{ $record->scheduled_date->diffForHumans() }})
+        </span>
+        @else
+        <span class="text-xs font-semibold text-orange-700 bg-orange-50 px-2.5 py-1 rounded-lg whitespace-nowrap">
+            {{ $record->maintenance_type === 'routine' ? 'Inspection' : 'Repair' }} scheduled · {{ $record->scheduled_date->format('M d, Y') }}
+        </span>
+        @endif
+    @endif
+
+    <a href="{{ route('maintenance.show', ['maintenance' => $record, 'from' => request()->routeIs('maintenance.dashboard') ? 'dashboard' : 'index']) }}"
        class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 hover:bg-amber-100 ring-1 ring-amber-200 transition-colors whitespace-nowrap">
         View details
     </a>
+
     @if($record->status === 'scheduled')
     <button type="button"
             @click="$dispatch('open-complete-maintenance', { id: {{ $record->id }} })"
@@ -17,7 +31,8 @@
         Complete
     </button>
     @endif
-    @if($canDispose)
+
+    @if($canDisposeUnit)
     <form method="POST" action="{{ route('maintenance.units.dispose', $unit) }}" x-ref="disposeForm" class="hidden">
         @csrf
         @method('PATCH')
@@ -25,12 +40,30 @@
     <button type="button"
             @click="$dispatch('open-confirm-modal', {
                 title: 'Dispose Unit',
-                message: {{ \Illuminate\Support\Js::from('Mark unit ' . $unit->unit_code . ' as disposed? It cannot be borrowed.') }},
+                message: {{ \Illuminate\Support\Js::from('Mark unit ' . $unit->unit_code . ' as disposed? Scheduled maintenance for this unit will be cancelled.') }},
                 type: 'danger',
                 confirmLabel: 'Dispose',
                 form: $refs.disposeForm
             })"
             class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-gray-700 hover:bg-gray-50 ring-1 ring-gray-300 transition-colors whitespace-nowrap">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        Dispose
+    </button>
+    @elseif($canRemoveScheduled)
+    <form method="POST" action="{{ route('maintenance.records.cancel', $record) }}" x-ref="disposeForm" class="hidden">
+        @csrf
+        @method('PATCH')
+    </form>
+    <button type="button"
+            @click="$dispatch('open-confirm-modal', {
+                title: 'Remove Scheduled Maintenance',
+                message: {{ \Illuminate\Support\Js::from('Remove scheduled ' . strtolower($record->typeLabel()) . ' for ' . ($record->item?->name ?? 'this item') . ' on ' . $record->scheduled_date->format('M d, Y') . '?') }},
+                type: 'danger',
+                confirmLabel: 'Dispose',
+                form: $refs.disposeForm
+            })"
+            class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-gray-700 hover:bg-gray-50 ring-1 ring-gray-300 transition-colors whitespace-nowrap">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
         Dispose
     </button>
     @endif

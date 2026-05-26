@@ -85,14 +85,7 @@
 
             @foreach($overdueMaintenance as $record)
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 bg-red-50 rounded-xl ring-1 ring-red-100">
-                <div class="min-w-0 flex-1">
-                    <p class="font-medium text-gray-900">{{ $record->item?->name ?? 'Unknown' }}
-                        <span class="ml-2 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-red-100 text-red-700">Overdue</span>
-                    </p>
-                    <p class="text-xs text-red-600 mt-1">Due: {{ $record->scheduled_date->format('M d, Y') }} ({{ $record->scheduled_date->diffForHumans() }}) &middot; {{ $record->typeLabel() }}
-                        @if($record->itemUnit?->unit_code) &middot; <span class="font-mono">{{ $record->itemUnit->unit_code }}</span> @endif
-                    </p>
-                </div>
+                @include('partials.maintenance-record-summary', ['record' => $record])
                 @include('partials.maintenance-record-actions', ['record' => $record])
             </div>
             @endforeach
@@ -112,12 +105,7 @@
 
             @foreach($upcomingMaintenance as $record)
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-xl ring-1 ring-gray-100">
-                <div class="min-w-0 flex-1">
-                    <p class="font-medium text-gray-900">{{ $record->item?->name ?? 'Unknown' }}</p>
-                    <p class="text-xs text-gray-500 mt-1">{{ $record->scheduled_date->format('M d, Y') }} &middot; {{ $record->typeLabel() }}
-                        @if($record->itemUnit?->unit_code) &middot; <span class="font-mono text-gray-600">{{ $record->itemUnit->unit_code }}</span> @endif
-                    </p>
-                </div>
+                @include('partials.maintenance-record-summary', ['record' => $record])
                 @include('partials.maintenance-record-actions', ['record' => $record])
             </div>
             @endforeach

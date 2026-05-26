@@ -149,6 +149,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
         Route::post('/', [MaintenanceController::class, 'store'])->name('store');
         Route::get('/{maintenance}', [MaintenanceController::class, 'show'])->name('show');
         Route::patch('/units/{unit}/dispose', [MaintenanceController::class, 'disposeUnit'])->name('units.dispose');
+        Route::patch('/records/{maintenance}/cancel', [MaintenanceController::class, 'cancelScheduledRecord'])->name('records.cancel');
         Route::patch('/{maintenance}/complete', [MaintenanceController::class, 'complete'])->name('complete');
         Route::post('/export', [MaintenanceController::class, 'exportReport'])->name('export');
     });

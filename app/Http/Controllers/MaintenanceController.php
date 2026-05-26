@@ -281,6 +281,29 @@ class MaintenanceController extends Controller
     }
 
     /**
+     * Cancel item-level scheduled maintenance (no unit row — e.g. routine inspection).
+     */
+    public function cancelScheduledRecord(Request $request, MaintenanceRecord $maintenance)
+    {
+        if ($maintenance->status !== 'scheduled') {
+            return redirect()
+                ->back()
+                ->with('error', 'Only scheduled maintenance can be removed.');
+        }
+
+        $maintenance->update([
+            'status' => 'cancelled',
+            'notes' => trim(($maintenance->notes ? $maintenance->notes . ' ' : '') . 'Removed from schedule by staff.'),
+        ]);
+
+        $label = $maintenance->item?->name ?? 'Maintenance record';
+
+        return redirect()
+            ->back()
+            ->with('success', 'Scheduled maintenance for ' . $label . ' was removed.');
+    }
+
+    /**
      * Mark a critical unit as disposed (removes from circulation, cancels scheduled work).
      */
     public function disposeUnit(Request $request, ItemUnit $unit)
